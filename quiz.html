@@ -90,35 +90,28 @@
     </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, query, where, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+// यह फंक्शन बटन क्लिक पर चलता है
+window.showSections = function(sub) {
+    subject = sub;
+    document.getElementById("selectedSubjectTitle").innerText = "📚 " + sub;
+    document.getElementById("subjectBox").classList.add("hide");
+    document.getElementById("sectionBox").classList.remove("hide");
+};
 
-const firebaseConfig = { apiKey: "AIzaSyDjzmo0A4KhOkrqFQdOyCEek6bsPF-UVPQ", authDomain: "gds-departmental-exam-studyhub.firebaseapp.com", projectId: "gds-departmental-exam-studyhub", storageBucket: "gds-departmental-exam-studyhub.appspot.com", messagingSenderId: "759916756080", appId: "1:759916756080:web:7f2c0e66458bd007e888b5" };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+window.backToSubjects = function() { 
+    document.getElementById("sectionBox").classList.add("hide"); 
+    document.getElementById("subjectBox").classList.remove("hide"); 
+};
 
-let user = null, subject = "", selectedSection = "", questions = [], current = 0, answers = {}, submitted = false, sec = 1800, timerInt = null;
-
-onAuthStateChanged(auth, (u) => { if (u) user = u; else location.href = "login.html"; });
+window.selectSection = function(secName) { 
+    selectedSection = secName; 
+    startQuiz(subject); 
+};
 
 window.goBack = function() {
-    // 1. अगर 'सेक्शन चुनने वाला पेज' (sectionBox) दिख रहा है, तो वापस सब्जेक्ट लिस्ट पर जाएं
-    if (!document.getElementById("sectionBox").classList.contains("hide")) {
-        backToSubjects();
-    } 
-    // 2. अगर 'क्विज़' (quizBox) चल रहा है, तो रिफ्रेश करके सब्जेक्ट लिस्ट पर ले आएं
-    else if (!document.getElementById("quizBox").classList.contains("hide")) {
-        // टेस्ट छोड़ना चाहते हैं, इसलिए रिफ्रेश करके वापस मेन स्क्रीन पर
-        location.reload(); 
-    }
-    // 3. अगर मेन सब्जेक्ट स्क्रीन पर हैं, तो यहीं रुकें या चाहें तो एक अलर्ट दे सकते हैं
-    else {
-        // यहाँ कुछ न करें ताकि गलती से लॉगआउट न हो
-        console.log("Already on main screen");
-    }
+    if (!document.getElementById("sectionBox").classList.contains("hide")) backToSubjects();
+    else if (!document.getElementById("quizBox").classList.contains("hide")) location.reload();
+    else window.history.back();
 };
 
 
