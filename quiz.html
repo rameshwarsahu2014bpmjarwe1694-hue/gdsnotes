@@ -101,10 +101,19 @@
 
     onAuthStateChanged(auth, (u) => { if (u) user = u; else location.href = "login.html"; });
 
-    window.goBack = function() {
-        if (!document.getElementById("sectionBox").classList.contains("hide")) backToSubjects();
-        else if (!document.getElementById("quizBox").classList.contains("hide")) location.reload();
-        else window.history.back();
+        window.goBack = function() {
+        if (!document.getElementById("sectionBox").classList.contains("hide")) {
+            // अगर सेक्शन बॉक्स खुला है, तो सब्जेक्ट लिस्ट पर वापस जाएं
+            backToSubjects();
+        } else if (!document.getElementById("quizBox").classList.contains("hide")) {
+            // अगर क्विज़ चल रहा है, तो कन्फर्मेशन लेकर मेन डैशबोर्ड पर भेजें
+            if (confirm("क्या आप टेस्ट छोड़कर डैशबोर्ड पर जाना चाहते हैं?")) {
+                window.location.href = "dashboard.html"; // यहाँ अपने डैशबोर्ड फाइल का नाम लिखें
+            }
+        } else {
+            // अगर कहीं और हैं, तो भी डैशबोर्ड पर ही भेजें
+            window.location.href = "dashboard.html";
+        }
     };
 
     window.showSections = function(sub) {
