@@ -380,37 +380,50 @@ window.bulkImport = async function(){
 window.showList = async function(){
     if(current === "") return;
     let box = document.getElementById("listBox");
+    let selectedSec = val("sectionSelect"); // जो आपने ऊपर सेलेक्ट किया है
+    
     try {
         const qy = query(
             collection(window.db, "quizQuestions"),
-            where("subject", "==", current),
-            where("section", "==", val("sectionSelect"))
+            where("subject", "==", current)
         );
         const snap = await getDocs(qy);
+        
         document.getElementById("countBox").innerText = snap.size;
+
         if(snap.empty){
             box.innerHTML = "<b>No Questions Added</b>";
             return;
         }
+
         let html = "";
         let i = 1;
+
         snap.forEach(x => {
             let d = x.data();
-            html += `
-            <div class="item">
-                <b>${i}. ${d.question}</b><br>
-                1. ${d.options[0]}<br>
-                2. ${d.options[1]}<br>
-                3. ${d.options[2]}<br>
-                4. ${d.options[3]}<br>
-                <b>Answer:</b> ${d.answer}<br><br>
-                <button class="smallbtn update" onclick="editQuestion('${x.id}')">Edit</button>
-                <button class="smallbtn delete" onclick="deleteQuestion('${x.id}')">Delete</button>
-            </div>
-            `;
-            i++;
+            
+            // यहाँ लॉजिक है: अगर सवाल में सेक्शन लिखा है तो ठीक, 
+            // वरना उसे "Section I" मान लो (क्योंकि कैंडिडेट पेज भी यही कर रहा है)
+            let qSection = d.section || "Section I"; 
+            
+            if(qSection === selectedSec) {
+                html += `
+                <div class="item">
+                    <b>${i}. ${d.question}</b><br>
+                    1. ${d.options[0]}<br>
+                    2. ${d.options[1]}<br>
+                    3. ${d.options[2]}<br>
+                    4. ${d.options[3]}<br>
+                    <b>Answer:</b> ${d.answer}<br><br>
+                    <button class="smallbtn update" onclick="editQuestion('${x.id}')">Edit</button>
+                    <button class="smallbtn delete" onclick="deleteQuestion('${x.id}')">Delete</button>
+                </div>
+                `;
+                i++;
+            }
         });
-        box.innerHTML = html;
+        
+        box.innerHTML = html === "" ? "<b>No Questions in this section</b>" : html;
     } catch (error) {
         console.error(error);
     }
