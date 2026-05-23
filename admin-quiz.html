@@ -171,6 +171,22 @@ margin-top:18px;
 
 <h3 id="title">Add Questions</h3>
 
+<label>Select Section</label>
+<select id="sectionSelect" onchange="showList()">
+    <option value="Section I">Section I</option>
+    <option value="Section II">Section II</option>
+    <option value="Section III">Section III</option>
+    <option value="Section IV">Section IV</option>
+    <option value="Section V">Section V</option>
+    <option value="Section VI">Section VI</option>
+    <option value="Section VII">Section VII</option>
+    <option value="Section VIII">Section VIII</option>
+    <option value="Section IX">Section IX</option>
+    <option value="Section X">Section X</option>
+    <option value="Section XI">Section XI</option>
+    <option value="Section XII">Section XII</option>
+</select>
+
 <label>Question</label>
 <textarea id="question"></textarea>
 
@@ -218,7 +234,6 @@ Answer: 20 किलोग्राम"></textarea>
 
 </div>
 
-<!-- Firebase Config File (Ensure window.db is exported inside firebase.js) -->
 <script type="module" src="firebase.js"></script>
 
 <script type="module">
@@ -237,7 +252,6 @@ getFirestore
 let current = "";
 let editId = "";
 
-// Ensure window.db is properly targeted if not already loaded via firebase.js
 if (!window.db) {
     try {
         window.db = getFirestore();
@@ -246,70 +260,58 @@ if (!window.db) {
     }
 }
 
-/* SUBJECT CHOOSE */
 window.choose = function(cat){
     current = cat;
     editId = "";
-
     document.getElementById("subName").innerText = cat;
     document.getElementById("panel").classList.remove("hide");
     document.getElementById("title").innerText = cat + " - Add Questions";
-
     resetMode();
     showList();
-
     window.scrollTo({
         top: 450,
         behavior: "smooth"
     });
 };
 
-/* SAVE SINGLE */
 window.saveSingle = async function(){
     if(current === ""){
         alert("Select subject first");
         return;
     }
-
     let q = val("question");
     let a = val("opt1");
     let b = val("opt2");
     let c = val("opt3");
     let d = val("opt4");
     let ans = val("answer");
-
     if(q === "" || a === "" || b === "" || c === "" || d === ""){
         alert("Fill all fields");
         return;
     }
-
     try {
-        /* Duplicate Check */
         const dup = query(
             collection(window.db, "quizQuestions"),
             where("subject", "==", current),
             where("question", "==", q)
         );
         const dupSnap = await getDocs(dup);
-
         if(!dupSnap.empty){
             alert("Duplicate question already exists!");
             return;
         }
-
         let correct = a;
         if(ans === "B") correct = b;
         if(ans === "C") correct = c;
         if(ans === "D") correct = d;
-
         await addDoc(collection(window.db, "quizQuestions"), {
             subject: current,
+            section: val("sectionSelect"),
             question: q,
             options: [a, b, c, d],
             answer: correct,
             createdAt: Date.now()
         });
-
         clearForm();
         showList();
         alert("Question Successfully Uploaded!");
@@ -319,27 +321,21 @@ window.saveSingle = async function(){
     }
 };
 
-/* BULK IMPORT (Upgraded for both old and new formats) */
 window.bulkImport = async function(){
     if(current === ""){
         alert("Select subject first");
         return;
     }
-
     let text = val("bulkBox");
     if(text === ""){
         alert("Paste questions first");
         return;
     }
-
     try {
-        // Splitting questions based on blank lines
         let blocks = text.split(/\n\s*\n/);
         let count = 0;
-
         for(let block of blocks){
             let lines = block.split("\n").map(x => x.trim()).filter(Boolean);
-            
             if(lines.length >= 6){
                 let q = lines[0];
                 let a = clean(lines[1]);
@@ -347,8 +343,6 @@ window.bulkImport = async function(){
                 let c = clean(lines[3]);
                 let d = clean(lines[4]);
                 let ansLine = lines[5];
-
-                /* Duplicate skip check */
                 const dup = query(
                     collection(window.db, "quizQuestions"),
                     where("subject", "==", current),
@@ -358,28 +352,22 @@ window.bulkImport = async function(){
                 if(!dupSnap.empty){
                     continue; 
                 }
-
-                // Extracts exact text after "Answer:" or "उत्तर:"
                 let correct = ansLine.replace(/^(Answer:|Answer\s*:\s*|उत्तर\s*:\s*)/i, "").trim();
-
-                // If Answer line just has A, B, C, D instead of text
                 if (correct.toUpperCase() === "A" || correct === a) correct = a;
                 else if (correct.toUpperCase() === "B" || correct === b) correct = b;
                 else if (correct.toUpperCase() === "C" || correct === c) correct = c;
                 else if (correct.toUpperCase() === "D" || correct === d) correct = d;
-
                 await addDoc(collection(window.db, "quizQuestions"), {
                     subject: current,
+                    section: val("sectionSelect"),
                     question: q,
                     options: [a, b, c, d],
                     answer: correct,
                     createdAt: Date.now()
                 });
-
                 count++;
             }
         }
-
         document.getElementById("bulkBox").value = "";
         showList();
         alert(count + " Questions Successfully Uploaded!");
@@ -389,29 +377,23 @@ window.bulkImport = async function(){
     }
 };
 
-/* SHOW LIST */
-async function showList(){
+window.showList = async function(){
     if(current === "") return;
-
     let box = document.getElementById("listBox");
-    
     try {
         const qy = query(
             collection(window.db, "quizQuestions"),
-            where("subject", "==", current)
+            where("subject", "==", current),
+            where("section", "==", val("sectionSelect"))
         );
         const snap = await getDocs(qy);
-
         document.getElementById("countBox").innerText = snap.size;
-
         if(snap.empty){
             box.innerHTML = "<b>No Questions Added</b>";
             return;
         }
-
         let html = "";
         let i = 1;
-
         snap.forEach(x => {
             let d = x.data();
             html += `
@@ -428,14 +410,12 @@ async function showList(){
             `;
             i++;
         });
-
         box.innerHTML = html;
     } catch (error) {
         console.error(error);
     }
-}
+};
 
-/* EDIT */
 window.editQuestion = async function(id){
     try {
         const qy = query(
@@ -443,7 +423,6 @@ window.editQuestion = async function(id){
             where("subject", "==", current)
         );
         const snap = await getDocs(qy);
-
         snap.forEach(x => {
             if(x.id === id){
                 let d = x.data();
@@ -452,18 +431,14 @@ window.editQuestion = async function(id){
                 document.getElementById("opt2").value = d.options[1];
                 document.getElementById("opt3").value = d.options[2];
                 document.getElementById("opt4").value = d.options[3];
-
                 let ans = "A";
                 if(d.answer === d.options[1]) ans = "B";
                 if(d.answer === d.options[2]) ans = "C";
                 if(d.answer === d.options[3]) ans = "D";
-
                 document.getElementById("answer").value = ans;
                 editId = id;
-
                 document.getElementById("saveBtn").classList.add("hide");
                 document.getElementById("updateBtn").classList.remove("hide");
-
                 window.scrollTo({
                     top: 450,
                     behavior: "smooth"
@@ -475,30 +450,26 @@ window.editQuestion = async function(id){
     }
 };
 
-/* UPDATE */
 window.updateQuestion = async function(){
     if(editId === "") return;
-
     let q = val("question");
     let a = val("opt1");
     let b = val("opt2");
     let c = val("opt3");
     let d = val("opt4");
     let ans = val("answer");
-
     let correct = a;
     if(ans === "B") correct = b;
     if(ans === "C") correct = c;
     if(ans === "D") correct = d;
-
     try {
         await updateDoc(doc(window.db, "quizQuestions", editId), {
+            section: val("sectionSelect"),
             question: q,
             options: [a, b, c, d],
             answer: correct,
             updatedAt: Date.now()
         });
-
         clearForm();
         resetMode();
         showList();
@@ -509,7 +480,6 @@ window.updateQuestion = async function(){
     }
 };
 
-/* DELETE */
 window.deleteQuestion = async function(id){
     if(!confirm("Delete this question?")) return;
     try {
@@ -521,13 +491,11 @@ window.deleteQuestion = async function(id){
     }
 };
 
-/* HELPERS */
 function val(id){
     return document.getElementById(id).value.trim();
 }
 
 function clean(t){
-    // Removes old prefixes like A), B) or a), b) if present, else returns text as is
     return t.replace(/^[A-D]\)\s*|^[a-d]\)\s*/i, "").trim();
 }
 
