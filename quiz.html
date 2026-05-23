@@ -105,14 +105,22 @@ let user = null, subject = "", selectedSection = "", questions = [], current = 0
 onAuthStateChanged(auth, (u) => { if (u) user = u; else location.href = "login.html"; });
 
 window.goBack = function() {
-    if (!document.getElementById("sectionBox").classList.contains("hide")) backToSubjects();
-    else if (!document.getElementById("quizBox").classList.contains("hide")) location.reload();
-    else window.history.back();
+    // 1. अगर 'सेक्शन चुनने वाला पेज' (sectionBox) दिख रहा है, तो वापस सब्जेक्ट लिस्ट पर जाएं
+    if (!document.getElementById("sectionBox").classList.contains("hide")) {
+        backToSubjects();
+    } 
+    // 2. अगर 'क्विज़' (quizBox) चल रहा है, तो रिफ्रेश करके सब्जेक्ट लिस्ट पर ले आएं
+    else if (!document.getElementById("quizBox").classList.contains("hide")) {
+        // टेस्ट छोड़ना चाहते हैं, इसलिए रिफ्रेश करके वापस मेन स्क्रीन पर
+        location.reload(); 
+    }
+    // 3. अगर मेन सब्जेक्ट स्क्रीन पर हैं, तो यहीं रुकें या चाहें तो एक अलर्ट दे सकते हैं
+    else {
+        // यहाँ कुछ न करें ताकि गलती से लॉगआउट न हो
+        console.log("Already on main screen");
+    }
 };
 
-window.showSections = function(sub) { subject = sub; document.getElementById("selectedSubjectTitle").innerText = "📚 " + sub; document.getElementById("subjectBox").classList.add("hide"); document.getElementById("sectionBox").classList.remove("hide"); };
-window.backToSubjects = function() { document.getElementById("sectionBox").classList.add("hide"); document.getElementById("subjectBox").classList.remove("hide"); };
-window.selectSection = function(secName) { selectedSection = secName; startQuiz(subject); };
 
 window.startQuiz = async function(sub) {
     subject = sub;
