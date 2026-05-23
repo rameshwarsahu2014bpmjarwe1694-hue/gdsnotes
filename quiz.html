@@ -17,26 +17,14 @@
         .subject-card { background: #fafafa; border: 2px solid #ddd; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; display: flex; align-items: center; justify-content: center; min-height: 80px; }
         .subject-card:hover { border-color: var(--primary); background: #eef7ff; transform: translateY(-2px); }
         .status-bar { text-align: center; font-size: 14px; font-weight: bold; margin-bottom: 15px; padding: 8px; border-radius: 5px; }
-        .loader { background: #e1f5fe; color: #01579b; }
-        .ok { background: #d4edda; color: #155724; }
-        .err { background: #f8d7da; color: #721c24; }
         .card { background: #fafafa; border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-top: 15px; }
         .question-text { font-weight: bold; font-size: 16px; margin: 15px 0; color: var(--dark); }
         .option { display: block; width: 100%; text-align: left; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-size: 15px; position: relative; }
-        .option input { margin-right: 10px; }
-        .correct { background: #d4edda !important; border-color: #28a745 !important; font-weight: bold; }
-        .wrong { background: #f8d7da !important; border-color: #dc3545 !important; }
         .btn-row { display: flex; gap: 10px; margin-top: 20px; }
         .btn { padding: 13px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: #fff; flex: 1; font-size: 15px; }
-        .btn-prev { background: #6c757d; }
-        .btn-next { background: var(--dark); }
-        .btn-submit { background: var(--success); }
-        .result-box { text-align: center; margin-top: 20px; }
-        .score-text { font-size: 35px; color: var(--primary); font-weight: bold; margin: 10px 0; }
         .hide { display: none; }
         .sections-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .section-sub-card { background: #f8f9fa; border: 1px dashed #ccc; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px; color: var(--dark); cursor: pointer; }
-        .section-sub-card:hover { background: #e9ecef; border-color: var(--primary); color: var(--primary); }
     </style>
 </head>
 <body>
@@ -46,111 +34,74 @@
         <div class="timer-box" id="timer">30:00</div>
     </div>
     <h1>Mock Test Hub</h1>
-    <div id="statusBox" class="status-bar hide"></div>
     <div id="subjectBox">
-        <p style="text-align:center; font-weight:bold; color:#666;">विषय चुनें और टेस्ट शुरू करें:</p>
         <div class="grid">
             <div class="subject-card" onclick="showSections('POSTAL MANUAL VOLUME 7')">📘 POSTAL MANUAL VOL 7</div>
             <div class="subject-card" onclick="showSections('GK')">🌍 General Knowledge</div>
             <div class="subject-card" onclick="showSections('Maths')">➕ Mathematics</div>
             <div class="subject-card" onclick="showSections('Reasoning')">🧠 Reasoning</div>
-            <div class="subject-card" onclick="showSections('POSTAL MANUAL VOLUME 5')">📘 POSTAL MANUAL VOL 5</div>
-            <div class="subject-card" onclick="showSections('Post Office Guide 1')">📮 PO GUIDE 1</div>
-            <div class="subject-card" onclick="showSections('Post Office Guide 2')">📮 PO GUIDE 2</div>
-            <div class="subject-card" onclick="showSections('POSTAL MANUAL VOLUME 6 PART 3')">📘 VOL 6 PART 3</div>
         </div>
     </div>
     <div id="sectionBox" class="hide card">
-        <h3 id="selectedSubjectTitle" style="text-align:center; color:var(--primary); margin-bottom:5px; font-size:16px;">Subject</h3>
+        <h3 id="selectedSubjectTitle" style="text-align:center; color:var(--primary);">Subject</h3>
         <div class="sections-container">
             <div class="section-sub-card" onclick="selectSection('Section I')">Section I</div>
             <div class="section-sub-card" onclick="selectSection('Section II')">Section II</div>
-            <div class="section-sub-card" onclick="selectSection('Section III')">Section III</div>
-            <div class="section-sub-card" onclick="selectSection('Section IV')">Section IV</div>
-            <div class="section-sub-card" onclick="selectSection('Section V')">Section V</div>
         </div>
-        <button class="btn" style="background:#6c757d; width:100%; margin-top:15px; padding:10px;" onclick="backToSubjects()">← Back to Subjects</button>
+        <button class="btn" style="background:#6c757d; width:100%; margin-top:15px;" onclick="backToSubjects()">← Back</button>
     </div>
-    <div id="quizBox" class="hide">
-        <div class="card">
-            <span id="progress" style="color:var(--danger); font-weight:bold; font-size:14px;"></span>
-            <div class="question-text" id="question"></div>
-            <div id="options"></div>
-            <div class="btn-row">
-                <button class="btn btn-prev" onclick="prevQ()">Previous</button>
-                <button class="btn btn-next" id="nextBtn" onclick="nextQ()">Next</button>
-                <button class="btn btn-submit hide" id="submitBtn" onclick="submitQuiz()">Submit Test</button>
-            </div>
-        </div>
-    </div>
-    <div id="resultArea" class="hide card result-box">
-        <h3>📊 आपका परिणाम</h3>
-        <div class="score-text" id="resultScore"></div>
-        <button class="btn" style="background:var(--primary); width:100%;" onclick="location.reload()">Restart New Test</button>
-    </div>
+    <div id="quizBox" class="hide"><div class="card"><div id="question"></div><div id="options"></div></div></div>
 </div>
 
-// यह फंक्शन बटन क्लिक पर चलता है
-window.showSections = function(sub) {
-    subject = sub;
-    document.getElementById("selectedSubjectTitle").innerText = "📚 " + sub;
-    document.getElementById("subjectBox").classList.add("hide");
-    document.getElementById("sectionBox").classList.remove("hide");
-};
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-window.backToSubjects = function() { 
-    document.getElementById("sectionBox").classList.add("hide"); 
-    document.getElementById("subjectBox").classList.remove("hide"); 
-};
+    const firebaseConfig = { apiKey: "AIzaSyDjzmo0A4KhOkrqFQdOyCEek6bsPF-UVPQ", authDomain: "gds-departmental-exam-studyhub.firebaseapp.com", projectId: "gds-departmental-exam-studyhub", storageBucket: "gds-departmental-exam-studyhub.appspot.com", messagingSenderId: "759916756080", appId: "1:759916756080:web:7f2c0e66458bd007e888b5" };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-window.selectSection = function(secName) { 
-    selectedSection = secName; 
-    startQuiz(subject); 
-};
+    let subject = "", selectedSection = "", questions = [];
 
-window.goBack = function() {
-    if (!document.getElementById("sectionBox").classList.contains("hide")) backToSubjects();
-    else if (!document.getElementById("quizBox").classList.contains("hide")) location.reload();
-    else window.history.back();
-};
+    window.showSections = (sub) => {
+        subject = sub;
+        document.getElementById("selectedSubjectTitle").innerText = sub;
+        document.getElementById("subjectBox").classList.add("hide");
+        document.getElementById("sectionBox").classList.remove("hide");
+    };
 
+    window.backToSubjects = () => {
+        document.getElementById("sectionBox").classList.add("hide");
+        document.getElementById("subjectBox").classList.remove("hide");
+    };
 
-window.startQuiz = async function(sub) {
-    subject = sub;
-    try {
+    window.selectSection = (sec) => {
+        selectedSection = sec;
+        startQuiz(subject);
+    };
+
+    window.goBack = () => {
+        if (!document.getElementById("sectionBox").classList.contains("hide")) backToSubjects();
+        else if (!document.getElementById("quizBox").classList.contains("hide")) location.reload();
+        else window.history.back();
+    };
+
+    window.startQuiz = async (sub) => {
         const qy = query(collection(db, "quizQuestions"), where("subject", "==", sub));
         const snap = await getDocs(qy);
         questions = [];
         snap.forEach(doc => {
             let data = doc.data();
-            let qSec = data.section || "Section I"; 
-            if (qSec === selectedSection) questions.push(data);
+            if ((data.section || "Section I") === selectedSection) questions.push(data);
         });
-        if (questions.length === 0) { alert("इस सेक्शन में अभी कोई सवाल नहीं हैं।"); return; }
-        document.getElementById("sectionBox").classList.add("hide");
-        document.getElementById("quizBox").classList.remove("hide");
-        current = 0; answers = {}; submitted = false; sec = 1800; startTimer(); render();
-    } catch (e) { alert("Error: " + e.message); }
-};
-
-function startTimer() { clearInterval(timerInt); timerInt = setInterval(() => { sec--; let m = Math.floor(sec/60), s = sec%60; document.getElementById("timer").innerText = String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0"); if(sec <= 0) { clearInterval(timerInt); submitQuiz(); } }, 1000); }
-
-window.render = function() {
-    let q = questions[current];
-    document.getElementById("progress").innerText = `प्रश्न: ${current + 1} / ${questions.length}`;
-    document.getElementById("question").innerText = q.question;
-    let html = "";
-    q.options.forEach(op => { let isSelected = answers[current] === op; let cls = "option" + (submitted && op === q.answer ? " correct" : "") + (submitted && isSelected && op !== q.answer ? " wrong" : ""); html += `<div class="${cls}" onclick="${submitted ? '' : `saveAns('${op.replace(/'/g, "\\'")}')`}"><input type="radio" ${isSelected ? "checked" : ""} ${submitted ? "disabled" : ""}> ${op}</div>`; });
-    document.getElementById("options").innerHTML = html;
-    let isReviewPoint = (current + 1) % 10 === 0 || current === questions.length - 1;
-    document.getElementById("submitBtn").classList.toggle("hide", !isReviewPoint);
-    document.getElementById("nextBtn").classList.toggle("hide", isReviewPoint);
-};
-
-window.saveAns = function(v) { answers[current] = v; render(); };
-window.nextQ = function() { if(current < questions.length - 1) { current++; render(); } };
-window.prevQ = function() { if(current > 0) { current--; render(); } };
-window.submitQuiz = async function() { /* Submit logic as per your original structure */ };
+        if (questions.length === 0) alert("कोई सवाल नहीं मिले।");
+        else {
+            document.getElementById("sectionBox").classList.add("hide");
+            document.getElementById("quizBox").classList.remove("hide");
+        }
+    };
 </script>
 </body>
 </html>
