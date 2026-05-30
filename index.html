@@ -41,6 +41,21 @@
         .hero h1{font-size:32px;margin-bottom:10px;font-weight:bold;}
         .hero p{font-size:17px;margin:6px 0;opacity:0.95;}
 
+        /* Moving Text Styles */
+        .marquee-container{
+            width:100%; overflow:hidden; background:#ffd600; 
+            padding:10px 0; margin:15px 0; border-radius:8px;
+        }
+        .marquee-text{
+            display:inline-block; white-space:nowrap;
+            animation:move-text 15s linear infinite;
+            font-weight:bold; color:#8d151a; font-size:16px;
+        }
+        @keyframes move-text{
+            0%{transform:translateX(100%);}
+            100%{transform:translateX(-100%);}
+        }
+
         .btn-group{
             margin-top:25px;
             display:flex;
@@ -139,9 +154,13 @@
             📲 Install App
         </button>
         <p>GDS Departmental Exam LDCE 2026</p>
-        <p>Revised Exam Dates:PA/SA: 21 June 2026
-                              MTS-PM/MG: 12 July 2026
-         Best wishes From: Rameshwar Sahu</p>
+
+        <!-- Moving Text Section -->
+        <div class="marquee-container">
+            <div class="marquee-text">
+                📢 Revised Exam Dates: PA/SA: 21 June 2026 | MTS-PM/MG: 12 July 2026 | Best wishes From: Rameshwar Sahu
+            </div>
+        </div>
 
         <div class="btn-group">
             <a href="/gdsnotes/login.html" class="btn btn-login">Candidate Login</a>
