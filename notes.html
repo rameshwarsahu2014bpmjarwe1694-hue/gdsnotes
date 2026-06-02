@@ -17,7 +17,6 @@ body{
 background:#f4f6f9;
 padding:15px;
 }
-<button class="back-btn" onclick="goBack()">← Back</button>
     
 .container{
 max-width:1000px;
@@ -131,13 +130,24 @@ grid-template-columns:1fr;
 font-size:21px;
 }
 }
+.back-btn {
+    display: inline-block;
+    padding: 10px 15px;
+    background: #444;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-
+<button class="back-btn" onclick="goBack()">← Back</button>
 <div class="topbar">📚 Notes</div>
 
 <div class="tools">
@@ -323,8 +333,8 @@ document.getElementById("subFilter").addEventListener("change",applyFilter);
 
 waitFirebase();
 function goBack() {
-    // अगर आपके पास पिछले पेज का नाम पता है, तो सीधा वहां भेजें
-    // जैसे: window.location.href = "dashboard.html";
+    window.history.back();
+}
 </script>
 </body>
 </html>
