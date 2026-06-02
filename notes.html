@@ -331,7 +331,7 @@ document.getElementById("searchInput").addEventListener("input",applyFilter);
 document.getElementById("postFilter").addEventListener("change",applyFilter);
 document.getElementById("subFilter").addEventListener("change",applyFilter);
 window.goBack = function() {
-    window.history.back();
+    window.location.href = "dashboard.html";
 };
 waitFirebase();
 </script>
