@@ -17,7 +17,8 @@ body{
 background:#f4f6f9;
 padding:15px;
 }
-
+<button class="back-btn" onclick="goBack()">← Back</button>
+    
 .container{
 max-width:1000px;
 margin:auto;
@@ -321,6 +322,9 @@ document.getElementById("postFilter").addEventListener("change",applyFilter);
 document.getElementById("subFilter").addEventListener("change",applyFilter);
 
 waitFirebase();
+function goBack() {
+    // अगर आपके पास पिछले पेज का नाम पता है, तो सीधा वहां भेजें
+    // जैसे: window.location.href = "dashboard.html";
 </script>
 </body>
 </html>
