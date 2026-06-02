@@ -261,9 +261,7 @@ loadNotes();
 setTimeout(waitFirebase,300);
 }
 }
-function goBack() {
-    window.history.back();
-}
+
 async function loadNotes(){
 const box = document.getElementById("notesList");
 try{
@@ -332,7 +330,9 @@ renderNotes(filtered);
 document.getElementById("searchInput").addEventListener("input",applyFilter);
 document.getElementById("postFilter").addEventListener("change",applyFilter);
 document.getElementById("subFilter").addEventListener("change",applyFilter);
-
+window.goBack = function() {
+    window.history.back();
+};
 waitFirebase();
 </script>
 </body>
