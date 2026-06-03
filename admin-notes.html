@@ -35,14 +35,12 @@ button{ width:100%; padding:13px; border:none; border-radius:12px; font-size:16p
 <input type="text" id="titleInput" placeholder="Enter note title">
   
 <select id="postFilter">
-<option value="ALL">All Posts</option>
 <option value="MTS">MTS</option>
 <option value="POSTMAN">POSTMAN</option>
 <option value="PA/SA">PA/SA</option>
 </select>
 
 <select id="subFilter">
-<option value="ALL">All Subjects</option>
 <option value="GK">GK</option>
 <option value="Maths">Maths</option>
 <option value="Reasoning">Reasoning</option>
@@ -54,12 +52,11 @@ button{ width:100%; padding:13px; border:none; border-radius:12px; font-size:16p
 </select>
 
 <textarea id="descInput" placeholder="Write description / text note"></textarea>
-<p style="font-size:12px; margin-bottom:5px;">Upload Book Cover (Image):</p>
-<input type="file" id="imageInput" accept="image/*">
-<p style="font-size:12px; margin-bottom:5px;">Upload PDF File:</p>
-<input type="file" id="pdfInput" accept=".pdf">
+<!-- अब यहाँ फाइल इनपुट की जगह GitHub RAW URL इनपुट हैं -->
+<input type="text" id="imageInput" placeholder="Paste GitHub Raw Image URL">
+<input type="text" id="pdfInput" placeholder="Paste GitHub Raw PDF URL">
 
-<button class="saveBtn" onclick="uploadNote()">Upload Note</button>
+<button class="saveBtn" onclick="uploadNote()">Save Note to Firestore</button>
 </div>
 
 <div class="card">
@@ -72,13 +69,12 @@ button{ width:100%; padding:13px; border:none; border-radius:12px; font-size:16p
 
 <script type="module" src="firebase.js"></script>
 <script type="module">
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-storage.js";
 
 function safe(v){ return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
 
-function waitFirebase(){ if(window.auth && window.db && window.storage){ checkAdmin(); }else{ setTimeout(waitFirebase,300); } }
+function waitFirebase(){ if(window.auth && window.db){ checkAdmin(); }else{ setTimeout(waitFirebase,300); } }
 
 function checkAdmin(){
 onAuthStateChanged(window.auth,(user)=>{
@@ -92,29 +88,18 @@ const title = document.getElementById("titleInput").value.trim();
 const category = document.getElementById("postFilter").value;
 const subject = document.getElementById("subFilter").value;
 const desc = document.getElementById("descInput").value.trim();
-const imageFile = document.getElementById("imageInput").files[0];
-const pdfFile = document.getElementById("pdfInput").files[0];
+const imageURL = document.getElementById("imageInput").value.trim();
+const fileURL = document.getElementById("pdfInput").value.trim();
 
-if(!title || !imageFile || !pdfFile){ alert("Title, Cover Image aur PDF select karein!"); return; }
+if(!title || !imageURL || !fileURL){ alert("Title, Image URL aur PDF URL sab bharein!"); return; }
 
 try{
-const imgPath = "covers/" + Date.now() + "_" + imageFile.name;
-const imgRef = ref(window.storage, imgPath);
-await uploadBytes(imgRef, imageFile);
-const imageURL = await getDownloadURL(imgRef);
-
-const pdfPath = "pdfs/" + Date.now() + "_" + pdfFile.name;
-const pdfRef = ref(window.storage, pdfPath);
-await uploadBytes(pdfRef, pdfFile);
-const fileURL = await getDownloadURL(pdfRef);
-
 await addDoc(collection(window.db,"notes"),{
-title, category, subject, description:desc, imageURL, fileURL, fileType:"image", createdAt:serverTimestamp()
+title, category, subject, description:desc, imageURL, fileURL, createdAt:serverTimestamp()
 });
-
-alert("Uploaded Successfully");
+alert("Saved Successfully to Firestore");
 location.reload();
-}catch(error){ alert("Upload Failed: " + error.message); }
+}catch(error){ alert("Save Failed: " + error.message); }
 }
 
 async function loadNotes(){
@@ -126,15 +111,15 @@ if(snap.empty){ box.innerHTML = `<div class="empty">No notes uploaded</div>`; re
 let html = "";
 snap.forEach((d)=>{
 const x = d.data();
-html += `<div class="item"><div class="name">${safe(x.title)}</div><div class="meta">📘 Category: ${safe(x.category)}</div><div class="meta">${safe(x.description)}</div>
-${x.fileURL ? `<a class="linkBtn" target="_blank" href="${x.fileURL}">Open PDF</a>` : ""}
-<button class="delBtn" onclick="deleteNote('${d.id}','${x.filePath || ""}')">Delete</button></div>`;
+html += `<div class="item"><div class="name">${safe(x.title)}</div><div class="meta">📘 Category: ${safe(x.category)} | Subject: ${safe(x.subject)}</div><div class="meta">${safe(x.description)}</div>
+<a class="linkBtn" target="_blank" href="${x.fileURL}">View Link</a>
+<button class="delBtn" onclick="deleteNote('${d.id}')">Delete</button></div>`;
 });
 box.innerHTML = html;
 }catch(error){ box.innerHTML = `<div class="empty">Failed to load</div>`; }
 }
 
-window.deleteNote = async function(id,path){
+window.deleteNote = async function(id){
 if(!confirm("Delete this?")) return;
 await deleteDoc(doc(window.db,"notes",id));
 alert("Deleted");
