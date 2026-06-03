@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Admin Notes Panel</title>
-
 <style>
 *{ margin:0; padding:0; box-sizing:border-box; font-family:Arial,Helvetica,sans-serif; }
 body{ background:linear-gradient(135deg,#0f2027,#203a43,#2c5364); padding:18px; min-height:100vh; }
@@ -52,9 +51,8 @@ button{ width:100%; padding:13px; border:none; border-radius:12px; font-size:16p
 </select>
 
 <textarea id="descInput" placeholder="Write description / text note"></textarea>
-<!-- अब यहाँ फाइल इनपुट की जगह GitHub RAW URL इनपुट हैं -->
 <input type="text" id="imageInput" placeholder="Paste GitHub Raw Image URL">
-<input type="text" id="pdfInput" placeholder="Paste GitHub Raw PDF URL">
+<input type="text" id="fileNameInput" placeholder="Enter PDF Filename (e.g. postal-manual-5.pdf)">
 
 <button class="saveBtn" onclick="uploadNote()">Save Note to Firestore</button>
 </div>
@@ -89,13 +87,13 @@ const category = document.getElementById("postFilter").value;
 const subject = document.getElementById("subFilter").value;
 const desc = document.getElementById("descInput").value.trim();
 const imageURL = document.getElementById("imageInput").value.trim();
-const fileURL = document.getElementById("pdfInput").value.trim();
+const fileName = document.getElementById("fileNameInput").value.trim();
 
-if(!title || !imageURL || !fileURL){ alert("Title, Image URL aur PDF URL sab bharein!"); return; }
+if(!title || !imageURL || !fileName){ alert("Title, Image URL aur PDF Filename sab bharein!"); return; }
 
 try{
 await addDoc(collection(window.db,"notes"),{
-title, category, subject, description:desc, imageURL, fileURL, createdAt:serverTimestamp()
+title, category, subject, description:desc, imageURL, fileName, createdAt:serverTimestamp()
 });
 alert("Saved Successfully to Firestore");
 location.reload();
@@ -112,7 +110,6 @@ let html = "";
 snap.forEach((d)=>{
 const x = d.data();
 html += `<div class="item"><div class="name">${safe(x.title)}</div><div class="meta">📘 Category: ${safe(x.category)} | Subject: ${safe(x.subject)}</div><div class="meta">${safe(x.description)}</div>
-<a class="linkBtn" target="_blank" href="${x.fileURL}">View Link</a>
 <button class="delBtn" onclick="deleteNote('${d.id}')">Delete</button></div>`;
 });
 box.innerHTML = html;
