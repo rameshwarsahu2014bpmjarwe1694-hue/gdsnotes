@@ -77,6 +77,32 @@ margin-bottom:10px;
 display: flex;
 gap: 10px;
 }
+/* Image link container */
+.book-image-link {
+    display: block;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s;
+    text-decoration: none;
+}
+
+.book-image-link:hover {
+    transform: scale(1.02);
+}
+
+/* Overlay text (Download button style) */
+.pdf-overlay {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #355da9; /* Vahi blue color */
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+}
 
 .tag{
 background: #eee;
@@ -188,7 +214,7 @@ collection,
 getDocs,
 query,
 orderBy
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -300,8 +326,14 @@ html += `
         <span class="tag">📖 ${subTag}</span>
     </div>
     ${desc ? `<div class="desc">${desc}</div>` : ""}
-    ${fileURL && fileType.startsWith("image") ? `<img src="${fileURL}" class="preview">` : ""}
-    ${fileURL ? `<button onclick="handleSecureAccess('${postTag}', '${title}')" class="btn">Open File</button>` : ""}
+    ${fileURL && fileType.startsWith("image") ? `
+    ${fileURL && fileType.startsWith("image") ? `
+    <a href="javascript:void(0)" onclick="handleSecureAccess('${postTag}', '${title}')" class="book-image-link">
+        <img src="${fileURL}" class="preview">
+        <div class="pdf-overlay">Click to Open</div>
+    </a>
+` : (fileURL ? `<button onclick="handleSecureAccess('${postTag}', '${title}')" class="btn">Open File</button>` : "")}
+
 </div>`;
 });
 box.innerHTML = html;
