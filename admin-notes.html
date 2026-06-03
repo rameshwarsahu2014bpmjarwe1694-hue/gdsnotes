@@ -6,155 +6,32 @@
 <title>Admin Notes Panel</title>
 
 <style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,Helvetica,sans-serif;
-}
-
-body{
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-padding:18px;
-min-height:100vh;
-}
-
-.wrap{
-max-width:1000px;
-margin:auto;
-}
-
-.title{
-background:#111;
-color:#fff;
-padding:16px;
-text-align:center;
-font-size:24px;
-font-weight:700;
-border-radius:14px;
-margin-bottom:18px;
-}
-
-.card{
-background:#fff;
-padding:18px;
-border-radius:16px;
-box-shadow:0 6px 14px rgba(0,0,0,.10);
-margin-bottom:18px;
-}
-
-h2{
-font-size:20px;
-margin-bottom:14px;
-color:#111;
-}
-
-input,select,textarea{
-width:100%;
-padding:13px;
-border:1px solid #ddd;
-border-radius:12px;
-outline:none;
-font-size:15px;
-margin-bottom:12px;
-}
-
-textarea{
-min-height:120px;
-resize:vertical;
-}
-
-input[type="file"]{
-padding:10px;
-background:#f8f8f8;
-}
-
-button{
-width:100%;
-padding:13px;
-border:none;
-border-radius:12px;
-font-size:16px;
-font-weight:700;
-cursor:pointer;
-}
-
-.saveBtn{
-background:#1565c0;
-color:#fff;
-}
-
-.saveBtn:hover{
-background:#0d47a1;
-}
-
-.delBtn{
-margin-top:10px;
-background:#e53935;
-color:#fff;
-}
-
-.item{
-border:1px solid #eee;
-padding:15px;
-border-radius:14px;
-margin-bottom:12px;
-background:#fafafa;
-}
-
-.name{
-font-weight:700;
-font-size:18px;
-margin-bottom:6px;
-color:#111;
-}
-
-.meta{
-font-size:14px;
-color:#555;
-margin:4px 0;
-word-break:break-word;
-}
-
-.linkBtn{
-display:inline-block;
-margin-top:8px;
-padding:10px 14px;
-background:#111;
-color:#fff;
-text-decoration:none;
-border-radius:10px;
-font-size:14px;
-}
-
-.empty{
-text-align:center;
-color:#777;
-padding:20px;
-}
-
-.back{
-display:block;
-margin-top:14px;
-text-align:center;
-padding:14px;
-background:#111;
-color:#fff;
-text-decoration:none;
-border-radius:12px;
-font-weight:700;
-}
+*{ margin:0; padding:0; box-sizing:border-box; font-family:Arial,Helvetica,sans-serif; }
+body{ background:linear-gradient(135deg,#0f2027,#203a43,#2c5364); padding:18px; min-height:100vh; }
+.wrap{ max-width:1000px; margin:auto; }
+.title{ background:#111; color:#fff; padding:16px; text-align:center; font-size:24px; font-weight:700; border-radius:14px; margin-bottom:18px; }
+.card{ background:#fff; padding:18px; border-radius:16px; box-shadow:0 6px 14px rgba(0,0,0,.10); margin-bottom:18px; }
+h2{ font-size:20px; margin-bottom:14px; color:#111; }
+input,select,textarea{ width:100%; padding:13px; border:1px solid #ddd; border-radius:12px; outline:none; font-size:15px; margin-bottom:12px; }
+textarea{ min-height:120px; resize:vertical; }
+button{ width:100%; padding:13px; border:none; border-radius:12px; font-size:16px; font-weight:700; cursor:pointer; }
+.saveBtn{ background:#1565c0; color:#fff; }
+.delBtn{ margin-top:10px; background:#e53935; color:#fff; }
+.item{ border:1px solid #eee; padding:15px; border-radius:14px; margin-bottom:12px; background:#fafafa; }
+.name{ font-weight:700; font-size:18px; margin-bottom:6px; color:#111; }
+.meta{ font-size:14px; color:#555; margin:4px 0; word-break:break-word; }
+.linkBtn{ display:inline-block; margin-top:8px; padding:10px 14px; background:#111; color:#fff; text-decoration:none; border-radius:10px; font-size:14px; }
+.empty{ text-align:center; color:#777; padding:20px; }
+.back{ display:block; margin-top:14px; text-align:center; padding:14px; background:#111; color:#fff; text-decoration:none; border-radius:12px; font-weight:700; }
 </style>
 </head>
 <body>
 
 <div class="wrap">
-
 <div class="title">📚 Admin Notes Panel</div>
 
 <div class="card">
 <h2>Upload New Note</h2>
-
 <input type="text" id="titleInput" placeholder="Enter note title">
   
 <select id="postFilter">
@@ -175,11 +52,12 @@ font-weight:700;
 <option value="POSTAL MANUAL 6">Postal Manual Vol 6 Part 3</option>
 <option value="POSTAL MANUAL 7">Postal Manual Vol 7</option>
 </select>
-</div>
 
 <textarea id="descInput" placeholder="Write description / text note"></textarea>
-
-<input type="file" id="fileInput" accept=".pdf,image/*">
+<p style="font-size:12px; margin-bottom:5px;">Upload Book Cover (Image):</p>
+<input type="file" id="imageInput" accept="image/*">
+<p style="font-size:12px; margin-bottom:5px;">Upload PDF File:</p>
+<input type="file" id="pdfInput" accept=".pdf">
 
 <button class="saveBtn" onclick="uploadNote()">Upload Note</button>
 </div>
@@ -190,215 +68,80 @@ font-weight:700;
 </div>
 
 <a href="admin-panel.html" class="back">⬅ Back to Admin Panel</a>
-
 </div>
 
 <script type="module" src="firebase.js"></script>
-
 <script type="module">
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-storage.js";
 
-import {
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+function safe(v){ return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
 
-import {
-collection,
-addDoc,
-getDocs,
-deleteDoc,
-doc,
-serverTimestamp,
-query,
-orderBy
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-import {
-ref,
-uploadBytes,
-getDownloadURL,
-deleteObject
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-storage.js";
-
-function safe(v){
-return String(v || "")
-.replace(/&/g,"&amp;")
-.replace(/</g,"&lt;")
-.replace(/>/g,"&gt;")
-.replace(/"/g,"&quot;")
-.replace(/'/g,"&#039;");
-}
-
-function waitFirebase(){
-if(window.auth && window.db && window.storage){
-checkAdmin();
-}else{
-setTimeout(waitFirebase,300);
-}
-}
+function waitFirebase(){ if(window.auth && window.db && window.storage){ checkAdmin(); }else{ setTimeout(waitFirebase,300); } }
 
 function checkAdmin(){
-
 onAuthStateChanged(window.auth,(user)=>{
-
-if(!user){
-alert("Login First");
-location.href="admin.html";
-return;
-}
-
-if(user.email !== "rameshwarsahu2014bpmjarwe1694@gmail.com"){
-alert("Unauthorized");
-location.href="login.html";
-return;
-}
-
+if(!user || user.email !== "rameshwarsahu2014bpmjarwe1694@gmail.com"){ location.href="login.html"; return; }
 loadNotes();
-
 });
-
 }
 
 window.uploadNote = async function(){
-
 const title = document.getElementById("titleInput").value.trim();
-const category = document.getElementById("catInput").value;
+const category = document.getElementById("postFilter").value;
+const subject = document.getElementById("subFilter").value;
 const desc = document.getElementById("descInput").value.trim();
-const file = document.getElementById("fileInput").files[0];
+const imageFile = document.getElementById("imageInput").files[0];
+const pdfFile = document.getElementById("pdfInput").files[0];
 
-if(!title){
-alert("Enter title");
-return;
-}
+if(!title || !imageFile || !pdfFile){ alert("Title, Cover Image aur PDF select karein!"); return; }
 
 try{
+const imgPath = "covers/" + Date.now() + "_" + imageFile.name;
+const imgRef = ref(window.storage, imgPath);
+await uploadBytes(imgRef, imageFile);
+const imageURL = await getDownloadURL(imgRef);
 
-let fileURL = "";
-let filePath = "";
-let fileType = "text";
-
-if(file){
-
-fileType = file.type || "file";
-
-const path = "notes/" + Date.now() + "_" + file.name;
-const storageRef = ref(window.storage,path);
-
-await uploadBytes(storageRef,file);
-
-fileURL = await getDownloadURL(storageRef);
-filePath = path;
-}
+const pdfPath = "pdfs/" + Date.now() + "_" + pdfFile.name;
+const pdfRef = ref(window.storage, pdfPath);
+await uploadBytes(pdfRef, pdfFile);
+const fileURL = await getDownloadURL(pdfRef);
 
 await addDoc(collection(window.db,"notes"),{
-title,
-category,
-description:desc,
-fileURL,
-filePath,
-fileType,
-createdAt:serverTimestamp()
+title, category, subject, description:desc, imageURL, fileURL, fileType:"image", createdAt:serverTimestamp()
 });
 
-document.getElementById("titleInput").value="";
-document.getElementById("descInput").value="";
-document.getElementById("fileInput").value="";
-
 alert("Uploaded Successfully");
-
-loadNotes();
-
-}catch(error){
-alert("Upload Failed");
-}
-
+location.reload();
+}catch(error){ alert("Upload Failed: " + error.message); }
 }
 
 async function loadNotes(){
-
 const box = document.getElementById("listBox");
-
 try{
-
-const q = query(
-collection(window.db,"notes"),
-orderBy("createdAt","desc")
-);
-
+const q = query(collection(window.db,"notes"), orderBy("createdAt","desc"));
 const snap = await getDocs(q);
-
-if(snap.empty){
-box.innerHTML =
-`<div class="empty">No notes uploaded</div>`;
-return;
-}
-
+if(snap.empty){ box.innerHTML = `<div class="empty">No notes uploaded</div>`; return; }
 let html = "";
-
 snap.forEach((d)=>{
-
 const x = d.data();
-
-html += `
-<div class="item">
-
-<div class="name">${safe(x.title)}</div>
-
-<div class="meta">📘 Category: ${safe(x.category)}</div>
-
-<div class="meta">${safe(x.description || "")}</div>
-
-${x.fileURL ? `
-<a class="linkBtn" target="_blank"
-href="${x.fileURL}">
-Open File
-</a>` : ""}
-
-<button class="delBtn"
-onclick="deleteNote('${d.id}','${x.filePath || ""}')">
-Delete
-</button>
-
-</div>
-`;
-
+html += `<div class="item"><div class="name">${safe(x.title)}</div><div class="meta">📘 Category: ${safe(x.category)}</div><div class="meta">${safe(x.description)}</div>
+${x.fileURL ? `<a class="linkBtn" target="_blank" href="${x.fileURL}">Open PDF</a>` : ""}
+<button class="delBtn" onclick="deleteNote('${d.id}','${x.filePath || ""}')">Delete</button></div>`;
 });
-
 box.innerHTML = html;
-
-}catch(error){
-box.innerHTML =
-`<div class="empty">Failed to load notes</div>`;
-}
-
+}catch(error){ box.innerHTML = `<div class="empty">Failed to load</div>`; }
 }
 
 window.deleteNote = async function(id,path){
-
-if(!confirm("Delete this note?")) return;
-
-try{
-
+if(!confirm("Delete this?")) return;
 await deleteDoc(doc(window.db,"notes",id));
-
-if(path){
-try{
-await deleteObject(ref(window.storage,path));
-}catch(e){}
-}
-
 alert("Deleted");
-
 loadNotes();
-
-}catch(error){
-alert("Delete Failed");
-}
-
 }
 
 waitFirebase();
-
 </script>
-
 </body>
 </html>
