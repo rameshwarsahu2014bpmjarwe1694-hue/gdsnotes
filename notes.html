@@ -327,7 +327,6 @@ html += `
     </div>
     ${desc ? `<div class="desc">${desc}</div>` : ""}
     ${fileURL && fileType.startsWith("image") ? `
-    ${fileURL && fileType.startsWith("image") ? `
     <a href="javascript:void(0)" onclick="handleSecureAccess('${postTag}', '${title}')" class="book-image-link">
         <img src="${fileURL}" class="preview">
         <div class="pdf-overlay">Click to Open</div>
