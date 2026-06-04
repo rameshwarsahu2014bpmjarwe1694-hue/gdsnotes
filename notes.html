@@ -74,7 +74,7 @@
     const auth = getAuth(app);
     const BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
 
-    
+    let allNotes = [];
         // शुरुआत में चेक करने के लिए एक वेरिएबल बनाएं
         onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -91,8 +91,6 @@
         }
     });
 
-
-    let allNotes = [];
     async function loadNotes(){
         const box = document.getElementById("notesList");
         try{
