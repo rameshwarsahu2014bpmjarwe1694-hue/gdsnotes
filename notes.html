@@ -1,63 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Notes</title>
-<style>
-    *{ margin:0; padding:0; box-sizing:border-box; font-family:Arial,Helvetica,sans-serif; }
-    body{ background:#f4f6f9; padding:15px; }
-    .container{ max-width:1000px; margin:auto; }
-    .topbar{ background:#b30000; color:#fff; padding:16px; text-align:center; font-size:24px; font-weight:700; border-radius:14px; margin-bottom:16px; }
-    .tools{ display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:12px; margin-bottom:16px; }
-    input,select{ width:100%; padding:13px; border:1px solid #ccc; border-radius:12px; font-size:15px; outline:none; background:#fff; }
-    #notesList{ display:grid; gap:14px; }
-    .note{ background:#fff; padding:18px; border-radius:16px; box-shadow:0 5px 14px rgba(0,0,0,.08); }
-    .note h3{ font-size:20px; margin-bottom:8px; color:#111; }
-    .meta{ font-size:14px; color:#666; margin-bottom:10px; display: flex; gap: 10px; }
-    .book-image-link { display: block; position: relative; cursor: pointer; transition: transform 0.2s; text-decoration: none; }
-    .book-image-link:hover { transform: scale(1.02); }
-    .pdf-overlay { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: #355da9; color: white; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 14px; }
-    .tag{ background: #eee; padding: 4px 8px; border-radius: 6px; }
-    .desc{ line-height:1.6; white-space:pre-wrap; color:#222; margin-top:8px; }
-    .preview{ width:100%; max-height:260px; object-fit:contain; border-radius:12px; margin-top:10px; border:1px solid #eee; background:#fafafa; }
-    .empty{ background:#fff; padding:18px; border-radius:14px; text-align:center; color:#666; }
-    .back-btn { display: inline-block; padding: 10px 15px; background: #444; color: #fff; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 15px; font-size: 14px; }
-    @media(max-width:700px){ .tools{ grid-template-columns:1fr; } }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Notes</title>
+    <style>
+        *{ margin:0; padding:0; box-sizing:border-box; font-family:Arial,Helvetica,sans-serif; }
+        body{ background:#f4f6f9; padding:15px; }
+        .container{ max-width:1000px; margin:auto; }
+        .topbar{ background:#b30000; color:#fff; padding:16px; text-align:center; font-size:24px; font-weight:700; border-radius:14px; margin-bottom:16px; }
+        .tools{ display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:12px; margin-bottom:16px; }
+        input,select{ width:100%; padding:13px; border:1px solid #ccc; border-radius:12px; font-size:15px; outline:none; background:#fff; }
+        #notesList{ display:grid; gap:14px; }
+        .note{ background:#fff; padding:18px; border-radius:16px; box-shadow:0 5px 14px rgba(0,0,0,.08); }
+        .note h3{ font-size:20px; margin-bottom:8px; color:#111; }
+        .meta{ font-size:14px; color:#666; margin-bottom:10px; display: flex; gap: 10px; }
+        .book-image-link { display: block; position: relative; cursor: pointer; transition: transform 0.2s; text-decoration: none; }
+        .book-image-link:hover { transform: scale(1.02); }
+        .pdf-overlay { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: #355da9; color: white; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 14px; }
+        .tag{ background: #eee; padding: 4px 8px; border-radius: 6px; }
+        .desc{ line-height:1.6; white-space:pre-wrap; color:#222; margin-top:8px; }
+        .preview{ width:100%; max-height:260px; object-fit:contain; border-radius:12px; margin-top:10px; border:1px solid #eee; background:#fafafa; }
+        .empty{ background:#fff; padding:18px; border-radius:14px; text-align:center; color:#666; }
+        .back-btn { display: inline-block; padding: 10px 15px; background: #444; color: #fff; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 15px; font-size: 14px; }
+        @media(max-width:700px){ .tools{ grid-template-columns:1fr; } }
+    </style>
 </head>
-
 <body>
 <div class="container">
     <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back</button>
     <div class="topbar">📚 Notes</div>
-
     <div class="tools">
         <input type="text" id="searchInput" placeholder="Search notes...">
-        <select id="postFilter">
-            <option value="ALL">All Posts</option>
-            <option value="MTS">MTS</option>
-            <option value="POSTMAN">POSTMAN</option>
-            <option value="PA/SA">PA/SA</option>
-        </select>
-        <select id="subFilter">
-            <option value="ALL">All Subjects</option>
-            <option value="GK">GK</option>
-            <option value="Maths">Maths</option>
-            <option value="Reasoning">Reasoning</option>
-            <option value="PO GUIDE 1">PO Guide 1</option>
-            <option value="PO GUIDE 2">PO Guide 2</option>
-            <option value="POSTAL MANUAL 5">Postal Manual Vol 5</option>
-            <option value="POSTAL MANUAL 6">Postal Manual Vol 6 Part 3</option>
-            <option value="POSTAL MANUAL 7">Postal Manual Vol 7</option>
-        </select>
+        <select id="postFilter"><option value="ALL">All Posts</option><option value="MTS">MTS</option><option value="POSTMAN">POSTMAN</option><option value="PA/SA">PA/SA</option></select>
+        <select id="subFilter"><option value="ALL">All Subjects</option><option value="GK">GK</option><option value="Maths">Maths</option><option value="Reasoning">Reasoning</option><option value="PO GUIDE 1">PO Guide 1</option><option value="PO GUIDE 2">PO Guide 2</option><option value="POSTAL MANUAL 5">Postal Manual Vol 5</option><option value="POSTAL MANUAL 6">Postal Manual Vol 6 Part 3</option><option value="POSTAL MANUAL 7">Postal Manual Vol 7</option></select>
     </div>
-    <div id="notesList"><div class="empty">Loading notes...</div></div>
+    <div id="notesList"><div class="empty">Loading...</div></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
@@ -70,77 +53,52 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    window.db = getFirestore(app);
+    const db = getFirestore(app);
     const auth = getAuth(app);
-    window.currentUserEmail = "";
+    window.BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
+    window.allNotes = [];
 
-    // Pyq.html jaisa hi strict guard
     onAuthStateChanged(auth, (user) => {
         if (user) {
             window.currentUserEmail = user.email;
-            // Yahan loadNotes tabhi chalega jab user mil jayega
-            if (typeof loadNotes === 'function') loadNotes();
+            loadNotes();
         } else {
             window.location.href = "login.html";
         }
     });
-   
 
-        async function loadNotes(){
+    async function loadNotes(){
         const box = document.getElementById("notesList");
-        box.innerHTML = `<div class="empty">Fetching notes...</div>`;
-        
         try {
-            // पक्का करें कि window.db सही है
-            if (!window.db) throw new Error("Database not initialized");
-            
-            const q = query(collection(window.db, "notes"), orderBy("createdAt", "desc"));
+            const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
             const snap = await getDocs(q);
-            
-            console.log("Docs found:", snap.size); // कंसोल में देखें कितने docs मिले
-            
-            if (snap.empty) {
-                box.innerHTML = `<div class="empty">No notes found.</div>`;
-                return;
-            }
-
             window.allNotes = [];
-            snap.forEach((doc) => { 
-                window.allNotes.push({ id: doc.id, ...doc.data() }); 
-            });
+            snap.forEach((doc) => { window.allNotes.push({ id: doc.id, ...doc.data() }); });
             renderNotes(window.allNotes);
-        } catch(error){ 
-            console.error("DEBUG ERROR:", error); // F12 कंसोल में यह एरर चेक करें
-            box.innerHTML = `<div class="empty">Error: ${error.message}</div>`; 
-        }
+        } catch(e) { box.innerHTML = `<div class="empty">Error loading data.</div>`; }
     }
-
 
     window.renderNotes = function(arr){
         const box = document.getElementById("notesList");
-        if(arr.length===0){ box.innerHTML = `<div class="empty">No notes found</div>`; return; }
-        let html = "";
-        arr.forEach((x)=>{
-            html += `
+        if(arr.length === 0){ box.innerHTML = `<div class="empty">No notes found</div>`; return; }
+        box.innerHTML = arr.map(x => `
             <div class="note">
                 <h3>${safe(x.title)}</h3>
                 <div class="meta">
-                    <span class="tag">📮 ${safe(x.category || "-")}</span>
-                    <span class="tag">📖 ${safe(x.subject || "-")}</span>
+                    <span class="tag">📮 ${safe(x.category)}</span>
+                    <span class="tag">📖 ${safe(x.subject)}</span>
                 </div>
                 ${x.description ? `<div class="desc">${safe(x.description)}</div>` : ""}
-                <a href="javascript:void(0)" onclick="handleSecureAccess('${safe(x.category)}', '${safe(x.subject)}', '${safe(x.title)}')" class="book-image-link">
+                <a href="javascript:void(0)" onclick="handleSecureAccess('${safe(x.category)}', '${safe(x.subject)}', '${safe(x.title)}', '${safe(x.fileName)}')" class="book-image-link">
                     <img src="${x.imageURL}" class="preview">
                     <div class="pdf-overlay">Click to Open PDF</div>
                 </a>
-            </div>`;
-        });
-        box.innerHTML = html;
+            </div>
+        `).join('');
     }
 
-    window.handleSecureAccess = async (category, subject, title) => {
-        if (!currentUserEmail) return alert("Please login first!");
-        const secureUrl = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
+    window.handleSecureAccess = async (category, subject, title, fileName) => {
+        const secureUrl = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}&fileName=${encodeURIComponent(fileName)}`;
         try {
             const res = await fetch(secureUrl, { headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS' }});
             if (res.status === 200) {
@@ -151,13 +109,12 @@
                     const payRes = await fetch(`${BACKEND_URL}/initiate-payment`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: currentUserEmail, amount: 20, year: "Notes", post: category, subject: subject })
+                        body: JSON.stringify({ email: currentUserEmail, amount: 20, year: "Notes", post: category, subject: subject, fileName: fileName })
                     });
                     const data = await payRes.json();
                     if (data.url) window.location.href = data.url;
-                    else alert("Payment link error!");
                 }
-            } else { alert("File not found or Server error."); }
+            } else { alert("File not found or access restricted."); }
         } catch (err) { alert("Connection error!"); }
     };
 
@@ -167,17 +124,17 @@
         const q = document.getElementById("searchInput").value.toLowerCase().trim();
         const post = document.getElementById("postFilter").value;
         const sub = document.getElementById("subFilter").value;
-        const filtered = allNotes.filter((x)=>{
-            return (x.title.toLowerCase().includes(q)) && 
-                   (post === "ALL" || x.category === post) && 
-                   (sub === "ALL" || x.subject === sub);
-        });
-        renderNotes(filtered);
+        renderNotes(window.allNotes.filter(x => 
+            (x.title.toLowerCase().includes(q)) && 
+            (post === "ALL" || x.category === post) && 
+            (sub === "ALL" || x.subject === sub)
+        ));
     }
 
-    document.getElementById("searchInput").addEventListener("input",applyFilter);
-    document.getElementById("postFilter").addEventListener("change",applyFilter);
-    document.getElementById("subFilter").addEventListener("change",applyFilter);
+    document.getElementById("searchInput").addEventListener("input", applyFilter);
+    document.getElementById("postFilter").addEventListener("change", applyFilter);
+    document.getElementById("subFilter").addEventListener("change", applyFilter);
 </script>
 </body>
 </html>
+
