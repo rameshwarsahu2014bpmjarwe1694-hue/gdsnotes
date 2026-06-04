@@ -119,7 +119,7 @@
                     const payRes = await fetch(`${BACKEND_URL}/initiate-payment`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: currentUserEmail, amount: 20, year: "Notes", post: category, subject: subject, fileName: fileName })
+                        body: JSON.stringify({ email: currentUserEmail, amount: 29, year: "Notes", post: category, subject: subject, fileName: fileName })
                     });
                     const data = await payRes.json();
                     if (data.url) window.location.href = data.url;
