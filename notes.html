@@ -29,7 +29,7 @@
 
 <body>
 <div class="container">
-    <button class="back-btn" onclick="goBack()">← Back</button>
+    <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back</button>
     <div class="topbar">📚 Notes</div>
 
     <div class="tools">
@@ -70,58 +70,31 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    window.db = getFirestore(app);
+    const db = getFirestore(app);
     const auth = getAuth(app);
-    window.goBack = function() { window.location.href = "dashboard.html"; }
+    const BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
 
     let allNotes = [];
     let currentUserEmail = "";
-    const BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
-
-    window.handleSecureAccess = async (category, subject, title) => {
-        if (!currentUserEmail) return alert("Please login first!");
-        const secureUrl = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
-        try {
-            const res = await fetch(secureUrl, { headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS' } });
-            if (res.status === 200) {
-                const blob = await res.blob();
-                window.open(URL.createObjectURL(blob), '_blank');
-            } else if (res.status === 403) {
-                if (confirm(`इस PDF (${title}) को अनलॉक करने के लिए पेमेंट करना होगा। आगे बढ़ें?`)) {
-                    const payRes = await fetch(`${BACKEND_URL}/initiate-payment`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: currentUserEmail, amount: 20, year: "Notes", post: category, subject: subject })
-                    });
-                    const data = await payRes.json();
-                    if (data.url) window.location.href = data.url;
-                    else alert("Payment link error!");
-                }
-            } else { alert("File not found or Server error."); }
-        } catch (err) { alert("Connection error!"); }
-    };
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUserEmail = user.email;
+            loadNotes();
         } else {
             window.location.href = "login.html";
         }
     });
 
-    window.safe = function(v){ return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
-
-    window.waitFirebase = function(){ if(window.db){ loadNotes(); } else { setTimeout(waitFirebase,300); } }
-
     async function loadNotes(){
         const box = document.getElementById("notesList");
         try{
-            const q = query(collection(window.db,"notes"), orderBy("createdAt","desc"));
+            const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
             const snap = await getDocs(q);
             allNotes = [];
             snap.forEach((doc)=>{ allNotes.push({ id:doc.id, ...doc.data() }); });
             renderNotes(allNotes);
-        }catch(error){ box.innerHTML = `<div class="empty">Error loading notes</div>`; }
+        } catch(error){ box.innerHTML = `<div class="empty">Error loading notes</div>`; }
     }
 
     window.renderNotes = function(arr){
@@ -146,6 +119,31 @@
         box.innerHTML = html;
     }
 
+    window.handleSecureAccess = async (category, subject, title) => {
+        if (!currentUserEmail) return alert("Please login first!");
+        const secureUrl = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
+        try {
+            const res = await fetch(secureUrl, { headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS' }});
+            if (res.status === 200) {
+                const blob = await res.blob();
+                window.open(URL.createObjectURL(blob), '_blank');
+            } else if (res.status === 403) {
+                if (confirm(`इस PDF (${title}) को अनलॉक करने के लिए पेमेंट करना होगा। आगे बढ़ें?`)) {
+                    const payRes = await fetch(`${BACKEND_URL}/initiate-payment`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: currentUserEmail, amount: 20, year: "Notes", post: category, subject: subject })
+                    });
+                    const data = await payRes.json();
+                    if (data.url) window.location.href = data.url;
+                    else alert("Payment link error!");
+                }
+            } else { alert("File not found or Server error."); }
+        } catch (err) { alert("Connection error!"); }
+    };
+
+    window.safe = function(v){ return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
+
     window.applyFilter = function(){
         const q = document.getElementById("searchInput").value.toLowerCase().trim();
         const post = document.getElementById("postFilter").value;
@@ -161,7 +159,6 @@
     document.getElementById("searchInput").addEventListener("input",applyFilter);
     document.getElementById("postFilter").addEventListener("change",applyFilter);
     document.getElementById("subFilter").addEventListener("change",applyFilter);
-    waitFirebase();
 </script>
 </body>
 </html>
