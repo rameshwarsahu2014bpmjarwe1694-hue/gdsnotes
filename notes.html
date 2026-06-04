@@ -74,24 +74,25 @@
     const auth = getAuth(app);
     const BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
 
-    let allNotes = [];
+    
         // शुरुआत में चेक करने के लिए एक वेरिएबल बनाएं
-    let isInitialAuthCheck = true;
-
-    onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUserEmail = user.email;
             loadNotes();
         } else {
-            // केवल तभी रीडायरेक्ट करें जब Firebase पूरी तरह चेक कर चुका हो कि यूज़र लॉगआऊट है
-            if (!isInitialAuthCheck || auth.currentUser === null) {
-                window.location.href = "login.html";
-            }
+            // यहाँ 'user === null' होने का पक्का इंतज़ार करेंगे
+            // Firebase जब पूरी तरह लोड हो जाता है, तभी यह else ट्रिगर होता है
+            setTimeout(() => {
+                if (!auth.currentUser) {
+                     window.location.href = "login.html";
+                }
+            }, 1000); // 1 सेकंड का वेट ताकि Firebase को समय मिले
         }
-        isInitialAuthCheck = false;
     });
 
 
+    let allNotes = [];
     async function loadNotes(){
         const box = document.getElementById("notesList");
         try{
