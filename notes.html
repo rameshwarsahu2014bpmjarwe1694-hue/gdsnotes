@@ -75,21 +75,19 @@
     const BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
 
     let allNotes = [];
-        // शुरुआत में चेक करने के लिए एक वेरिएबल बनाएं
-        onAuthStateChanged(auth, (user) => {
+    
+        // Strict Login Guard
+    onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUserEmail = user.email;
-            loadNotes();
+            console.log("Access Granted for:", currentUserEmail);
         } else {
-            // यहाँ 'user === null' होने का पक्का इंतज़ार करेंगे
-            // Firebase जब पूरी तरह लोड हो जाता है, तभी यह else ट्रिगर होता है
-            setTimeout(() => {
-                if (!auth.currentUser) {
-                     window.location.href = "login.html";
-                }
-            }, 1000); // 1 सेकंड का वेट ताकि Firebase को समय मिले
+            // Agar login nahi hai toh turant bahar bhejo
+            window.location.href = "login.html"; 
+            alert("Security Alert: Is page ke liye login zaroori hai!");
         }
     });
+   
 
     async function loadNotes(){
         const box = document.getElementById("notesList");
