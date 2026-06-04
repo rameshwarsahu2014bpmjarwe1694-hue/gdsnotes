@@ -75,16 +75,22 @@
     const BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
 
     let allNotes = [];
-    let currentUserEmail = "";
+        // शुरुआत में चेक करने के लिए एक वेरिएबल बनाएं
+    let isInitialAuthCheck = true;
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUserEmail = user.email;
             loadNotes();
         } else {
-            window.location.href = "login.html";
+            // केवल तभी रीडायरेक्ट करें जब Firebase पूरी तरह चेक कर चुका हो कि यूज़र लॉगआऊट है
+            if (!isInitialAuthCheck || auth.currentUser === null) {
+                window.location.href = "login.html";
+            }
         }
+        isInitialAuthCheck = false;
     });
+
 
     async function loadNotes(){
         const box = document.getElementById("notesList");
