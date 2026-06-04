@@ -82,29 +82,29 @@
     const box = document.getElementById("notesList");
     if(arr.length === 0){ box.innerHTML = `<div class="empty">No notes found</div>`; return; }
     
-    let html = "";
-    arr.forEach(x => {
-        html += `
+    box.innerHTML = arr.map(x => `
         <div class="note">
             <h3>${safe(x.title)}</h3>
-            
             <div class="meta">
                 <span class="tag">📮 ${safe(x.category || "-")}</span>
                 <span class="tag">📖 ${safe(x.subject || "-")}</span>
             </div>
 
-            <img src="${x.imageURL}" class="preview" alt="Book Cover">
+            <img src="${x.imageURL}" class="preview" 
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block'; console.log('Image Error for: ${x.title}');" 
+                 alt="Cover">
+            <div style="display:none; color:red; font-size:12px; margin-top:5px;">Image not found (Check URL)</div>
             
             ${x.description ? `<div class="desc">${safe(x.description)}</div>` : ""}
             
             <button onclick="handleSecureAccess('${safe(x.category)}', '${safe(x.subject)}', '${safe(x.title)}', '${safe(x.fileName)}')" 
-                    style="width:100%; margin-top:15px; background: #355da9; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size:16px;">
+                    style="width:100%; margin-top:15px; background: #355da9; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">
                 Click to Open PDF
             </button>
-        </div>`;
-    });
-    box.innerHTML = html;
+        </div>
+    `).join('');
 }
+
 
 
     window.handleSecureAccess = async (category, subject, title, fileName) => {
