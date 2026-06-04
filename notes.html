@@ -55,6 +55,22 @@
     <div id="notesList"><div class="empty">Loading notes...</div></div>
 </div>
 
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    
+    // अपनी Config यहाँ डालें
+    const firebaseConfig = {  
+apiKey: "AIzaSyDjzmo0A4KhOkrqFQdOyCEek6bsPF-UVPQ",  
+authDomain: "gds-departmental-exam-studyhub.firebaseapp.com",  
+projectId: "gds-departmental-exam-studyhub",  
+storageBucket: "gds-departmental-exam-studyhub.appspot.com",  
+messagingSenderId: "759916756080",  
+appId: "1:759916756080:web:7f2c0e66458bd007e888b5"  
+};
+    window.db = getFirestore(initializeApp(firebaseConfig));
+</script>
+
 <script>
     function goBack() { window.location.href = "dashboard.html"; }
 </script>
