@@ -57,34 +57,31 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyDjzme0A4khQkrqFQdOyCEek6bsPF-UVPQ",
+        apiKey: "AIzaSyDjzmo0A4KhOkrqFQdOyCEek6bsPF-UVPQ",
         authDomain: "gds-departmental-exam-studyhub.firebaseapp.com",
         projectId: "gds-departmental-exam-studyhub",
         storageBucket: "gds-departmental-exam-studyhub.appspot.com",
-        messagingSenderId: "759016756080",
-        appId: "1:759016756080:web:7f2c0b66458bd007e888b5"
+        messagingSenderId: "759916756080",
+        appId: "1:759916756080:web:7f2c0e66458bd007e888b5"
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    window.db = getFirestore(app);
     const auth = getAuth(app);
-    const BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
+    window.currentUserEmail = "";
 
-    let allNotes = [];
-    
-        // Strict Login Guard
+    // Pyq.html jaisa hi strict guard
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            currentUserEmail = user.email;
-            console.log("Access Granted for:", currentUserEmail);
+            window.currentUserEmail = user.email;
+            // Yahan loadNotes tabhi chalega jab user mil jayega
+            if (typeof loadNotes === 'function') loadNotes();
         } else {
-            // Agar login nahi hai toh turant bahar bhejo
-            window.location.href = "login.html"; 
-            alert("Security Alert: Is page ke liye login zaroori hai!");
+            window.location.href = "login.html";
         }
     });
    
