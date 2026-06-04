@@ -19,7 +19,6 @@ button{ width:100%; padding:13px; border:none; border-radius:12px; font-size:16p
 .item{ border:1px solid #eee; padding:15px; border-radius:14px; margin-bottom:12px; background:#fafafa; }
 .name{ font-weight:700; font-size:18px; margin-bottom:6px; color:#111; }
 .meta{ font-size:14px; color:#555; margin:4px 0; word-break:break-word; }
-.linkBtn{ display:inline-block; margin-top:8px; padding:10px 14px; background:#111; color:#fff; text-decoration:none; border-radius:10px; font-size:14px; }
 .empty{ text-align:center; color:#777; padding:20px; }
 .back{ display:block; margin-top:14px; text-align:center; padding:14px; background:#111; color:#fff; text-decoration:none; border-radius:12px; font-weight:700; }
 </style>
@@ -65,65 +64,74 @@ button{ width:100%; padding:13px; border:none; border-radius:12px; font-size:16p
 <a href="admin-panel.html" class="back">⬅ Back to Admin Panel</a>
 </div>
 
-<script type="module" src="firebase.js"></script>
 <script type="module">
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// --- YAHAN APNI FIREBASE CONFIG DALO ---
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
 function safe(v){ return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
 
-function waitFirebase(){ if(window.auth && window.db){ checkAdmin(); }else{ setTimeout(waitFirebase,300); } }
-
-function checkAdmin(){
-onAuthStateChanged(window.auth,(user)=>{
-if(!user || user.email !== "rameshwarsahu2014bpmjarwe1694@gmail.com"){ location.href="login.html"; return; }
-loadNotes();
+onAuthStateChanged(auth, (user) => {
+    if(!user || user.email !== "rameshwarsahu2014bpmjarwe1694@gmail.com"){ location.href="login.html"; return; }
+    loadNotes();
 });
-}
 
 window.uploadNote = async function(){
-const title = document.getElementById("titleInput").value.trim();
-const category = document.getElementById("postFilter").value;
-const subject = document.getElementById("subFilter").value;
-const desc = document.getElementById("descInput").value.trim();
-const imageURL = document.getElementById("imageInput").value.trim();
-const fileName = document.getElementById("fileNameInput").value.trim();
+    const title = document.getElementById("titleInput").value.trim();
+    const category = document.getElementById("postFilter").value;
+    const subject = document.getElementById("subFilter").value;
+    const desc = document.getElementById("descInput").value.trim();
+    const imageURL = document.getElementById("imageInput").value.trim();
+    const fileName = document.getElementById("fileNameInput").value.trim();
 
-if(!title || !imageURL || !fileName){ alert("Title, Image URL aur PDF Filename sab bharein!"); return; }
+    if(!title || !imageURL || !fileName){ alert("Title, Image URL aur PDF Filename sab bharein!"); return; }
 
-try{
-await addDoc(collection(window.db,"notes"),{
-title, category, subject, description:desc, imageURL, fileName, createdAt:serverTimestamp()
-});
-alert("Saved Successfully to Firestore");
-location.reload();
-}catch(error){ alert("Save Failed: " + error.message); }
+    try{
+        await addDoc(collection(db, "notes"),{
+            title, category, subject, description:desc, imageURL, fileName, createdAt:serverTimestamp()
+        });
+        alert("Saved Successfully to Firestore");
+        location.reload();
+    }catch(error){ alert("Save Failed: " + error.message); }
 }
 
 async function loadNotes(){
-const box = document.getElementById("listBox");
-try{
-const q = query(collection(window.db,"notes"), orderBy("createdAt","desc"));
-const snap = await getDocs(q);
-if(snap.empty){ box.innerHTML = `<div class="empty">No notes uploaded</div>`; return; }
-let html = "";
-snap.forEach((d)=>{
-const x = d.data();
-html += `<div class="item"><div class="name">${safe(x.title)}</div><div class="meta">📘 Category: ${safe(x.category)} | Subject: ${safe(x.subject)}</div><div class="meta">${safe(x.description)}</div>
-<button class="delBtn" onclick="deleteNote('${d.id}')">Delete</button></div>`;
-});
-box.innerHTML = html;
-}catch(error){ box.innerHTML = `<div class="empty">Failed to load</div>`; }
+    const box = document.getElementById("listBox");
+    try{
+        const q = query(collection(db, "notes"), orderBy("createdAt","desc"));
+        const snap = await getDocs(q);
+        if(snap.empty){ box.innerHTML = `<div class="empty">No notes uploaded</div>`; return; }
+        let html = "";
+        snap.forEach((d)=>{
+            const x = d.data();
+            html += `<div class="item"><div class="name">${safe(x.title)}</div><div class="meta">📘 Category: ${safe(x.category)} | Subject: ${safe(x.subject)}</div><div class="meta">${safe(x.description)}</div>
+            <button class="delBtn" onclick="deleteNote('${d.id}')">Delete</button></div>`;
+        });
+        box.innerHTML = html;
+    }catch(error){ box.innerHTML = `<div class="empty">Failed to load</div>`; }
 }
 
 window.deleteNote = async function(id){
-if(!confirm("Delete this?")) return;
-await deleteDoc(doc(window.db,"notes",id));
-alert("Deleted");
-loadNotes();
+    if(!confirm("Delete this?")) return;
+    await deleteDoc(doc(db, "notes", id));
+    alert("Deleted");
+    loadNotes();
 }
-
-waitFirebase();
 </script>
 </body>
 </html>
+
