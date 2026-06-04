@@ -86,16 +86,35 @@
     });
    
 
-    async function loadNotes(){
+        async function loadNotes(){
         const box = document.getElementById("notesList");
-        try{
-            const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
+        box.innerHTML = `<div class="empty">Fetching notes...</div>`;
+        
+        try {
+            // पक्का करें कि window.db सही है
+            if (!window.db) throw new Error("Database not initialized");
+            
+            const q = query(collection(window.db, "notes"), orderBy("createdAt", "desc"));
             const snap = await getDocs(q);
-            allNotes = [];
-            snap.forEach((doc)=>{ allNotes.push({ id:doc.id, ...doc.data() }); });
-            renderNotes(allNotes);
-        } catch(error){ box.innerHTML = `<div class="empty">Error loading notes</div>`; }
+            
+            console.log("Docs found:", snap.size); // कंसोल में देखें कितने docs मिले
+            
+            if (snap.empty) {
+                box.innerHTML = `<div class="empty">No notes found.</div>`;
+                return;
+            }
+
+            window.allNotes = [];
+            snap.forEach((doc) => { 
+                window.allNotes.push({ id: doc.id, ...doc.data() }); 
+            });
+            renderNotes(window.allNotes);
+        } catch(error){ 
+            console.error("DEBUG ERROR:", error); // F12 कंसोल में यह एरर चेक करें
+            box.innerHTML = `<div class="empty">Error: ${error.message}</div>`; 
+        }
     }
+
 
     window.renderNotes = function(arr){
         const box = document.getElementById("notesList");
