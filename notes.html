@@ -69,14 +69,9 @@
         appId: "1:759016756080:web:7f2c0b66458bd007e888b5"
     };
 
-    window.db = getFirestore(initializeApp(firebaseConfig));
-    window.auth = getAuth();
-    window.collection = collection;
-    window.getDocs = getDocs;
-    window.query = query;
-    window.orderBy = orderBy;
-    window.onAuthStateChanged = onAuthStateChanged;
-
+    const app = initializeApp(firebaseConfig);
+    window.db = getFirestore(app);
+    const auth = getAuth(app);
     window.goBack = function() { window.location.href = "dashboard.html"; }
 
     let allNotes = [];
@@ -85,14 +80,9 @@
 
     window.handleSecureAccess = async (category, subject, title) => {
         if (!currentUserEmail) return alert("Please login first!");
-
         const secureUrl = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
-
         try {
-            const res = await fetch(secureUrl, {
-                headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS' }
-            });
-
+            const res = await fetch(secureUrl, { headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS' } });
             if (res.status === 200) {
                 const blob = await res.blob();
                 window.open(URL.createObjectURL(blob), '_blank');
@@ -107,17 +97,16 @@
                     if (data.url) window.location.href = data.url;
                     else alert("Payment link error!");
                 }
-            } else {
-                alert("File not found or Server error.");
-            }
-        } catch (err) {
-            alert("Connection error!");
-        }
+            } else { alert("File not found or Server error."); }
+        } catch (err) { alert("Connection error!"); }
     };
 
-    window.onAuthStateChanged(window.auth, (user) => {
-        if (user) currentUserEmail = user.email;
-        else window.location.href = "login.html";
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUserEmail = user.email;
+        } else {
+            window.location.href = "login.html";
+        }
     });
 
     window.safe = function(v){ return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
