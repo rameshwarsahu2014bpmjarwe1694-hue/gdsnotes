@@ -4,13 +4,13 @@
   "short_name": "GDS Notes",
   "description": "Complete GDS Departmental Exam Notes, Study Material and Mock Tests.",
 
-  "start_url": "/gdsnotes/",
-  "scope": "/gdsnotes/",
-  "display": "standalone",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
 
   "display_override": [
-    "standalone",
     "fullscreen",
+    "standalone",
     "window-controls-overlay"
   ],
 
@@ -25,13 +25,13 @@
 
   "icons": [
     {
-      "src": "/gdsnotes/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/gdsnotes/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -40,21 +40,21 @@
 
   "screenshots": [
     {
-      "src": "/gdsnotes/Screenshots1dashboard.jpg",
+      "src": "Screenshots1dashboard.jpg",
       "sizes": "720x1604",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "GDS Notes Dashboard"
     },
     {
-      "src": "/gdsnotes/Screenshotpyq.jpg",
+      "src": "Screenshotpyq.jpg",
       "sizes": "720x1604",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Previous Year Questions"
     },
     {
-      "src": "/gdsnotes/Screenshotsquiz.jpg",
+      "src": "Screenshotsquiz.jpg",
       "sizes": "720x1604",
       "type": "image/jpeg",
       "form_factor": "narrow",
@@ -66,17 +66,17 @@
     {
       "name": "Start Mock Test",
       "short_name": "Quiz",
-      "url": "/gdsnotes/quiz.html"
+      "url": "quiz.html"
     },
     {
       "name": "Study Materials",
       "short_name": "Notes",
-      "url": "/gdsnotes/notes.html"
+      "url": "notes.html"
     }
   ],
 
   "share_target": {
-    "action": "/gdsnotes/share",
+    "action": "share",
     "method": "GET",
     "params": {
       "title": "title",
@@ -87,7 +87,7 @@
 
   "file_handlers": [
     {
-      "action": "/gdsnotes/open-file",
+      "action": "open-file",
       "accept": {
         "application/pdf": [".pdf"],
         "text/plain": [".txt"]
@@ -102,7 +102,7 @@
   "protocol_handlers": [
     {
       "protocol": "web+gds",
-      "url": "/gdsnotes/index.html?query=%s"
+      "url": "index.html?query=%s"
     }
   ],
 
