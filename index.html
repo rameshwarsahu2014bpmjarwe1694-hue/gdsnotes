@@ -11,12 +11,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="manifest" href="/gdsnotes/manifest.json">
+    <link rel="manifest" href="manifest.json">
 
-    <link rel="icon" href="/gdsnotes/icon-192.png">
-    <link rel="shortcut icon" href="/gdsnotes/icon-192.png">
-    <link rel="apple-touch-icon" href="/gdsnotes/icon-192.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="/gdsnotes/icon-512.png">
+<link rel="icon" href="icon-192.png">
+<link rel="shortcut icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
 
     <style>
         *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
@@ -145,7 +145,7 @@
 <section class="hero">
     <div class="hero-box">
 
-        <img src="/gdsnotes/RSH.png?v=9" class="logo" alt="Logo">
+        <img src="RSH.png?v=9" class="logo" alt="Logo">
 
         <h1>RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB</h1>
 
@@ -163,9 +163,9 @@
         </div>
 
         <div class="btn-group">
-            <a href="/gdsnotes/login.html" class="btn btn-login">Candidate Login</a>
-            <a href="/gdsnotes/register.html" class="btn btn-register">Register</a>
-            <a href="/gdsnotes/admin.html" class="btn btn-admin">Admin Login</a>
+            <a href="login.html" class="btn btn-login">Candidate Login</a>
+<a href="register.html" class="btn btn-register">Register</a>
+<a href="admin.html" class="btn btn-admin">Admin Login</a>
         </div>
 
     </div>
@@ -230,10 +230,11 @@ function installApp() {
     deferredPrompt = null;
 }
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/gdsnotes/sw.js');
-}
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+    .then(() => console.log('Service Worker Registered successfully'))
+    .catch((err) => console.log('Service Worker registration failed', err));
+  }
 </script>
-
 </body>
 </html>
