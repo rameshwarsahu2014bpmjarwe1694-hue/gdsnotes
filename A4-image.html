@@ -7,17 +7,37 @@
         .controls { width: 650px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
         /* 3D Book Page Look Styling */
-        #print-area { 
-            width: 600px; 
-            padding: 40px; 
-            background: #fcfcfc; 
-            border: 1px solid #dcdcdc; 
-            margin: 40px auto; 
-            /* 3D Shadow effect */
-            box-shadow: 10px 10px 20px rgba(0,0,0,0.2), inset -5px 0 10px rgba(0,0,0,0.05); 
-            border-radius: 2px;
-            position: relative;
-        }
+        #book-page{
+background:#f6f0dc;
+
+background-image:
+radial-gradient(
+rgba(0,0,0,.025) 1px,
+transparent 1px
+),
+linear-gradient(
+to right,
+rgba(0,0,0,.12) 0%,
+rgba(0,0,0,.04) 4%,
+rgba(255,255,255,.06) 50%,
+rgba(0,0,0,.04) 96%,
+rgba(0,0,0,.12) 100%
+);
+
+background-size:
+8px 8px,
+100% 100%;
+
+border:5px solid #111;
+
+box-shadow:
+0 0 80px rgba(0,0,0,.55),
+0 25px 80px rgba(0,0,0,.45),
+inset 0 0 25px rgba(0,0,0,.08);
+
+position:relative;
+overflow:hidden;
+}
 
         .header { text-align: center; font-weight: bold; font-size: 16px; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px; }
         .page-num { text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 14px; }
