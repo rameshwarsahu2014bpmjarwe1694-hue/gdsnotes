@@ -1,35 +1,69 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<style>
-    @page { size: A4; margin: 20mm; }
-    body { font-family: 'Arial', sans-serif; color: #000; line-height: 1.4; }
-    .page-container { width: 100%; border: 1px solid #000; padding: 20px; box-sizing: border-box; }
-    .header { text-align: center; font-weight: bold; border-bottom: 2px solid #000; margin-bottom: 10px; }
-    .page-number { text-align: center; font-weight: bold; margin-bottom: 5px; }
-    .chapter-title { font-weight: bold; text-align: center; border-bottom: 1px solid #000; margin-bottom: 10px; }
-    .section-title { font-weight: bold; text-decoration: underline; margin-top: 10px; }
-    .question { font-weight: bold; margin-top: 8px; }
-    .answer { margin-bottom: 5px; }
-</style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #eee; padding: 20px; }
+        .controls { width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+        #print-area { width: 595px; padding: 40px; background: white; border: 1px solid #000; margin: 20px auto; }
+        .header { text-align: center; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; }
+        .page-num { text-align: center; font-weight: bold; margin: 10px 0; }
+        .chapter { text-align: center; font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 10px; padding-bottom: 5px; }
+        
+        /* Formatting for your specific content */
+        .rule-title { font-weight: bold; text-decoration: underline; margin-top: 15px; display: block; }
+        .q { font-weight: bold; margin-top: 10px; }
+        .opt { margin-left: 20px; }
+        .ans { font-weight: bold; margin-bottom: 10px; }
+        
+        textarea { width: 100%; height: 300px; }
+    </style>
 </head>
 <body>
 
-<div class="page-container">
-    <div class="page-number">Page 13</div>
-    <div class="header">'RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB'</div>
-    <div class="chapter-title">POSTAL MANUAL VOLUME 5 – CHAPTER 1 (CONTINUED)</div>
-    
-    <div class="section-title">PO manual volume 5 नियम 15 क:-</div>
-    
-    <div class="question">प्रश्न: कॉर्पोरेट डाक कार्यालय (काडाका) या थोक डाक कार्यालय (बोडाका) क्यों खोले गए हैं?</div>
-    <div class="answer">उत्तर: डाक की वृद्धि के कारण बड़े शहरों में.</div>
+    <div class="controls">
+        <h3>Bulk Content Input</h3>
+        <input type="text" id="pNum" placeholder="Page Number (e.g. 15)"><br><br>
+        <input type="text" id="chapName" style="width:100%" placeholder="Chapter Name"><br><br>
+        <textarea id="content" placeholder="Yahan apna text paste karein..."></textarea>
+        <button onclick="renderPage()">Preview & Download Image</button>
+    </div>
 
-    <div class="question">प्रश्न: थोक डाककर्ता के रूप में किसे पहचाना जाता है?</div>
-    <div class="answer">उत्तर: वह जो एक साथ 500 साधारण डाक की वस्तुएं या 250 रजिस्ट्री वस्तुएं प्रेषण के लिए प्रस्तुत करता है.</div>
-    
-    <!-- Isi tarah aur questions add karein -->
-</div>
+    <div id="print-area">
+        <div class="page-num" id="display-pNum">Page</div>
+        <div class="header">'RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB'</div>
+        <div class="chapter" id="display-chap">Chapter Name</div>
+        <div id="output"></div>
+    </div>
+
+<script>
+    function renderPage() {
+        document.getElementById('display-pNum').innerText = "Page " + document.getElementById('pNum').value;
+        document.getElementById('display-chap').innerText = document.getElementById('chapName').value;
+        
+        const rawText = document.getElementById('content').value;
+        const lines = rawText.split('\n');
+        let html = "";
+        
+        lines.forEach(line => {
+            let l = line.trim();
+            if (l.startsWith("PO Manual")) html += `<span class="rule-title">${l}</span>`;
+            else if (l.startsWith("प्रश्न")) html += `<div class="q">${l}</div>`;
+            else if (l.startsWith("(A)") || l.startsWith("(B)") || l.startsWith("(C)") || l.startsWith("(D)")) html += `<div class="opt">${l}</div>`;
+            else if (l.startsWith("उत्तर")) html += `<div class="ans">${l}</div>`;
+            else if (l !== "") html += `<div>${l}</div>`;
+        });
+        
+        document.getElementById('output').innerHTML = html;
+
+        // Image Download
+        html2canvas(document.getElementById('print-area')).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'Page_' + document.getElementById('pNum').value + '.png';
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+    }
+</script>
 </body>
 </html>
-
