@@ -3,325 +3,492 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
+<title>Study Material Generator Pro</title>
+<link href="
+https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&display=swap
+" rel="stylesheet">
+<script src="
+https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
+"></script>
+<script src="
+https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js
+"></script>
 <style>
-
+/* =========================
+   BASE CSS
+========================= */
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
+font-family:'Noto Sans Devanagari',sans-serif;
 }
-
 body{
-background:#222;
-font-family:Arial, sans-serif;
+background:#202020;
+padding:20px;
 display:flex;
 gap:20px;
-padding:20px;
+align-items:flex-start;
 }
-
-.controls{
-width:350px;
-background:#fff;
+.control-panel{
+width:380px;
+background:#ffffff;
 padding:20px;
 border-radius:10px;
-height:fit-content;
+box-shadow:
+0 0 20px rgba(0,0,0,.30);
 }
-
-.controls h2{
+.control-panel h2{
 margin-bottom:15px;
+font-size:24px;
 }
-
-.controls input,
-.controls textarea{
+.control-panel input,
+.control-panel textarea{
 width:100%;
 padding:10px;
 margin-bottom:10px;
+border:1px solid #ccc;
+border-radius:5px;
 }
-
-.controls button{
+.control-panel button{
 width:100%;
-padding:15px;
-font-weight:bold;
+padding:12px;
+margin-bottom:8px;
+font-weight:700;
 cursor:pointer;
-background:#000;
-color:#fff;
 border:none;
-}
-
-.preview-wrap{
-display:flex;
-flex-direction:column;
-align-items:center;
-}
-
-.page-top{
+background:#111;
 color:#fff;
-font-size:30px;
-font-weight:bold;
-margin-bottom:10px;
+border-radius:5px;
 }
-
+.preview-area{
+flex:1;
+display:flex;
+justify-content:center;
+}
 #book-page{
-width:950px;
+width:900px;
+min-height:1300px;
 background:#f6f0dc;
-
+padding:40px;
+position:relative;
+overflow:hidden;
+}
+/* =========================BOOK PAGE LOOK========================= */
+#book-page{
+background:#f6f0dc;
 background-image:
-linear-gradient(
-to right,
-rgba(0,0,0,.10) 0%,
-rgba(0,0,0,.03) 5%,
-rgba(255,255,255,.10) 50%,
-rgba(0,0,0,.03) 95%,
-rgba(0,0,0,.10) 100%
-);
-
-padding:18px 35px;
-
-border:4px solid #000;
-
-box-shadow:
-0 0 60px rgba(0,0,0,.7),
-inset 0 0 25px rgba(0,0,0,.08);
-
+radial-gradient(rgba(0,0,0,.025) 1px,transparent 1px),
+linear-gradient(to right,rgba(0,0,0,.12) 0%,rgba(0,0,0,.04) 4%,rgba(255,255,255,.06) 50%,rgba(0,0,0,.04) 96%,rgba(0,0,0,.12) 100%);
+background-size:8px 8px,100% 100%;
+border:5px solid #111;
+box-shadow:0 0 80px rgba(0,0,0,.55),0 25px 80px rgba(0,0,0,.45),inset 0 0 25px rgba(0,0,0,.08);
 position:relative;
 }
-
-.maroon-line{
+/* Center Fold */
+#book-page::before{
+content:"";
+position:absolute;
+top:0;left:50%;
+transform:translateX(-50%);
+width:30px;height:100%;
+background:
+linear-gradient(to right,rgba(0,0,0,.15),rgba(255,255,255,.05),rgba(0,0,0,.15));
+opacity:.35;
+pointer-events:none;
+}
+/* Bottom Curvature */
+#book-page::after{
+content:"";
+position:absolute;
+left:0;bottom:0;
+width:100%;height:120px;
+background:
+radial-gradient(ellipse at center,rgba(0,0,0,.10),transparent 70%);
+opacity:.35;
+pointer-events:none;
+}
+/* Top Page Number */
+.page-top{
+text-align:center;
+font-size:28px;
+font-weight:900;
+margin-bottom:12px;
+color:#000;
+}
+/* Decorative Lines */
+.header-line{
 height:4px;
 background:#5a1c1c;
-margin:5px 0;
+margin:6px 0;
 }
-
-.header{
+/* Main Header */
+.study-header{
 text-align:center;
-font-size:22px;
+font-size:20px;
 font-weight:900;
+letter-spacing:.5px;
+padding:5px 0;
 }
-
-.chapter{
+/* Chapter */
+.chapter-title{
 text-align:center;
-font-size:22px;
-font-weight:900;
-padding-bottom:8px;
-border-bottom:3px solid #000;
-margin-bottom:12px;
-}
-
-.big-heading{
 font-size:24px;
 font-weight:900;
-text-decoration:underline;
-line-height:1.2;
-margin-bottom:8px;
+border-bottom:3px solid #000;
+padding-bottom:10px;
+margin-bottom:15px;
 }
-
-.rule-title{
-font-size:20px;
-font-weight:900;
-text-decoration:underline;
-margin-top:18px;
-margin-bottom:6px;
-}
-
-.q{
-font-size:19px;
-font-weight:900;
-line-height:1.3;
-margin-top:8px;
-}
-
-.option{
-font-size:19px;
-font-weight:900;
-line-height:1.25;
-margin-left:25px;
-}
-
-.normal{
-font-size:19px;
-font-weight:900;
-line-height:1.3;
-}
-
-.ans{
-font-size:20px;
-font-weight:900;
-margin-top:5px;
-margin-bottom:10px;
-}
-
-.footer-page{
+/* Footer */
+.page-footer{
 text-align:center;
 font-size:18px;
-font-weight:bold;
-margin-top:15px;
+font-weight:900;
+margin-top:25px;
 }
-
+/* Watermark */
+.watermark{
+position:absolute;
+top:50%;left:50%;
+transform:translate(-50%,-50%)rotate(-25deg);
+font-size:70px;
+font-weight:900;
+color:rgba(0,0,0,.05);
+pointer-events:none;
+white-space:nowrap;
+}
+/* Logo */
+.logo{
+width:90px;height:90px;
+object-fit:contain;
+display:block;
+margin:0 auto 10px auto;
+}
+/* Content Area */
+.study-content{
+position:relative;
+z-index:2;
+}
+/* Page Print Look */
+.study-content,.chapter-title,.study-header,.page-footer{
+color:#111;
+}
+/* =========================STUDY MATERIAL TYPOGRAPHY========================= */
+/* Rule Heading */
+.rule-title{
+font-size:22px;
+font-weight:900;
+text-decoration:underline;
+line-height:1.5;
+margin-top:18px;
+margin-bottom:12px;
+}
+/* Question */
+.question{
+font-size:19px;
+font-weight:900;
+line-height:1.6;
+margin-top:12px;
+margin-bottom:6px;
+}
+/* Options */
+.option{
+font-size:18px;
+font-weight:700;
+line-height:1.5;
+margin-left:30px;
+margin-bottom:4px;
+}
+/* Answer */
+.answer{
+font-size:19px;
+font-weight:900;
+line-height:1.6;
+margin-top:6px;
+margin-bottom:12px;
+}
+/* Normal Text */
+.normal-text{
+font-size:18px;
+font-weight:500;
+line-height:1.6;
+margin-bottom:5px;
+}
+/* Improve Readability */
+.study-content{
+font-size:18px;
+text-align:left;
+word-break:break-word;
+}
+/* Print Style Paragraphs */
+.study-content p{
+margin-bottom:8px;
+}
+/* Prevent Watermark Over Text */
+.study-content,.rule-title,.question,.option,.answer,.normal-text{
+position:relative;
+z-index:5;
+}
+/* Better Print Feel */
+.rule-title,.question,.answer{
+color:#000;
+}
+/* Question-Answer Block Spacing */
+.question + .option{
+margin-top:5px;
+}
+.answer + .question{
+margin-top:16px;
+}
+/* Large Heading Support */
+.big-heading{
+font-size:26px;
+font-weight:900;
+text-align:center;
+text-decoration:underline;
+margin
 </style>
 </head>
-
 <body>
-
-<div class="controls">
-
-<h2>Page Generator</h2>
-
-<input id="pNum" placeholder="Page Number">
-
-<input id="chap" placeholder="Chapter Name">
-
-<textarea id="content" rows="18"
-placeholder="Content Paste Here"></textarea>
-
-<button onclick="downloadPage()">
-Generate PNG
+<div class="control-panel">
+<h2>Study Material Generator</h2>
+<input
+type="text"
+id="pageNo"
+placeholder="Page Number">
+<input
+type="text"
+id="chapterName"
+placeholder="Chapter Name">
+<input
+type="file"
+id="logoUpload"
+accept="image/*">
+<textarea
+id="bulkText"
+rows="20"
+placeholder="Paste Content Here"></textarea>
+<button onclick="renderContent()">
+Generate Preview
 </button>
-
+<button onclick="downloadPNG()">
+Download PNG
+</button>
+<button onclick="downloadPDF()">
+Download PDF
+</button>
 </div>
-
-<div class="preview-wrap">
-
-<div class="page-top" id="topPage">
-Page 1
-</div>
-
+<div class="preview-area">
 <div id="book-page">
-
-<div class="maroon-line"></div>
-
-<div class="header">
-'RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB'
+<div id="pageContent"></div>
 </div>
-
-<div class="maroon-line"></div>
-
-<div class="chapter" id="out-chap">
-POSTAL MANUAL VOLUME 5
 </div>
-
-<div id="display"></div>
-
-<div class="footer-page" id="footerPage">
-Page 1
-</div>
-
-</div>
-
-</div>
-
 <script>
-
-function buildPage(){
-
-let page=document.getElementById("pNum").value || "1";
-
-document.getElementById("topPage").innerText=
-"Page "+page;
-
-document.getElementById("footerPage").innerText=
-"Page "+page;
-
-document.getElementById("out-chap").innerText=
-document.getElementById("chap").value;
-
-let lines=
-document.getElementById("content")
-.value
-.split("\n");
-
-let html="";
-
+/* =========================
+   LOGO SYSTEM
+========================= */
+let uploadedLogo="";
+document
+.getElementById("logoUpload")
+.addEventListener(
+"change",
+function(e){
+const file=e.target.files[0];
+if(!file) return;
+const reader=new FileReader();
+reader.onload=function(ev){
+uploadedLogo=ev.target.result;
+};
+reader.readAsDataURL(file);
+}
+);
+/* =========================CONTENT PARSER ENGINE========================= */
+function renderContent(){
+const pageNo =document.getElementById("pageNo").value || "1";
+const chapter =document.getElementById("chapterName").value || "CHAPTER";
+const text =document.getElementById("bulkText").value;
+const lines = text.split("\n");
+let html = "";
+/* Top Page Number */
+html += `
+Page ${pageNo}
+`;
+/* Watermark */
+html += `
+RAMESHWAR SAHU
+`;
+/* Logo */
+if(uploadedLogo){
+html += <img class="logo" src="${uploadedLogo}">;
+}
+/* Header */
+html += `
+RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB
+`;
+/* Chapter */
+html += `
+${chapter}
+`;
+/* Content */
+html += `
+`;
 lines.forEach(line=>{
-
 line=line.trim();
-
-if(line==="") return;
-
-if(
-line.startsWith("PO") ||
-line.startsWith("पो") ||
-line.startsWith("Postal")
-){
-html+=`
-<div class="rule-title">
-${line}
-</div>`;
+if(line===""){
+html += "
+";
+return;
 }
-
-else if(line.startsWith("प्रश्न"))
-{
-html+=`
-<div class="q">
+/* Rule Heading */
+if(line.startsWith("PO Manual") ||line.startsWith("Postal Manual") ||line.includes("नियम संख्या")){
+html += `
 ${line}
-</div>`;
+`;
 }
-
+/* Question */
+else if(line.startsWith("प्रश्न")){
+html += `
+${line}
+`;
+}
+/* Option */
 else if(
-line.startsWith("(A)")||
-line.startsWith("(B)")||
-line.startsWith("(C)")||
-line.startsWith("(D)")||
-line.startsWith("(E)")
-)
-{
-html+=`
-<div class="option">
+line.startsWith("(A)") ||line.startsWith("(B)") ||line.startsWith("(C)") ||line.startsWith("(D)") ||line.startsWith("(E)") ||line.startsWith("(F)")
+){
+html += `
 ${line}
-</div>`;
+`;
 }
-
-else if(line.startsWith("उत्तर"))
-{
-html+=`
-<div class="ans">
+/* Answer */
+else if(line.startsWith("उत्तर")){
+html += `
 ${line}
-</div>`;
+`;
 }
-
-else
-{
-html+=`
-<div class="normal">
+/* Normal Text */
+else{
+html += `
 ${line}
-</div>`;
+`;
 }
-
 });
-
-document.getElementById("display").innerHTML=html;
-
+html += `
+`;
+/* Footer */
+html += `
+Page ${pageNo}
+`;
+document.getElementById("pageContent").innerHTML = html;
 }
-
-function downloadPage(){
-
-buildPage();
-
-html2canvas(
-document.getElementById("book-page"),
-{
-scale:4,
-backgroundColor:null
-}
-).then(canvas=>{
-
-let link=document.createElement("a");
-
-link.download=
-"Page_"+document.getElementById("pNum").value+".png";
-
-link.href=
-canvas.toDataURL("image/png");
-
+/* =========================PNG EXPORT========================= */
+async function downloadPNG(){
+renderContent();
+const page =document.getElementById("book-page");
+const canvas =await html2canvas(page,{scale:4,useCORS:true,backgroundColor:"#f6f0dc"});
+const link =document.createElement("a");
+link.download ="Study_Material_Page.png";
+link.href =canvas.toDataURL("image/png");
 link.click();
-
-});
-
 }
-
+/* =========================PDF EXPORT========================= */
+async function downloadPDF(){
+renderContent();
+const page =document.getElementById("book-page");
+const canvas =await html2canvas(page,{scale:4,useCORS:true,backgroundColor:"#f6f0dc"});
+const imgData =canvas.toDataURL("image/png");
+const { jsPDF } = window.jspdf;
+const pdf =new jsPDF('portrait','mm','a4');
+/* A4 Width */
+const pageWidth = 210;
+/* Maintain Ratio */
+const pageHeight =(canvas.height * pageWidth)/canvas.width;
+pdf.addImage(imgData,'PNG',0,0,pageWidth,pageHeight);
+pdf.save('Study_Material.pdf');
+}
+/* =========================AUTO PREVIEW========================= */
+document.getElementById("pageNo").addEventListener("input",renderContent);
+document.getElementById("chapterName").addEventListener("input",renderContent);
+document.getElementById("bulkText").addEventListener("input",renderContent);
+/* =========================INITIAL LOAD========================= */
+window.onload = function(){
+renderContent();
+};
+/* =========================ADVANCED PAGE SYSTEM========================= */
+/*NOTE:
+Browser me true book-styleautomatic multipage PNG bananabahut complex hai.
+Ye system:
+✔ Long content detect karega✔ Continuation label dikhayega✔ Page count estimate karega✔ Future multipage support ke liye base dega
+*/
+function estimatePages(){
+const text =document.getElementById("bulkText").value;
+const chars = text.length;
+/* Approx */
+const charsPerPage = 3500;
+return Math.max(1,Math.ceil(chars / charsPerPage));
+}
+/* =========================PAGE INFO========================= */
+function getPageInfo(){
+const totalPages =estimatePages();
+const currentPage =document.getElementById("pageNo").value || 1;
+return {
+current:Number(currentPage),
+total:Number(totalPages)
+};
+}
+/* =========================CONTINUED LABEL========================= */
+function buildContinuationLabel(){
+const info =getPageInfo();
+if(info.total <= 1){
+return "";
+}
+if(info.current < info.total){
+return `
+(CONTINUED ON NEXT PAGE)
+`;
+}
+return "";
+}
+/* =========================PATCH RENDER CONTENT========================= */
+const oldRenderContent =renderContent;
+renderContent = function(){
+oldRenderContent();
+const page =document.getElementById("pageContent");
+if(!page) return;
+page.insertAdjacentHTML("beforeend",buildContinuationLabel());
+};
+/* =========================PAGE COUNT DISPLAY========================= */
+function showPageStats(){
+const info =getPageInfo();
+let stat =document.getElementById("pageStats");
+if(!stat){
+stat =document.createElement("div");
+stat.id = "pageStats";
+stat.style.marginTop = "10px";
+stat.style.fontWeight = "700";
+document.querySelector(".control-panel").appendChild(stat);
+}
+stat.innerHTML ="Estimated Pages : " +info.total;
+}
+/* =========================AUTO UPDATE STATS========================= */
+document.getElementById("bulkText").addEventListener("input",showPageStats);
+window.addEventListener("load",showPageStats);
+/* =========================CONTINUED LABEL STYLE========================= */
+const style =document.createElement("style");
+style.innerHTML = `
+.continued-label{
+text-align:center;
+font-size:18px;
+font-weight:900;
+margin-top:20px;
+border-top:2px dashed #000;
+padding-top:10px;
+}
+`;
+document.head.appendChild(style);
+/* =========================FUTURE MULTIPAGE HOOK========================= */
+function splitIntoPages(){
+return estimatePages();
+}
 </script>
-
 </body>
 </html>
