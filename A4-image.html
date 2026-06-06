@@ -3,42 +3,74 @@
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* Essential: Background ko dark rakha taaki book highlight ho */
-        body { background: #1a1a1a; display: flex; justify-content: center; padding: 50px; }
+        body { background: #1a1a1a; display: flex; justify-content: center; padding: 20px; font-family: 'Arial', sans-serif; }
         
         #book-page { 
             width: 595px; min-height: 842px;
-            /* Secret Paper Color and Gradient for Curve */
-            background-color: #e8e2c8;
-            background-image: linear-gradient(to right, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.02) 4%, rgba(0,0,0,0) 96%, rgba(0,0,0,0.2) 100%);
-            
-            /* The 3D Shadow Composition */
-            box-shadow: 25px 25px 80px rgba(0,0,0,0.9), inset -20px 0 40px rgba(0,0,0,0.1);
-            padding: 60px;
+            background: #f4efd3;
+            /* Sample jaisa paper curvature effect */
+            background-image: linear-gradient(to right, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.02) 5%, rgba(0,0,0,0) 95%, rgba(0,0,0,0.2) 100%);
+            padding: 50px;
+            /* 3D Drop Shadow jaisa aapka sample hai */
+            box-shadow: 20px 20px 80px rgba(0,0,0,0.9), inset -15px 0 30px rgba(0,0,0,0.1);
             position: relative;
         }
 
-        /* Typography */
-        .header { text-align: center; font-weight: 900; font-size: 16px; border-bottom: 3px double #000; padding-bottom: 8px; margin-bottom: 10px; text-transform: uppercase; }
-        .rule-title { font-weight: 900; text-decoration: underline; margin-top: 25px; display: block; text-shadow: 0.5px 0 0 #000; }
-        .q { font-weight: 900; margin-top: 15px; }
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-left: 20px; }
-        .ans { font-weight: 900; margin-top: 10px; margin-bottom: 20px; }
+        .header { text-align: center; font-weight: 900; font-size: 15px; border-bottom: 3px double #000; padding-bottom: 5px; margin-bottom: 10px; text-transform: uppercase; }
+        .page-num { text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
+        .chapter { text-align: center; font-weight: 900; font-size: 16px; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 25px; }
+        
+        /* EXACT BOLD AND UNDERLINE STYLE */
+        .rule-title { font-weight: 900; text-decoration: underline; margin-top: 25px; display: block; font-size: 15px; }
+        .q { font-weight: 900; margin-top: 15px; margin-bottom: 5px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; margin-left: 20px; gap: 5px; font-weight: 700; }
+        .ans { font-weight: 900; margin-top: 5px; margin-bottom: 20px; }
+        
+        .controls { width: 400px; background: white; padding: 20px; border-radius: 8px; margin-right: 20px; height: fit-content; }
     </style>
 </head>
 <body>
+
+    <div class="controls">
+        <h3>Final Master Generator</h3>
+        <input type="text" id="pNum" placeholder="Page No" style="width:90%"><br><br>
+        <input type="text" id="chap" placeholder="Chapter Name" style="width:90%"><br><br>
+        <textarea id="content" style="width:90%; height:250px;"></textarea>
+        <button onclick="render()" style="width:100%; padding:15px; font-weight:bold; cursor:pointer; background:black; color:white;">Download Real-Look Page</button>
+    </div>
+
     <div id="book-page">
-        </div>
-    
-    <script>
-        // High Precision Rendering Engine
-        html2canvas(document.getElementById('book-page'), {
-            scale: 4, // High DPI for crisp text
-            useCORS: true,
-            backgroundColor: null
-        }).then(canvas => {
-            // Save Image
+        <div class="page-num" id="out-pNum">Page</div>
+        <div class="header">'RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB'</div>
+        <div class="chapter" id="out-chap">Chapter</div>
+        <div id="display"></div>
+    </div>
+
+<script>
+    function render() {
+        document.getElementById('out-pNum').innerText = "Page " + document.getElementById('pNum').value;
+        document.getElementById('out-chap').innerText = document.getElementById('chap').value;
+        
+        const lines = document.getElementById('content').value.split('\n');
+        let html = "";
+        lines.forEach(l => {
+            let line = l.trim();
+            if(line.startsWith("PO")) html += `<span class="rule-title">${line}</span>`;
+            else if(line.startsWith("प्रश्न")) html += `<div class="q">${line}</div>`;
+            else if(line.startsWith("(A)")) html += `<div class="options-grid"><div class="opt">${line}</div>`;
+            else if(line.startsWith("(B)")) html += `<div class="opt">${line}</div></div>`;
+            else if(line.startsWith("उत्तर")) html += `<div class="ans">${line}</div>`;
+            else if(line !== "") html += `<div>${line}</div>`;
         });
-    </script>
+        document.getElementById('display').innerHTML = html;
+
+        html2canvas(document.getElementById('book-page'), { scale: 3 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'Page_' + document.getElementById('pNum').value + '.png';
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+    }
+</script>
 </body>
 </html>
