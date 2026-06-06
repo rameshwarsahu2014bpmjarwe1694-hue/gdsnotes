@@ -3,79 +3,42 @@
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { background: #262626; padding: 40px; display: flex; justify-content: center; font-family: 'Arial', sans-serif; }
+        /* Essential: Background ko dark rakha taaki book highlight ho */
+        body { background: #1a1a1a; display: flex; justify-content: center; padding: 50px; }
         
         #book-page { 
-            width: 595px; min-height: 842px; 
-            background: #f4efd3; /* Exact sample paper color */
-            padding: 50px;
-            /* 3D shadow and curved edge effect */
-            box-shadow: 20px 20px 60px rgba(0,0,0,0.8), inset -15px 0 30px rgba(0,0,0,0.1);
+            width: 595px; min-height: 842px;
+            /* Secret Paper Color and Gradient for Curve */
+            background-color: #e8e2c8;
+            background-image: linear-gradient(to right, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.02) 4%, rgba(0,0,0,0) 96%, rgba(0,0,0,0.2) 100%);
+            
+            /* The 3D Shadow Composition */
+            box-shadow: 25px 25px 80px rgba(0,0,0,0.9), inset -20px 0 40px rgba(0,0,0,0.1);
+            padding: 60px;
             position: relative;
         }
 
-        .header { text-align: center; font-weight: bold; font-size: 14px; border-bottom: 2px solid #000; padding-bottom: 5px; }
-        .page-num { text-align: center; font-weight: bold; margin-bottom: 15px; }
-        .chapter { text-align: center; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 20px; }
-        
-        /* Strict Formatting */
-        .rule-title { font-weight: bold; text-decoration: underline; margin-top: 18px; display: block; }
-        .q { font-weight: bold; margin-top: 12px; }
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; margin-left: 20px; gap: 5px; margin-top: 5px; }
-        .ans { font-weight: bold; margin-top: 5px; margin-bottom: 15px; }
-        
-        .controls { width: 400px; background: white; padding: 20px; border-radius: 8px; margin-right: 20px; height: fit-content; }
+        /* Typography */
+        .header { text-align: center; font-weight: 900; font-size: 16px; border-bottom: 3px double #000; padding-bottom: 8px; margin-bottom: 10px; text-transform: uppercase; }
+        .rule-title { font-weight: 900; text-decoration: underline; margin-top: 25px; display: block; text-shadow: 0.5px 0 0 #000; }
+        .q { font-weight: 900; margin-top: 15px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-left: 20px; }
+        .ans { font-weight: 900; margin-top: 10px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
-
-    <div class="controls">
-        <h3>Final Professional Generator</h3>
-        <input type="text" id="pNum" placeholder="Page Number" style="width:90%"><br><br>
-        <input type="text" id="chap" placeholder="Chapter Name" style="width:90%"><br><br>
-        <textarea id="content" style="width:90%; height:200px;"></textarea>
-        <button onclick="renderFinal()" style="width:100%; padding:10px; cursor:pointer;">Generate Perfect Image</button>
-    </div>
-
     <div id="book-page">
-        <div class="page-num" id="out-pNum">Page</div>
-        <div class="header">'RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB'</div>
-        <div class="chapter" id="out-chap">Chapter</div>
-        <div id="display"></div>
-    </div>
-
-<script>
-    function renderFinal() {
-        document.getElementById('out-pNum').innerText = "Page " + document.getElementById('pNum').value;
-        document.getElementById('out-chap').innerText = document.getElementById('chap').value;
-        
-        const lines = document.getElementById('content').value.split('\n');
-        let html = "";
-        
-        lines.forEach(l => {
-            let line = l.trim();
-            if(line.startsWith("PO")) html += `<span class="rule-title">${line}</span>`;
-            else if(line.startsWith("प्रश्न")) html += `<div class="q">${line}</div>`;
-            else if(line.startsWith("(A)")) html += `<div class="options-grid"><div class="opt">${line}</div>`;
-            else if(line.startsWith("(B)")) html += `<div class="opt">${line}</div></div>`;
-            else if(line.startsWith("उत्तर")) html += `<div class="ans">${line}</div>`;
-            else if(line !== "") html += `<div>${line}</div>`;
-        });
-        
-        document.getElementById('display').innerHTML = html;
-
-        // Canvas2/Nano High Precision Rendering
+        </div>
+    
+    <script>
+        // High Precision Rendering Engine
         html2canvas(document.getElementById('book-page'), {
-            scale: 3, // High precision
+            scale: 4, // High DPI for crisp text
             useCORS: true,
             backgroundColor: null
         }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'Page_' + document.getElementById('pNum').value + '.png';
-            link.href = canvas.toDataURL("image/png", 1.0);
-            link.click();
+            // Save Image
         });
-    }
-</script>
+    </script>
 </body>
 </html>
