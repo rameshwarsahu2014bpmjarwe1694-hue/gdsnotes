@@ -246,7 +246,8 @@ font-size:26px;
 font-weight:900;
 text-align:center;
 text-decoration:underline;
-margin
+margin-bottom:15px;
+}
 </style>
 </head>
 <body>
@@ -311,26 +312,41 @@ const lines = text.split("\n");
 let html = "";
 /* Top Page Number */
 html += `
+<div class="page-top">
 Page ${pageNo}
+</div>
 `;
 /* Watermark */
 html += `
+<div class="watermark">
 RAMESHWAR SAHU
+</div>
 `;
 /* Logo */
 if(uploadedLogo){
-html += <img class="logo" src="${uploadedLogo}">;
+html += `
+<img class="logo" src="${uploadedLogo}">
+`;
 }
 /* Header */
 html += `
+<div class="header-line"></div>
+
+<div class="study-header">
 RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB
+</div>
+
+<div class="header-line"></div>
 `;
 /* Chapter */
 html += `
+<div class="chapter-title">
 ${chapter}
+</div>
 `;
 /* Content */
 html += `
+<div class="study-content">
 `;
 lines.forEach(line=>{
 line=line.trim();
@@ -373,10 +389,13 @@ ${line}
 }
 });
 html += `
+</div>
 `;
 /* Footer */
 html += `
+<div class="page-footer">
 Page ${pageNo}
+</div>
 `;
 document.getElementById("pageContent").innerHTML = html;
 }
