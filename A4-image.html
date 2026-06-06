@@ -3,43 +3,43 @@
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #f0f0f0; padding: 20px; }
-        .controls { width: 650px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        body { font-family: 'Georgia', serif; background: #e0e0e0; padding: 30px; display: flex; justify-content: center; }
+        .controls { width: 450px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         
-        /* 3D Book Page Look Styling */
+        /* 3D Book Page Style */
         #print-area { 
-            width: 600px; 
-            padding: 40px; 
-            background: #fcfcfc; 
-            border: 1px solid #dcdcdc; 
-            margin: 40px auto; 
-            /* 3D Shadow effect */
-            box-shadow: 10px 10px 20px rgba(0,0,0,0.2), inset -5px 0 10px rgba(0,0,0,0.05); 
-            border-radius: 2px;
-            position: relative;
+            width: 595px; /* A4 width */
+            padding: 50px; 
+            background: #fffdf5; /* Creamy paper color */
+            border: 1px solid #ccc;
+            margin-top: 20px;
+            box-shadow: 15px 15px 30px rgba(0,0,0,0.3), inset -10px 0 20px rgba(0,0,0,0.05); 
+            border-radius: 4px;
+            color: #1a1a1a;
         }
 
-        .header { text-align: center; font-weight: bold; font-size: 16px; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px; }
-        .page-num { text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 14px; }
-        .chapter { text-align: center; font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 15px; padding-bottom: 5px; font-size: 15px; }
+        .header { text-align: center; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 5px; text-transform: uppercase; }
+        .page-num { text-align: center; font-weight: bold; margin-bottom: 15px; }
+        .chapter { text-align: center; font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 20px; padding-bottom: 5px; }
         
-        .rule-title { font-weight: bold; text-decoration: underline; margin-top: 18px; display: block; color: #333; }
-        .q { font-weight: bold; margin-top: 12px; }
-        .opt { margin-left: 20px; display: inline-block; width: 45%; }
-        .ans { font-weight: bold; margin-bottom: 12px; color: #222; }
+        .rule-title { font-weight: bold; text-decoration: underline; margin-top: 20px; display: block; }
+        .q { font-weight: bold; margin-top: 12px; line-height: 1.3; }
+        .opt-container { display: flex; flex-wrap: wrap; margin-left: 20px; margin-top: 5px; }
+        .opt { width: 48%; margin-bottom: 5px; }
+        .ans { font-weight: bold; margin-bottom: 15px; margin-top: 5px; }
         
-        textarea { width: 100%; height: 250px; border: 1px solid #ccc; padding: 10px; }
-        button { background: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        textarea { width: 100%; height: 250px; border: 1px solid #ccc; padding: 10px; border-radius: 5px; }
+        button { background: #2c3e50; color: white; padding: 15px; width: 100%; border: none; cursor: pointer; font-size: 16px; border-radius: 5px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <h3>Page Generator (Book Style)</h3>
-        <input type="text" id="pNum" placeholder="Page Number (e.g. 15)" style="width:97%; padding:8px;"><br><br>
-        <input type="text" id="chapName" style="width:97%; padding:8px;" placeholder="Chapter Name"><br><br>
-        <textarea id="content" placeholder="Text yahan paste karein..."></textarea><br><br>
-        <button onclick="renderPage()">Download as 3D Image</button>
+        <h3>Book Page Generator</h3>
+        <input type="text" id="pNum" placeholder="Page Number" style="width:95%; padding:10px;"><br><br>
+        <input type="text" id="chapName" style="width:95%; padding:10px;" placeholder="Chapter Name"><br><br>
+        <textarea id="content" placeholder="Paste your bulk questions here..."></textarea>
+        <button onclick="renderPage()">Generate High Quality Image</button>
     </div>
 
     <div id="print-area">
@@ -67,13 +67,13 @@
             else if (l !== "") html += `<div>${l}</div>`;
         });
         
-        document.getElementById('output').innerHTML = html;
+        document.getElementById('output').innerHTML = `<div class="opt-container">${html}</div>`;
 
-        // Image Download with higher quality
-        html2canvas(document.getElementById('print-area'), { scale: 2 }).then(canvas => {
+        // High Quality Rendering
+        html2canvas(document.getElementById('print-area'), { scale: 2, logging: false }).then(canvas => {
             const link = document.createElement('a');
-            link.download = 'Study_Page_' + document.getElementById('pNum').value + '.png';
-            link.href = canvas.toDataURL("image/png");
+            link.download = 'Page_' + document.getElementById('pNum').value + '.png';
+            link.href = canvas.toDataURL("image/png", 1.0);
             link.click();
         });
     }
