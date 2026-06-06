@@ -3,73 +3,74 @@
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { background: #444; padding: 30px; display: flex; justify-content: center; font-family: 'Arial', sans-serif; }
-        .controls { width: 450px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-right: 20px; }
+        body { background: #2d2d2d; padding: 40px; display: flex; justify-content: center; font-family: 'Georgia', serif; }
         
-        /* 3D BOOK PAGE STYLE */
+        .controls { width: 450px; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-right: 30px; }
+        
+        /* EXACT BOOK PAGE STYLE */
         #book-page { 
-            width: 595px; min-height: 842px; /* A4 size */
-            padding: 50px 60px; 
-            background: #fdfaf0; /* Cream paper */
-            border: 1px solid #dcdcdc;
-            box-shadow: 20px 20px 60px rgba(0,0,0,0.6), inset -10px 0 30px rgba(0,0,0,0.05); 
+            width: 595px; padding: 50px; 
+            background-color: #f4efd3; /* Creamy Paper Color */
+            background-image: linear-gradient(to right, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.01) 5%, rgba(0,0,0,0) 95%, rgba(0,0,0,0.08) 100%);
+            box-shadow: 20px 20px 60px rgba(0,0,0,0.7), inset -15px 0 30px rgba(0,0,0,0.05); 
+            border-left: 1px solid #ccc;
             position: relative;
+            color: #1a1a1a;
         }
 
-        .header { text-align: center; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 5px; text-transform: uppercase; }
-        .page-num { text-align: center; font-weight: bold; margin-bottom: 10px; }
+        .page-num { text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
+        .header { text-align: center; font-weight: bold; font-size: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 8px; text-transform: uppercase; }
         .chapter { text-align: center; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 20px; }
         
-        .rule-title { font-weight: bold; text-decoration: underline; margin-top: 20px; display: block; }
-        .q { font-weight: bold; margin-top: 15px; margin-bottom: 5px; }
-        .opt-row { display: flex; flex-wrap: wrap; margin-left: 20px; margin-bottom: 5px; }
-        .opt { width: 48%; }
-        .ans { font-weight: bold; margin-bottom: 20px; } /* Space after each Q */
+        .rule-title { font-weight: bold; text-decoration: underline; margin-top: 20px; display: block; font-size: 15px; }
+        .q { font-weight: bold; margin-top: 15px; line-height: 1.4; }
+        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; margin-left: 20px; gap: 5px; margin-top: 5px; }
+        .ans { font-weight: bold; margin-top: 5px; margin-bottom: 15px; }
         
-        textarea { width: 100%; height: 200px; }
+        textarea { width: 100%; height: 250px; border: 1px solid #ccc; padding: 10px; }
+        button { width: 100%; padding: 15px; background: #333; color: #fff; border: none; cursor: pointer; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <h3>Page Generator</h3>
-        <input type="text" id="pNum" placeholder="Page Number" style="width:90%; padding:8px;"><br><br>
-        <input type="text" id="chapName" style="width:90%; padding:8px;" placeholder="Chapter Name"><br><br>
-        <textarea id="content" placeholder="Q:...&#10;(A)... (B)...&#10;उत्तर:..."></textarea>
-        <button onclick="renderPage()" style="padding:10px; width:100%; cursor:pointer;">Generate 3D Book Image</button>
+        <h3>Final Page Generator</h3>
+        <input type="text" id="pNum" placeholder="Page Number" style="width:95%; padding:8px;"><br><br>
+        <input type="text" id="chapName" style="width:95%; padding:8px;" placeholder="Chapter Name"><br><br>
+        <textarea id="content" placeholder="Text paste karein..."></textarea>
+        <button onclick="generateImage()">Download Exact 3D Page</button>
     </div>
 
     <div id="book-page">
-        <div class="page-num" id="display-pNum">Page</div>
+        <div class="page-num" id="out-pNum">Page</div>
         <div class="header">'RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB'</div>
-        <div class="chapter" id="display-chap">Chapter Name</div>
+        <div class="chapter" id="out-chap">Chapter</div>
         <div id="output"></div>
     </div>
 
 <script>
-    function renderPage() {
-        document.getElementById('display-pNum').innerText = "Page " + document.getElementById('pNum').value;
-        document.getElementById('display-chap').innerText = document.getElementById('chapName').value;
+    function generateImage() {
+        document.getElementById('out-pNum').innerText = "Page " + document.getElementById('pNum').value;
+        document.getElementById('out-chap').innerText = document.getElementById('chapName').value;
         
-        const rawText = document.getElementById('content').value;
-        const lines = rawText.split('\n');
+        const lines = document.getElementById('content').value.split('\n');
         let html = "";
         
         lines.forEach(line => {
             let l = line.trim();
-            if (l.startsWith("PO Manual")) html += `<span class="rule-title">${l}</span>`;
+            if (l.startsWith("PO")) html += `<span class="rule-title">${l}</span>`;
             else if (l.startsWith("प्रश्न")) html += `<div class="q">${l}</div>`;
-            else if (l.startsWith("(A)") || l.startsWith("(B)") || l.startsWith("(C)") || l.startsWith("(D)")) html += `<div class="opt">${l}</div>`;
+            else if (l.startsWith("(A)")) { html += `<div class="opt-grid"><div class="opt">${l}</div>`; }
+            else if (l.startsWith("(B)")) { html += `<div class="opt">${l}</div></div>`; }
             else if (l.startsWith("उत्तर")) html += `<div class="ans">${l}</div>`;
             else if (l !== "") html += `<div>${l}</div>`;
         });
-        
-        document.getElementById('output').innerHTML = `<div class="opt-row">${html}</div>`;
+        document.getElementById('output').innerHTML = html;
 
-        // High-Quality Export
-        html2canvas(document.getElementById('book-page'), { scale: 2 }).then(canvas => {
+        // High Resolution Export (Canvas2 Engine)
+        html2canvas(document.getElementById('book-page'), { scale: 3, logging: false }).then(canvas => {
             const link = document.createElement('a');
-            link.download = 'Study_Page_' + document.getElementById('pNum').value + '.png';
+            link.download = 'Page_' + document.getElementById('pNum').value + '.png';
             link.href = canvas.toDataURL("image/png", 1.0);
             link.click();
         });
