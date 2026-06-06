@@ -3,72 +3,73 @@
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { background: #2d2d2d; padding: 40px; display: flex; justify-content: center; font-family: 'Georgia', serif; }
+        body { background: #262626; padding: 40px; display: flex; justify-content: center; font-family: 'Arial', sans-serif; }
         
-        .controls { width: 450px; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-right: 30px; }
-        
-        /* EXACT BOOK PAGE STYLE */
         #book-page { 
-            width: 595px; padding: 50px; 
-            background-color: #f4efd3; /* Creamy Paper Color */
-            background-image: linear-gradient(to right, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.01) 5%, rgba(0,0,0,0) 95%, rgba(0,0,0,0.08) 100%);
-            box-shadow: 20px 20px 60px rgba(0,0,0,0.7), inset -15px 0 30px rgba(0,0,0,0.05); 
-            border-left: 1px solid #ccc;
+            width: 595px; min-height: 842px; 
+            background: #f4efd3; /* Exact sample paper color */
+            padding: 50px;
+            /* 3D shadow and curved edge effect */
+            box-shadow: 20px 20px 60px rgba(0,0,0,0.8), inset -15px 0 30px rgba(0,0,0,0.1);
             position: relative;
-            color: #1a1a1a;
         }
 
-        .page-num { text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
-        .header { text-align: center; font-weight: bold; font-size: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 8px; text-transform: uppercase; }
+        .header { text-align: center; font-weight: bold; font-size: 14px; border-bottom: 2px solid #000; padding-bottom: 5px; }
+        .page-num { text-align: center; font-weight: bold; margin-bottom: 15px; }
         .chapter { text-align: center; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 20px; }
         
-        .rule-title { font-weight: bold; text-decoration: underline; margin-top: 20px; display: block; font-size: 15px; }
-        .q { font-weight: bold; margin-top: 15px; line-height: 1.4; }
-        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; margin-left: 20px; gap: 5px; margin-top: 5px; }
+        /* Strict Formatting */
+        .rule-title { font-weight: bold; text-decoration: underline; margin-top: 18px; display: block; }
+        .q { font-weight: bold; margin-top: 12px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; margin-left: 20px; gap: 5px; margin-top: 5px; }
         .ans { font-weight: bold; margin-top: 5px; margin-bottom: 15px; }
         
-        textarea { width: 100%; height: 250px; border: 1px solid #ccc; padding: 10px; }
-        button { width: 100%; padding: 15px; background: #333; color: #fff; border: none; cursor: pointer; font-weight: bold; margin-top: 15px; }
+        .controls { width: 400px; background: white; padding: 20px; border-radius: 8px; margin-right: 20px; height: fit-content; }
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <h3>Final Page Generator</h3>
-        <input type="text" id="pNum" placeholder="Page Number" style="width:95%; padding:8px;"><br><br>
-        <input type="text" id="chapName" style="width:95%; padding:8px;" placeholder="Chapter Name"><br><br>
-        <textarea id="content" placeholder="Text paste karein..."></textarea>
-        <button onclick="generateImage()">Download Exact 3D Page</button>
+        <h3>Final Professional Generator</h3>
+        <input type="text" id="pNum" placeholder="Page Number" style="width:90%"><br><br>
+        <input type="text" id="chap" placeholder="Chapter Name" style="width:90%"><br><br>
+        <textarea id="content" style="width:90%; height:200px;"></textarea>
+        <button onclick="renderFinal()" style="width:100%; padding:10px; cursor:pointer;">Generate Perfect Image</button>
     </div>
 
     <div id="book-page">
         <div class="page-num" id="out-pNum">Page</div>
         <div class="header">'RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB'</div>
         <div class="chapter" id="out-chap">Chapter</div>
-        <div id="output"></div>
+        <div id="display"></div>
     </div>
 
 <script>
-    function generateImage() {
+    function renderFinal() {
         document.getElementById('out-pNum').innerText = "Page " + document.getElementById('pNum').value;
-        document.getElementById('out-chap').innerText = document.getElementById('chapName').value;
+        document.getElementById('out-chap').innerText = document.getElementById('chap').value;
         
         const lines = document.getElementById('content').value.split('\n');
         let html = "";
         
-        lines.forEach(line => {
-            let l = line.trim();
-            if (l.startsWith("PO")) html += `<span class="rule-title">${l}</span>`;
-            else if (l.startsWith("प्रश्न")) html += `<div class="q">${l}</div>`;
-            else if (l.startsWith("(A)")) { html += `<div class="opt-grid"><div class="opt">${l}</div>`; }
-            else if (l.startsWith("(B)")) { html += `<div class="opt">${l}</div></div>`; }
-            else if (l.startsWith("उत्तर")) html += `<div class="ans">${l}</div>`;
-            else if (l !== "") html += `<div>${l}</div>`;
+        lines.forEach(l => {
+            let line = l.trim();
+            if(line.startsWith("PO")) html += `<span class="rule-title">${line}</span>`;
+            else if(line.startsWith("प्रश्न")) html += `<div class="q">${line}</div>`;
+            else if(line.startsWith("(A)")) html += `<div class="options-grid"><div class="opt">${line}</div>`;
+            else if(line.startsWith("(B)")) html += `<div class="opt">${line}</div></div>`;
+            else if(line.startsWith("उत्तर")) html += `<div class="ans">${line}</div>`;
+            else if(line !== "") html += `<div>${line}</div>`;
         });
-        document.getElementById('output').innerHTML = html;
+        
+        document.getElementById('display').innerHTML = html;
 
-        // High Resolution Export (Canvas2 Engine)
-        html2canvas(document.getElementById('book-page'), { scale: 3, logging: false }).then(canvas => {
+        // Canvas2/Nano High Precision Rendering
+        html2canvas(document.getElementById('book-page'), {
+            scale: 3, // High precision
+            useCORS: true,
+            backgroundColor: null
+        }).then(canvas => {
             const link = document.createElement('a');
             link.download = 'Page_' + document.getElementById('pNum').value + '.png';
             link.href = canvas.toDataURL("image/png", 1.0);
