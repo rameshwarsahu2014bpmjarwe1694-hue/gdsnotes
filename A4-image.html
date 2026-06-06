@@ -3,46 +3,43 @@
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: 'Georgia', serif; background: #e0e0e0; padding: 30px; display: flex; justify-content: center; }
-        .controls { width: 450px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        body { background: #444; padding: 30px; display: flex; justify-content: center; font-family: 'Arial', sans-serif; }
+        .controls { width: 450px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-right: 20px; }
         
-        /* 3D Book Page Style */
-        #print-area { 
-            width: 595px; /* A4 width */
-            padding: 50px; 
-            background: #fffdf5; /* Creamy paper color */
-            border: 1px solid #ccc;
-            margin-top: 20px;
-            box-shadow: 15px 15px 30px rgba(0,0,0,0.3), inset -10px 0 20px rgba(0,0,0,0.05); 
-            border-radius: 4px;
-            color: #1a1a1a;
+        /* 3D BOOK PAGE STYLE */
+        #book-page { 
+            width: 595px; min-height: 842px; /* A4 size */
+            padding: 50px 60px; 
+            background: #fdfaf0; /* Cream paper */
+            border: 1px solid #dcdcdc;
+            box-shadow: 20px 20px 60px rgba(0,0,0,0.6), inset -10px 0 30px rgba(0,0,0,0.05); 
+            position: relative;
         }
 
         .header { text-align: center; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 5px; text-transform: uppercase; }
-        .page-num { text-align: center; font-weight: bold; margin-bottom: 15px; }
-        .chapter { text-align: center; font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 20px; padding-bottom: 5px; }
+        .page-num { text-align: center; font-weight: bold; margin-bottom: 10px; }
+        .chapter { text-align: center; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 20px; }
         
         .rule-title { font-weight: bold; text-decoration: underline; margin-top: 20px; display: block; }
-        .q { font-weight: bold; margin-top: 12px; line-height: 1.3; }
-        .opt-container { display: flex; flex-wrap: wrap; margin-left: 20px; margin-top: 5px; }
-        .opt { width: 48%; margin-bottom: 5px; }
-        .ans { font-weight: bold; margin-bottom: 15px; margin-top: 5px; }
+        .q { font-weight: bold; margin-top: 15px; margin-bottom: 5px; }
+        .opt-row { display: flex; flex-wrap: wrap; margin-left: 20px; margin-bottom: 5px; }
+        .opt { width: 48%; }
+        .ans { font-weight: bold; margin-bottom: 20px; } /* Space after each Q */
         
-        textarea { width: 100%; height: 250px; border: 1px solid #ccc; padding: 10px; border-radius: 5px; }
-        button { background: #2c3e50; color: white; padding: 15px; width: 100%; border: none; cursor: pointer; font-size: 16px; border-radius: 5px; margin-top: 10px; }
+        textarea { width: 100%; height: 200px; }
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <h3>Book Page Generator</h3>
-        <input type="text" id="pNum" placeholder="Page Number" style="width:95%; padding:10px;"><br><br>
-        <input type="text" id="chapName" style="width:95%; padding:10px;" placeholder="Chapter Name"><br><br>
-        <textarea id="content" placeholder="Paste your bulk questions here..."></textarea>
-        <button onclick="renderPage()">Generate High Quality Image</button>
+        <h3>Page Generator</h3>
+        <input type="text" id="pNum" placeholder="Page Number" style="width:90%; padding:8px;"><br><br>
+        <input type="text" id="chapName" style="width:90%; padding:8px;" placeholder="Chapter Name"><br><br>
+        <textarea id="content" placeholder="Q:...&#10;(A)... (B)...&#10;उत्तर:..."></textarea>
+        <button onclick="renderPage()" style="padding:10px; width:100%; cursor:pointer;">Generate 3D Book Image</button>
     </div>
 
-    <div id="print-area">
+    <div id="book-page">
         <div class="page-num" id="display-pNum">Page</div>
         <div class="header">'RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB'</div>
         <div class="chapter" id="display-chap">Chapter Name</div>
@@ -67,12 +64,12 @@
             else if (l !== "") html += `<div>${l}</div>`;
         });
         
-        document.getElementById('output').innerHTML = `<div class="opt-container">${html}</div>`;
+        document.getElementById('output').innerHTML = `<div class="opt-row">${html}</div>`;
 
-        // High Quality Rendering
-        html2canvas(document.getElementById('print-area'), { scale: 2, logging: false }).then(canvas => {
+        // High-Quality Export
+        html2canvas(document.getElementById('book-page'), { scale: 2 }).then(canvas => {
             const link = document.createElement('a');
-            link.download = 'Page_' + document.getElementById('pNum').value + '.png';
+            link.download = 'Study_Page_' + document.getElementById('pNum').value + '.png';
             link.href = canvas.toDataURL("image/png", 1.0);
             link.click();
         });
