@@ -110,15 +110,24 @@
     window.handleSecureAccess = async (category, subject, title, fileName) => {
         const secureUrl = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}&fileName=${encodeURIComponent(fileName)}`;
         try {
-            const res = await fetch(secureUrl, { headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS' }});
+            const token = await auth.currentUser.getIdToken();
+            const res = await fetch(secureUrl, {
+    headers: {
+        'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
+        'Authorization': `Bearer ${token}`
+    }
+});
             if (res.status === 200) {
                 const blob = await res.blob();
                 window.open(URL.createObjectURL(blob), '_blank');
             } else if (res.status === 403) {
                 if (confirm(`इस PDF (${title}) को अनलॉक करने के लिए पेमेंट करना होगा। आगे बढ़ें?`)) {
                     const payRes = await fetch(`${BACKEND_URL}/initiate-payment`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    },
                         body: JSON.stringify({ email: currentUserEmail, amount: 29, year: "Notes", post: category, subject: subject, fileName: fileName })
                     });
                     const data = await payRes.json();
