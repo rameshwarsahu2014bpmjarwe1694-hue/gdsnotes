@@ -109,9 +109,7 @@ window.pendingTxn = null;
 
     window.handleSecureAccess = async (category, subject, title, fileName) => {
 
-    const user = auth.currentUser;
-if(!user) return;
-const token = await user.getIdToken();
+    const token = await auth.currentUser.getIdToken();
 
     const secureUrl =
         `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
@@ -162,107 +160,78 @@ const token = await user.getIdToken();
             });
 
             const data = await payRes.json();
-if (data.upiLink) {
-    const div = document.createElement('div');
-    div.innerHTML = `
-        <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center;">
-            <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; width: 90%; max-width: 400px;">
-                <h3>Payment Required</h3>
-                <p>PDF access karne ke liye ₹29 pay karein.</p>
-                
-                <a href="${data.upiLink}" 
-                   style="display:block; padding:15px; background:#355da9; color:#fff; text-decoration:none; border-radius:10px; font-weight:bold; margin: 15px 0;">
-                   Pay Now (GPay/PhonePe)
-                </a>
-                
-                <button onclick="this.parentElement.parentElement.parentElement.remove()" 
-                        style="background:none; border:none; color:#666; cursor:pointer; text-decoration:underline;">
-                    Close
-                </button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(div);
-} else {
-    alert("Payment link generate failed");
-}
 
+            if (data.upiLink) {
+                window.location.href = data.upiLink;
+            } else {
+                alert("Payment link generate failed");
+            }
+        }
 
     } catch (err) {
         alert("Server error");
     }
 };
-    window.autoCheckPayment = async function(txnId) {
+    async function autoCheckPayment(txnId) {
+
     const token = await auth.currentUser.getIdToken();
 
-    try {
-        // 1. Backend ko POST request bhejein
-        const res = await fetch(`${BACKEND_URL}/payment-status?txnId=${txnId}&email=${currentUserEmail}`, {
-            method: "POST", 
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}` 
+    const res = await fetch(
+        `${BACKEND_URL}/payment-status?txnId=${txnId}&email=${currentUserEmail}`,
+        {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`
             }
-        });
-
-        const data = await res.json().catch(() => null);
-
-        // 2. Status check karein
-        if (res.ok && (data?.status === "COMPLETED" || data?.status === "completed")) {
-            alert("Payment verified! Accessing PDF...");
-
-            // Agar pending transaction hai, toh PDF load karein
-            if (window.pendingTxn) {
-                const { category, subject } = window.pendingTxn;
-                const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
-
-                const pdfRes = await fetch(secureUrl, {
-                    headers: {
-                        'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (pdfRes.status === 200) {
-                    const blob = await pdfRes.blob();
-                    window.open(URL.createObjectURL(blob), "_blank");
-                } else {
-                    alert("PDF access error: Please contact admin.");
-                }
-                window.pendingTxn = null;
-            }
-
-            // Success ke baad redirect
-            setTimeout(() => { window.location.href = "notes.html"; }, 2000);
-
-        } else {
-            alert("Payment abhi tak confirm nahi hua hai. Thoda wait karein.");
         }
-    } catch (err) {
-        console.error("Verification Error:", err);
-        alert("Server connection error.");
+    );
+
+    const data = await res.json().catch(() => null);
+
+    if (res.ok && data?.status === "COMPLETED") {
+
+        if (window.pendingTxn) {
+
+            const { category, subject } = window.pendingTxn;
+
+            const secureUrl =
+                `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
+
+            const pdfRes = await fetch(secureUrl, {
+                headers: {
+                    'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (pdfRes.status === 200) {
+                const blob = await pdfRes.blob();
+                window.open(URL.createObjectURL(blob), "_blank");
+            }
+
+            window.pendingTxn = null;
+
+            // ✅ AUTO REDIRECT
+            setTimeout(() => {
+                window.location.href = "notes.html";
+            }, 2000);
+        }
     }
 }
 
-window.safe = function(v){ 
-    return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); 
-}
+window.autoCheckPayment = autoCheckPayment;
+    window.safe = function(v){ return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
 
-window.applyFilter = function(){
-    const q = document.getElementById("searchInput").value.toLowerCase().trim();
-    const post = document.getElementById("postFilter").value;
-    const sub = document.getElementById("subFilter").value;
-    
-    // Check karein ki allNotes define hai ya nahi
-    if(window.allNotes) {
+    window.applyFilter = function(){
+        const q = document.getElementById("searchInput").value.toLowerCase().trim();
+        const post = document.getElementById("postFilter").value;
+        const sub = document.getElementById("subFilter").value;
         renderNotes(window.allNotes.filter(x => 
             (x.title.toLowerCase().includes(q)) && 
             (post === "ALL" || x.category === post) && 
             (sub === "ALL" || x.subject === sub)
         ));
     }
-}
-
 
     document.getElementById("searchInput").addEventListener("input", applyFilter);
     document.getElementById("postFilter").addEventListener("change", applyFilter);
@@ -276,3 +245,4 @@ if (txnId) {
 </script>
 </body>
 </html>
+
