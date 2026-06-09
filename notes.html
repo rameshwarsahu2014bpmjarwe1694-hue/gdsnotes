@@ -191,7 +191,7 @@ window.handleSecureAccess = async (category, subject, title, fileName) => {
             });
 
             const data = await payRes.json();
-
+alert(data.upiLink);
             if (data.upiLink) {
 
     showQR(data.upiLink);
