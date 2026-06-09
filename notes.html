@@ -172,66 +172,77 @@ window.pendingTxn = null;
         alert("Server error");
     }
 };
-    async function autoCheckPayment(txnId) {
-
+    window.autoCheckPayment = async function(txnId) {
     const token = await auth.currentUser.getIdToken();
 
-    const res = await fetch(
-        `${BACKEND_URL}/payment-status?txnId=${txnId}&email=${currentUserEmail}`,
-        {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${token}`
+    try {
+        // 1. Backend ko POST request bhejein
+        const res = await fetch(`${BACKEND_URL}/payment-status?txnId=${txnId}&email=${currentUserEmail}`, {
+            method: "POST", 
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}` 
             }
-        }
-    );
+        });
 
-    const data = await res.json().catch(() => null);
+        const data = await res.json().catch(() => null);
 
-    if (res.ok && data?.status === "COMPLETED") {
+        // 2. Status check karein
+        if (res.ok && (data?.status === "COMPLETED" || data?.status === "completed")) {
+            alert("Payment verified! Accessing PDF...");
 
-        if (window.pendingTxn) {
+            // Agar pending transaction hai, toh PDF load karein
+            if (window.pendingTxn) {
+                const { category, subject } = window.pendingTxn;
+                const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
 
-            const { category, subject } = window.pendingTxn;
+                const pdfRes = await fetch(secureUrl, {
+                    headers: {
+                        'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
 
-            const secureUrl =
-                `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
-
-            const pdfRes = await fetch(secureUrl, {
-                headers: {
-                    'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
-                    'Authorization': `Bearer ${token}`
+                if (pdfRes.status === 200) {
+                    const blob = await pdfRes.blob();
+                    window.open(URL.createObjectURL(blob), "_blank");
+                } else {
+                    alert("PDF access error: Please contact admin.");
                 }
-            });
-
-            if (pdfRes.status === 200) {
-                const blob = await pdfRes.blob();
-                window.open(URL.createObjectURL(blob), "_blank");
+                window.pendingTxn = null;
             }
 
-            window.pendingTxn = null;
+            // Success ke baad redirect
+            setTimeout(() => { window.location.href = "notes.html"; }, 2000);
 
-            // ✅ AUTO REDIRECT
-            setTimeout(() => {
-                window.location.href = "notes.html";
-            }, 2000);
+        } else {
+            alert("Payment abhi tak confirm nahi hua hai. Thoda wait karein.");
         }
+    } catch (err) {
+        console.error("Verification Error:", err);
+        alert("Server connection error.");
     }
 }
 
-window.autoCheckPayment = autoCheckPayment;
-    window.safe = function(v){ return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
+window.safe = function(v){ 
+    return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); 
+}
 
-    window.applyFilter = function(){
-        const q = document.getElementById("searchInput").value.toLowerCase().trim();
-        const post = document.getElementById("postFilter").value;
-        const sub = document.getElementById("subFilter").value;
+window.applyFilter = function(){
+    const q = document.getElementById("searchInput").value.toLowerCase().trim();
+    const post = document.getElementById("postFilter").value;
+    const sub = document.getElementById("subFilter").value;
+    
+    // Check karein ki allNotes define hai ya nahi
+    if(window.allNotes) {
         renderNotes(window.allNotes.filter(x => 
             (x.title.toLowerCase().includes(q)) && 
             (post === "ALL" || x.category === post) && 
             (sub === "ALL" || x.subject === sub)
         ));
     }
+}
+
 
     document.getElementById("searchInput").addEventListener("input", applyFilter);
     document.getElementById("postFilter").addEventListener("change", applyFilter);
