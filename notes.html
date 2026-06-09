@@ -116,7 +116,8 @@ window.pendingTxn = null;
 
 
 
-    window.handleSecureAccess = async (category, subject, title, fileName) => {
+window.handleSecureAccess = async (category, subject, title, fileName) => {
+
     const token = await auth.currentUser.getIdToken();
 
     const secureUrl =
@@ -131,18 +132,20 @@ window.pendingTxn = null;
             title,
             fileName
         };
-function showQR(upiLink){
-    const qrUrl =
-        "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" +
-        encodeURIComponent(upiLink);
 
-    document.getElementById("qrImage").src = qrUrl;
-    document.getElementById("qrBox").style.display = "block";
-}
+        function showQR(upiLink) {
+            const qrUrl =
+                "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" +
+                encodeURIComponent(upiLink);
 
-window.closeQR = function(){
-    document.getElementById("qrBox").style.display = "none";
-}
+            document.getElementById("qrImage").src = qrUrl;
+            document.getElementById("qrBox").style.display = "block";
+        }
+
+        window.closeQR = function () {
+            document.getElementById("qrBox").style.display = "none";
+        };
+
         const res = await fetch(secureUrl, {
             headers: {
                 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
@@ -180,17 +183,19 @@ window.closeQR = function(){
 
             const data = await payRes.json();
 
-if (data.upiLink) {
-    showQR(data.upiLink);
-} else {
-    alert("Payment link generate failed");
-}
+            if (data.upiLink) {
+                showQR(data.upiLink);
+            } else {
+                alert("Payment link generate failed");
+            }
+        }
 
-}
-catch (err) {
-    alert("Server error");
-}
-    async function autoCheckPayment(txnId) {
+    } catch (err) {
+        alert("Server error");
+    }
+};
+
+async function autoCheckPayment(txnId) {
 
     const token = await auth.currentUser.getIdToken();
 
@@ -229,7 +234,6 @@ catch (err) {
 
             window.pendingTxn = null;
 
-            // ✅ AUTO REDIRECT
             setTimeout(() => {
                 window.location.href = "notes.html";
             }, 2000);
