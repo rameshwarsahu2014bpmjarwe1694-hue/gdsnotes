@@ -36,6 +36,16 @@
         <select id="subFilter"><option value="ALL">All Subjects</option><option value="GK">GK</option><option value="Maths">Maths</option><option value="Reasoning">Reasoning</option><option value="PO GUIDE 1">PO Guide 1</option><option value="PO GUIDE 2">PO Guide 2</option><option value="POSTAL MANUAL 5">Postal Manual Vol 5</option><option value="POSTAL MANUAL 6">Postal Manual Vol 6 Part 3</option><option value="POSTAL MANUAL 7">Postal Manual Vol 7</option></select>
     </div>
     <div id="notesList"><div class="empty">Loading...</div></div>
+    <div id="notesList"><div class="empty">Loading...</div></div>
+
+<!-- 🔥 QR PAYMENT BOX START -->
+<div id="qrBox" style="display:none; text-align:center; padding:20px;">
+    <h3>Scan QR to Pay</h3>
+    <img id="qrImage" style="width:250px;height:250px;" />
+    <br><br>
+    <button onclick="closeQR()">Close</button>
+</div>
+<!-- 🔥 QR PAYMENT BOX END -->
 </div>
 
 <script type="module">
@@ -108,7 +118,17 @@ window.pendingTxn = null;
 
 
     window.handleSecureAccess = async (category, subject, title, fileName) => {
+function showQR(upiLink){
+    const qrUrl =
+        "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" +
+        encodeURIComponent(upiLink);
 
+    document.getElementById("qrImage").src = qrUrl;
+    document.getElementById("qrBox").style.display = "block";
+}
+function closeQR(){
+    document.getElementById("qrBox").style.display = "none";
+}
     const token = await auth.currentUser.getIdToken();
 
     const secureUrl =
@@ -161,12 +181,11 @@ window.pendingTxn = null;
 
             const data = await payRes.json();
 
-            if (data.upiLink) {
-                window.location.href = data.upiLink;
-            } else {
-                alert("Payment link generate failed");
-            }
-        }
+if (data.upiLink) {
+    showQR(data.upiLink);
+} else {
+    alert("Payment link generate failed");
+}
 
     } catch (err) {
         alert("Server error");
