@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Payment Admin Dashboard</title>
+<title>Admin Payment Dashboard</title>
 <style>
 body{font-family:Arial;background:#0f172a;color:#fff;padding:20px}
 .card{background:#1e293b;padding:15px;margin:10px 0;border-radius:10px}
-.btn{padding:6px 10px;margin:5px;border:none;cursor:pointer}
+.btn{padding:8px 12px;margin:5px;border:none;cursor:pointer;border-radius:6px}
 .approve{background:green;color:#fff}
 .reject{background:red;color:#fff}
 small{color:#aaa}
@@ -13,25 +13,49 @@ small{color:#aaa}
 </head>
 <body>
 
-<h2>💰 Payment Approval Dashboard</h2>
+<h2>💰 Admin Payment Dashboard</h2>
 <div id="list">Loading...</div>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-getFirestore, collection, getDocs, updateDoc, doc
+getFirestore,
+collection,
+getDocs,
+updateDoc,
+doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 const firebaseConfig = {
-apiKey: "YOUR_KEY",
-authDomain: "YOUR_DOMAIN",
-projectId: "YOUR_PROJECT"
+  apiKey: "AIzaSyDjzmo0A4KhOkrqFQdOyCEek6bsPF-UVPQ",
+  authDomain: "gds-departmental-exam-studyhub.firebaseapp.com",
+  databaseURL: "https://gds-departmental-exam-studyhub-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "gds-departmental-exam-studyhub",
+  storageBucket: "gds-departmental-exam-studyhub.firebasestorage.app",
+  messagingSenderId: "759916756080",
+  appId: "1:759916756080:web:7f2c0e66458bd007e888b5"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-async function load(){
+const ADMIN_EMAIL = "rameshwarsahu2014bpmjarwe1694@gmail.com";
+
+/* 🔥 ADMIN CHECK */
+onAuthStateChanged(auth, (user)=>{
+if(!user || user.email !== ADMIN_EMAIL){
+document.body.innerHTML = "<h2>❌ Access Denied</h2>";
+return;
+}
+loadData();
+});
+
+/* 🔥 LOAD PAYMENTS */
+async function loadData(){
 
 const box = document.getElementById("list");
 box.innerHTML = "Loading...";
@@ -50,9 +74,9 @@ const t = d.data();
 box.innerHTML += `
 <div class="card">
 <div><b>User:</b> ${user.id}</div>
-<div><b>Transaction:</b> ${t.transactionId}</div>
-<div><b>Request:</b> ${t.requested_for}</div>
-<div><b>Status:</b> ${t.status}</div>
+<div><b>Txn ID:</b> ${t.transactionId || "-"}</div>
+<div><b>Request:</b> ${t.requested_for || "-"}</div>
+<div><b>Status:</b> ${t.status || "pending"}</div>
 <small>${t.submittedAt ? "Submitted" : ""}</small>
 
 <br>
@@ -68,26 +92,28 @@ Reject
 `;
 });
 }
-
 }
 
+/* 🔥 APPROVE */
 window.approve = async (uid,tid)=>{
 await updateDoc(doc(db,"payments",uid,"transactions",tid),{
 status:"COMPLETED"
 });
 alert("Approved ✔");
-load();
+loadData();
 }
 
+/* 🔥 REJECT */
 window.reject = async (uid,tid)=>{
 await updateDoc(doc(db,"payments",uid,"transactions",tid),{
 status:"FAILED"
 });
 alert("Rejected ❌");
-load();
+loadData();
 }
 
-load();
+loadData();
+
 </script>
 
 </body>
