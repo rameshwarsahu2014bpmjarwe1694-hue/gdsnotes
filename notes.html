@@ -160,13 +160,31 @@ window.pendingTxn = null;
             });
 
             const data = await payRes.json();
+if (data.upiLink) {
+    const div = document.createElement('div');
+    div.innerHTML = `
+        <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center;">
+            <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; width: 90%; max-width: 400px;">
+                <h3>Payment Required</h3>
+                <p>PDF access karne ke liye ₹29 pay karein.</p>
+                
+                <a href="${data.upiLink}" 
+                   style="display:block; padding:15px; background:#355da9; color:#fff; text-decoration:none; border-radius:10px; font-weight:bold; margin: 15px 0;">
+                   Pay Now (GPay/PhonePe)
+                </a>
+                
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                        style="background:none; border:none; color:#666; cursor:pointer; text-decoration:underline;">
+                    Close
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(div);
+} else {
+    alert("Payment link generate failed");
+}
 
-            if (data.upiLink) {
-                window.location.href = data.upiLink;
-            } else {
-                alert("Payment link generate failed");
-            }
-        }
 
     } catch (err) {
         alert("Server error");
