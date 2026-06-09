@@ -40,8 +40,17 @@
 <!-- 🔥 QR PAYMENT BOX START -->
 <div id="qrBox" style="display:none; text-align:center; padding:20px;">
     <h3>Scan QR to Pay</h3>
+
     <img id="qrImage" style="width:250px;height:250px;" />
+
     <br><br>
+
+    <button id="payNowBtn" style="display:none;">
+        Pay Now
+    </button>
+
+    <br><br>
+
     <button onclick="closeQR()">Close</button>
 </div>
 <!-- 🔥 QR PAYMENT BOX END -->
@@ -184,11 +193,18 @@ window.handleSecureAccess = async (category, subject, title, fileName) => {
             const data = await payRes.json();
 
             if (data.upiLink) {
-                showQR(data.upiLink);
-            } else {
-                alert("Payment link generate failed");
-            }
-        }
+
+    showQR(data.upiLink);
+
+    document.getElementById("payNowBtn").style.display = "inline-block";
+
+    document.getElementById("payNowBtn").onclick = () => {
+        window.location.href = data.upiLink;
+    };
+
+} else {
+    alert("Payment link generate failed");
+}
 
     } catch (err) {
         alert("Server error");
