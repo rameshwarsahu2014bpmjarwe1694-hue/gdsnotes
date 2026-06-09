@@ -142,26 +142,28 @@ try {
 
         if (!payNow) return;
 
-        const payRes = await fetch(`${BACKEND_URL}/initiate-payment`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                email: currentUserEmail,
-                amount: 29,
-                year: "Notes",
-                post: category,
-                subject: subject,
-                fileName: fileName
-            })
-        });
+        const payRes = await fetch(`${BACKEND_URL}/create-upi-payment`, {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify({
+        email: currentUserEmail,
+        amount: 29,
+        post: category,
+        subject: subject,
+        fileName: fileName
+    })
+});
 
-        const data = await payRes.json();
+const data = await payRes.json();
 
-        if (data.url) {
-            window.location.href = data.url;
+if (data.upiLink) {
+    window.location.href = data.upiLink;
+} else {
+    alert("Payment link generate failed");
+}
         } else {
             alert("Payment start failed");
         }
