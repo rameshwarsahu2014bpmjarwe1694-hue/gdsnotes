@@ -109,7 +109,9 @@ window.pendingTxn = null;
 
     window.handleSecureAccess = async (category, subject, title, fileName) => {
 
-    const token = await auth.currentUser.getIdToken();
+    const user = auth.currentUser;
+if(!user) return;
+const token = await user.getIdToken();
 
     const secureUrl =
         `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
