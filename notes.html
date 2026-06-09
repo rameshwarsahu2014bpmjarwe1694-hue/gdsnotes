@@ -57,7 +57,7 @@
     const auth = getAuth(app);
     window.BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
     window.allNotes = [];
-
+window.pendingTxn = null;
     onAuthStateChanged(auth, (user) => {
         if (user) {
             window.currentUserEmail = user.email;
@@ -108,35 +108,88 @@
 
 
     window.handleSecureAccess = async (category, subject, title, fileName) => {
-        const secureUrl = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}&fileName=${encodeURIComponent(fileName)}`;
-        try {
-            const token = await auth.currentUser.getIdToken();
-            const res = await fetch(secureUrl, {
-    headers: {
-        'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
-        'Authorization': `Bearer ${token}`
-    }
-});
-            if (res.status === 200) {
-                const blob = await res.blob();
-                window.open(URL.createObjectURL(blob), '_blank');
-            } else if (res.status === 403) {
-                if (confirm(`इस PDF (${title}) को अनलॉक करने के लिए पेमेंट करना होगा। आगे बढ़ें?`)) {
-                    const payRes = await fetch(`${BACKEND_URL}/initiate-payment`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-    },
-                        body: JSON.stringify({ email: currentUserEmail, amount: 29, year: "Notes", post: category, subject: subject, fileName: fileName })
-                    });
-                    const data = await payRes.json();
-                    if (data.url) window.location.href = data.url;
-                }
-            } else { alert("File not found or access restricted."); }
-        } catch (err) { alert("Connection error!"); }
-    };
 
+    const token = await auth.currentUser.getIdToken();
+
+    const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
+    try {
+
+        const res = await fetch(secureUrl, {
+            window.pendingTxn = {
+    category,
+    subject,
+    title,
+    fileName
+};
+            headers: {
+                'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (res.status === 200) {
+            const blob = await res.blob();
+            window.open(URL.createObjectURL(blob), '_blank');
+            return;
+        }
+
+        if (res.status === 403) {
+
+            const payNow = confirm(`इस PDF (${title}) को unlock करने के लिए payment करना होगा।`);
+
+            if (!payNow) return;
+
+            const payRes = await fetch(`${BACKEND_URL}/initiate-payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    email: currentUserEmail,
+                    amount: 29,
+                    year: "Notes",
+                    post: category,
+                    subject: subject
+                })
+            });
+
+            const data = await payRes.json();
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                alert("Payment start failed");
+            }
+        }
+
+    } catch (err) {
+        alert("Server error");
+    }
+};
+    async function autoCheckPayment(txnId) {
+    const token = await auth.currentUser.getIdToken();
+
+    const res = await fetch(`${BACKEND_URL}/payment-status?txnId=${txnId}&email=${currentUserEmail}`, {
+        method: "POST",
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (res.ok && data?.status === "COMPLETED") {
+        if (window.pendingTxn) {
+            handleSecureAccess(
+                window.pendingTxn.category,
+                window.pendingTxn.subject,
+                window.pendingTxn.title,
+                window.pendingTxn.fileName
+            );
+        }
+    }
+}
     window.safe = function(v){ return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
 
     window.applyFilter = function(){
@@ -153,6 +206,12 @@
     document.getElementById("searchInput").addEventListener("input", applyFilter);
     document.getElementById("postFilter").addEventListener("change", applyFilter);
     document.getElementById("subFilter").addEventListener("change", applyFilter);
+    const urlParams = new URLSearchParams(window.location.search);
+const txnId = urlParams.get("txnId");
+
+if (txnId) {
+    autoCheckPayment(txnId);
+}
 </script>
 </body>
 </html>
