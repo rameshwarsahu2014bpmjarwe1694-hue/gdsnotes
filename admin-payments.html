@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Payment Admin Dashboard</title>
+<style>
+body{font-family:Arial;background:#0f172a;color:#fff;padding:20px}
+.card{background:#1e293b;padding:15px;margin:10px 0;border-radius:10px}
+.btn{padding:6px 10px;margin:5px;border:none;cursor:pointer}
+.approve{background:green;color:#fff}
+.reject{background:red;color:#fff}
+small{color:#aaa}
+</style>
+</head>
+<body>
+
+<h2>💰 Payment Approval Dashboard</h2>
+<div id="list">Loading...</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+getFirestore, collection, getDocs, updateDoc, doc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "YOUR_KEY",
+authDomain: "YOUR_DOMAIN",
+projectId: "YOUR_PROJECT"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function load(){
+
+const box = document.getElementById("list");
+box.innerHTML = "Loading...";
+
+const usersSnap = await getDocs(collection(db,"payments"));
+
+box.innerHTML = "";
+
+for(const user of usersSnap.docs){
+
+const txSnap = await getDocs(collection(db,"payments",user.id,"transactions"));
+
+txSnap.forEach(d=>{
+const t = d.data();
+
+box.innerHTML += `
+<div class="card">
+<div><b>User:</b> ${user.id}</div>
+<div><b>Transaction:</b> ${t.transactionId}</div>
+<div><b>Request:</b> ${t.requested_for}</div>
+<div><b>Status:</b> ${t.status}</div>
+<small>${t.submittedAt ? "Submitted" : ""}</small>
+
+<br>
+
+<button class="btn approve" onclick="approve('${user.id}','${d.id}')">
+Approve
+</button>
+
+<button class="btn reject" onclick="reject('${user.id}','${d.id}')">
+Reject
+</button>
+</div>
+`;
+});
+}
+
+}
+
+window.approve = async (uid,tid)=>{
+await updateDoc(doc(db,"payments",uid,"transactions",tid),{
+status:"COMPLETED"
+});
+alert("Approved ✔");
+load();
+}
+
+window.reject = async (uid,tid)=>{
+await updateDoc(doc(db,"payments",uid,"transactions",tid),{
+status:"FAILED"
+});
+alert("Rejected ❌");
+load();
+}
+
+load();
+</script>
+
+</body>
+</html>
