@@ -27,6 +27,26 @@
     </style>
 </head>
 <body>
+<div id="qrBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; max-width:400px; width:100%; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+        <h3 style="margin-bottom: 15px;">Payment Required (₹29)</h3>
+        
+        <img id="qrImage" src="" style="width:200px; height:200px; margin: 10px auto; display: block; background: #eee;" />
+        
+        <p style="font-size: 14px; color: #555; margin: 15px 0;">
+            QR scan karein ya niche button par click karein.
+        </p>
+
+        <a id="payNowBtn" href="#" style="display:block; padding:15px; background:#ff9800; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-bottom:15px;">
+            Pay Now (GPay/PhonePe)
+        </a>
+
+        <button onclick="closeQR()" style="background:none; border:none; color:red; cursor:pointer; text-decoration:underline; font-size: 14px;">
+            Close
+        </button>
+    </div>
+</div>
+    
 <div class="container">
     <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back</button>
     <div class="topbar">📚 Notes</div>
@@ -36,28 +56,7 @@
         <select id="subFilter"><option value="ALL">All Subjects</option><option value="GK">GK</option><option value="Maths">Maths</option><option value="Reasoning">Reasoning</option><option value="PO GUIDE 1">PO Guide 1</option><option value="PO GUIDE 2">PO Guide 2</option><option value="POSTAL MANUAL 5">Postal Manual Vol 5</option><option value="POSTAL MANUAL 6">Postal Manual Vol 6 Part 3</option><option value="POSTAL MANUAL 7">Postal Manual Vol 7</option></select>
     </div>
     <div id="notesList"><div class="empty">Loading...</div></div>
-
-<div id="qrBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; max-width:400px; width:100%;">
-        <h3>Payment Required (₹29)</h3>
-        
-        <img id="qrImage" style="width:200px; height:200px; margin: 15px 0;" />
-        
-        <p style="font-size: 14px; color: #555; margin-bottom: 20px;">
-            QR scan karein ya niche button par click karein.
-        </p>
-
-        <a id="payNowBtn" href="#" style="display:block; padding:15px; background:#ff9800; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-bottom:15px;">
-            Pay Now (GPay/PhonePe)
-        </a>
-
-        <button onclick="closeQR()" style="background:none; border:none; color:red; cursor:pointer; text-decoration:underline;">
-            Close
-        </button>
-    </div>
-</div>
-
-
+    
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
