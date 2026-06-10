@@ -38,21 +38,28 @@
     <div id="notesList"><div class="empty">Loading...</div></div>
 
 <!-- 🔥 QR PAYMENT BOX START -->
-<div id="qrBox" style="display:none; text-align:center; padding:20px;">
+<<div id="qrBox" style="display:none; text-align:center; padding:20px;">
     <h3>Scan QR to Pay</h3>
 
     <img id="qrImage" style="width:250px;height:250px;" />
 
     <br><br>
 
+    <button onclick="testUPI()">
+        Test UPI ₹29
+    </button>
+
+    <br><br>
+
     <button id="payNowBtn" style="display:none;">
-        <button onclick="testUPI()">Test UPI ₹1</button>
         Pay Now
     </button>
 
     <br><br>
 
-    <button onclick="closeQR()">Close</button>
+    <button onclick="closeQR()">
+        Close
+    </button>
 </div>
 <!-- 🔥 QR PAYMENT BOX END -->
 </div>
@@ -79,7 +86,7 @@
 window.pendingTxn = null;
     window.testUPI = function() {
     window.location.href =
-    "upi://pay?pa=rameshwarsahu2014bpmjarwe1694@oksbi&pn=RAMESHWAR%20SAHU&am=1&cu=INR";
+    "upi://pay?pa=rameshwarsahu2014bpmjarwe1694@oksbi&pn=RAMESHWAR%20SAHU&am=29&cu=INR";
 };
     onAuthStateChanged(auth, (user) => {
         if (user) {
