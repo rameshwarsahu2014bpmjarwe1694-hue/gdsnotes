@@ -46,6 +46,7 @@
     <br><br>
 
     <button id="payNowBtn" style="display:none;">
+        <button onclick="testUPI()">Test UPI ₹1</button>
         Pay Now
     </button>
 
@@ -76,6 +77,10 @@
     window.BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
     window.allNotes = [];
 window.pendingTxn = null;
+    window.testUPI = function() {
+    window.location.href =
+    "upi://pay?pa=rameshwarsahu2014bpmjarwe1694@oksbi&pn=RAMESHWAR%20SAHU&am=1&cu=INR";
+};
     onAuthStateChanged(auth, (user) => {
         if (user) {
             window.currentUserEmail = user.email;
