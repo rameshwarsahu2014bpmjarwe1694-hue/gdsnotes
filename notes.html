@@ -78,28 +78,27 @@
     window.BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
     window.allNotes = [];
 window.pendingTxn = null;
-    window.testUPI = function() {
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            window.currentUserEmail = user.email;
-            loadNotes();
-        } else {
-            window.location.href = "login.html";
-        }
-    });
 
-    async function loadNotes(){
-        const box = document.getElementById("notesList");
-        try {
-            const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
-            const snap = await getDocs(q);
-            window.allNotes = [];
-            snap.forEach((doc) => { window.allNotes.push({ id: doc.id, ...doc.data() }); });
-            renderNotes(window.allNotes);
-        } catch(e) { box.innerHTML = `<div class="empty">Error loading data.</div>`; }
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        window.currentUserEmail = user.email;
+        loadNotes();
+    } else {
+        window.location.href = "login.html";
     }
+});
 
-    window.renderNotes = function(arr){
+async function loadNotes(){
+    const box = document.getElementById("notesList");
+    try {
+        const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
+        const snap = await getDocs(q);
+        window.allNotes = [];
+        snap.forEach((doc) => { window.allNotes.push({ id: doc.id, ...doc.data() }); });
+        renderNotes(window.allNotes);
+    } catch(e) { box.innerHTML = `<div class="empty">Error loading data.</div>`; }
+}
+ window.renderNotes = function(arr){
     const box = document.getElementById("notesList");
     if(arr.length === 0){ box.innerHTML = `<div class="empty">No notes found</div>`; return; }
     
