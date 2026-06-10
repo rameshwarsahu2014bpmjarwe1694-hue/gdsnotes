@@ -27,25 +27,25 @@
     </style>
 </head>
 <body>
-<div id="qrBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; max-width:400px; width:100%; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-        <h3 style="margin-bottom: 15px;">Payment Required (₹29)</h3>
+<<div id="qrBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; max-width:400px; width:100%;">
+        <h3>Payment Required</h3>
+        <h4 id="amountDisplay">Amount: ₹29</h4>
         
-        <img id="qrImage" src="" style="width:200px; height:200px; margin: 10px auto; display: block; background: #eee;" />
+        <img id="qrImage" src="" style="width:200px; height:200px; margin: 10px auto; display: block;" />
         
-        <p style="font-size: 14px; color: #555; margin: 15px 0;">
-            QR scan karein ya niche button par click karein.
-        </p>
+        <p>Scan karein ya UPI ID copy karein:</p>
+        
+        <div style="background:#f0f0f0; padding:10px; border-radius:5px; margin:10px 0; font-weight:bold;">
+            <span id="upiDisplay">loading...</span>
+            <button onclick="navigator.clipboard.writeText(document.getElementById('upiDisplay').innerText); alert('Copied!');" 
+                    style="margin-left:10px; cursor:pointer;">Copy</button>
+        </div>
 
-        <a id="payNowBtn" href="#" style="display:block; padding:15px; background:#ff9800; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-bottom:15px;">
-            Pay Now (GPay/PhonePe)
-        </a>
-
-        <button onclick="closeQR()" style="background:none; border:none; color:red; cursor:pointer; text-decoration:underline; font-size: 14px;">
-            Close
-        </button>
+        <button onclick="closeQR()" style="margin-top:15px; background:red; color:white; border:none; padding:10px 20px; border-radius:5px;">Close</button>
     </div>
 </div>
+
     
 <div class="container">
     <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back</button>
@@ -124,13 +124,11 @@ async function loadNotes(){
     `).join('');
 }
 
-window.handleSecureAccess = async (category, subject, title, fileName) => {
+window.handleSecureAccess = async (category, subject, title, fileName, price) => {
     const token = await auth.currentUser.getIdToken();
     const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
 
     try {
-        window.pendingTxn = { category, subject, title, fileName };
-
         const res = await fetch(secureUrl, {
             headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS', 'Authorization': `Bearer ${token}` }
         });
@@ -142,37 +140,25 @@ window.handleSecureAccess = async (category, subject, title, fileName) => {
         }
 
         if (res.status === 403) {
-            const payRes = await fetch(`${BACKEND_URL}/create-upi-payment`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                body: JSON.stringify({ email: currentUserEmail, amount: 29, post: category, subject: subject })
-            });
-
-            const data = await payRes.json();
-
-            if (data.upiLink) {
-                // 1. QR Code ko fix karein (Image URL update)
-                const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(data.upiLink);
-                const qrImg = document.getElementById("qrImage");
-                qrImg.src = qrUrl; 
-                qrImg.style.display = "block"; // Image dikhayein
-
-                // 2. Button link set karein
-                const payBtn = document.getElementById("payNowBtn");
-                payBtn.href = data.upiLink; // User ko sidha UPI app par le jayega
-                payBtn.style.pointerEvents = "auto";
-
-                // 3. Modal ko show karein
-                document.getElementById("qrBox").style.display = "flex";
-            } else {
-                alert("Payment link generate nahi ho paya.");
-            }
+            // UPI ID yahan static rakhein jo aapki hai
+            const myUpiId = "yourname@upi"; 
+            
+            // 1. QR Code link (Amount aur UPI ID ke saath)
+            const qrData = `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${price}&cu=INR`;
+            const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(qrData);
+            
+            document.getElementById("qrImage").src = qrUrl;
+            
+            // 2. UPI ID dikhayein taaki user copy kar sake
+            document.getElementById("upiDisplay").innerText = myUpiId;
+            document.getElementById("amountDisplay").innerText = `Amount: ₹${price}`;
+            
+            // 3. Modal open karein
+            document.getElementById("qrBox").style.display = "flex";
         }
-    } catch (err) {
-        console.error(err);
-        alert("Server Error! Kuch der baad koshish karein.");
-    }
+    } catch (err) { alert("Server error"); }
 };
+
 
 window.closeQR = function () {
     document.getElementById("qrBox").style.display = "none";
