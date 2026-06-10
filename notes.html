@@ -125,8 +125,6 @@ async function loadNotes(){
     `).join('');
 }
 
-
-
 window.handleSecureAccess = async (category, subject, title, fileName) => {
     const token = await auth.currentUser.getIdToken();
     const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
@@ -154,29 +152,33 @@ window.handleSecureAccess = async (category, subject, title, fileName) => {
             const data = await payRes.json();
 
             if (data.upiLink) {
-                // 1. QR Code generate karein
+                // 1. QR Code ko fix karein (Image URL update)
                 const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(data.upiLink);
-                document.getElementById("qrImage").src = qrUrl;
+                const qrImg = document.getElementById("qrImage");
+                qrImg.src = qrUrl; 
+                qrImg.style.display = "block"; // Image dikhayein
 
-                // 2. Button ka link set karein
+                // 2. Button link set karein
                 const payBtn = document.getElementById("payNowBtn");
-                payBtn.href = data.upiLink;
-                payBtn.style.display = "block";
+                payBtn.href = data.upiLink; // User ko sidha UPI app par le jayega
+                payBtn.style.pointerEvents = "auto";
 
-                // 3. Box dikhayein
+                // 3. Modal ko show karein
                 document.getElementById("qrBox").style.display = "flex";
             } else {
-                alert("Payment link generation failed");
+                alert("Payment link generate nahi ho paya.");
             }
         }
     } catch (err) {
-        alert("Server error");
+        console.error(err);
+        alert("Server Error! Kuch der baad koshish karein.");
     }
 };
 
 window.closeQR = function () {
     document.getElementById("qrBox").style.display = "none";
 };
+
 
 async function autoCheckPayment(txnId) {
 
