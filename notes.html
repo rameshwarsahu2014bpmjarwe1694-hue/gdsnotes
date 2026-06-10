@@ -37,32 +37,26 @@
     </div>
     <div id="notesList"><div class="empty">Loading...</div></div>
 
-<!-- 🔥 QR PAYMENT BOX START -->
-<<div id="qrBox" style="display:none; text-align:center; padding:20px;">
-    <h3>Scan QR to Pay</h3>
+<div id="qrBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; max-width:400px; width:100%;">
+        <h3>Payment Required (₹29)</h3>
+        
+        <img id="qrImage" style="width:200px; height:200px; margin: 15px 0;" />
+        
+        <p style="font-size: 14px; color: #555; margin-bottom: 20px;">
+            QR scan karein ya niche button par click karein.
+        </p>
 
-    <img id="qrImage" style="width:250px;height:250px;" />
+        <a id="payNowBtn" href="#" style="display:block; padding:15px; background:#ff9800; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-bottom:15px;">
+            Pay Now (GPay/PhonePe)
+        </a>
 
-    <br><br>
-
-    <button onclick="testUPI()">
-        Test UPI ₹1
-    </button>
-
-    <br><br>
-
-    <button id="payNowBtn" style="display:none;">
-        Pay Now
-    </button>
-
-    <br><br>
-
-    <button onclick="closeQR()">
-        Close
-    </button>
+        <button onclick="closeQR()" style="background:none; border:none; color:red; cursor:pointer; text-decoration:underline;">
+            Close
+        </button>
+    </div>
 </div>
-<!-- 🔥 QR PAYMENT BOX END -->
-</div>
+
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -85,9 +79,6 @@
     window.allNotes = [];
 window.pendingTxn = null;
     window.testUPI = function() {
-    window.location.href =
-    "upi://pay?pa=rameshwarsahu2014bpmjarwe1694-2@oksbi&pn=RAMESHWAR%20SAHU&am=1&cu=INR";
-};
     onAuthStateChanged(auth, (user) => {
         if (user) {
             window.currentUserEmail = user.email;
@@ -138,91 +129,54 @@ window.pendingTxn = null;
 
 
 window.handleSecureAccess = async (category, subject, title, fileName) => {
-
     const token = await auth.currentUser.getIdToken();
-
-    const secureUrl =
-        `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
+    const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
 
     try {
-
-        // ✅ store txn FIRST (NO CHANGE IN DATA)
-        window.pendingTxn = {
-            category,
-            subject,
-            title,
-            fileName
-        };
-
-        function showQR(upiLink) {
-            const qrUrl =
-                "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" +
-                encodeURIComponent(upiLink);
-
-            document.getElementById("qrImage").src = qrUrl;
-            document.getElementById("qrBox").style.display = "block";
-        }
-
-        window.closeQR = function () {
-            document.getElementById("qrBox").style.display = "none";
-        };
+        window.pendingTxn = { category, subject, title, fileName };
 
         const res = await fetch(secureUrl, {
-            headers: {
-                'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS', 'Authorization': `Bearer ${token}` }
         });
 
-        // ✅ FREE ACCESS
         if (res.status === 200) {
             const blob = await res.blob();
             window.open(URL.createObjectURL(blob), '_blank');
             return;
         }
 
-        // ❌ PAYMENT REQUIRED
         if (res.status === 403) {
-
-            const payNow = confirm(`इस PDF (${title}) को unlock करने के लिए payment करना होगा।`);
-            if (!payNow) return;
-
             const payRes = await fetch(`${BACKEND_URL}/create-upi-payment`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    email: currentUserEmail,
-                    amount: 29,
-                    post: category,
-                    subject: subject,
-                    fileName: fileName
-                })
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                body: JSON.stringify({ email: currentUserEmail, amount: 29, post: category, subject: subject })
             });
 
             const data = await payRes.json();
+
             if (data.upiLink) {
+                // 1. QR Code generate karein
+                const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(data.upiLink);
+                document.getElementById("qrImage").src = qrUrl;
 
-    showQR(data.upiLink);
+                // 2. Button ka link set karein
+                const payBtn = document.getElementById("payNowBtn");
+                payBtn.href = data.upiLink;
+                payBtn.style.display = "block";
 
-    document.getElementById("payNowBtn").style.display = "inline-block";
-
-    document.getElementById("payNowBtn").onclick = () => {
-        window.location.href = data.upiLink;
-    };
-
-} else {
-
-    alert("Payment link generate failed");
-
-}
-}
-
+                // 3. Box dikhayein
+                document.getElementById("qrBox").style.display = "flex";
+            } else {
+                alert("Payment link generation failed");
+            }
+        }
     } catch (err) {
         alert("Server error");
     }
+};
+
+window.closeQR = function () {
+    document.getElementById("qrBox").style.display = "none";
 };
 
 async function autoCheckPayment(txnId) {
