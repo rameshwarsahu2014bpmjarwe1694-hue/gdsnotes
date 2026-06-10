@@ -141,7 +141,7 @@ window.handleSecureAccess = async (category, subject, title, fileName, price) =>
 
         if (res.status === 403) {
             // UPI ID yahan static rakhein jo aapki hai
-            const myUpiId = "yourname@upi"; 
+            const myUpiId = "6268782886@ybl"; 
             
             // 1. QR Code link (Amount aur UPI ID ke saath)
             const qrData = `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${price}&cu=INR`;
