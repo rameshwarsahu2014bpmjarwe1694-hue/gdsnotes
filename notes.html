@@ -27,14 +27,16 @@
     </style>
 </head>
 <body>
-<<div id="qrBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:20px;">
+<div id="qrBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:20px;">
     <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; max-width:400px; width:100%;">
         <h3>Payment Required</h3>
-        <h4 id="amountDisplay">Amount: ₹29</h4>
+        <h4 id="amountDisplay" style="margin-bottom: 10px;">Amount: ₹29</h4>
         
-        <img id="qrImage" src="" style="width:200px; height:200px; margin: 10px auto; display: block;" />
+        <a id="qrLink" href="#">
+            <img id="qrImage" src="" style="width:200px; height:200px; margin: 10px auto; display: block; cursor: pointer; border: 2px solid #eee;" />
+        </a>
         
-        <p>Scan karein ya UPI ID copy karein:</p>
+        <p>QR touch karein ya UPI ID copy karein:</p>
         
         <div style="background:#f0f0f0; padding:10px; border-radius:5px; margin:10px 0; font-weight:bold;">
             <span id="upiDisplay">loading...</span>
@@ -116,13 +118,13 @@ async function loadNotes(){
             
             ${x.description ? `<div class="desc">${safe(x.description)}</div>` : ""}
             
-            <button onclick="handleSecureAccess('${safe(x.category)}', '${safe(x.subject)}', '${safe(x.title)}', '${safe(x.fileName)}')" 
-                    style="width:100%; margin-top:15px; background: #355da9; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">
-                Click to Open PDF
-            </button>
-        </div>
-    `).join('');
-}
+            // renderNotes ke andar button wale line ko aise likhein:
+<button onclick="handleSecureAccess('${safe(x.category)}', '${safe(x.subject)}', '${safe(x.title)}', '${safe(x.fileName)}', ${x.price || 29})" 
+        style="width:100%; margin-top:15px; background: #355da9; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+    Pay & Open (₹${x.price || 29})
+</button>
+    </div> `).join('');
+                   }
 
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
     const token = await auth.currentUser.getIdToken();
@@ -140,25 +142,29 @@ window.handleSecureAccess = async (category, subject, title, fileName, price) =>
         }
 
         if (res.status === 403) {
-            // UPI ID yahan static rakhein jo aapki hai
-            const myUpiId = "6268782886@ybl"; 
+            // Price agar undefined ho toh default 29
+            const p = price || 29;
+            const myUpiId = "6268782886@ybl";
             
-            // 1. QR Code link (Amount aur UPI ID ke saath)
-            const qrData = `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${price}&cu=INR`;
-            const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(qrData);
+            // Static Deep Link (Ye automatic app trigger karega)
+            const staticUpiLink = `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${p}&cu=INR&tn=${encodeURIComponent(title)}`;
             
+            // 1. QR Code link (Scan ke liye)
+            const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(staticUpiLink);
             document.getElementById("qrImage").src = qrUrl;
             
-            // 2. UPI ID dikhayein taaki user copy kar sake
-            document.getElementById("upiDisplay").innerText = myUpiId;
-            document.getElementById("amountDisplay").innerText = `Amount: ₹${price}`;
+            // 2. QR Image aur Button ko link assign karein
+            document.getElementById("qrLink").href = staticUpiLink; 
             
-            // 3. Modal open karein
+            // 3. UPI ID display
+            document.getElementById("upiDisplay").innerText = myUpiId;
+            document.getElementById("amountDisplay").innerText = `Amount: ₹${p}`;
+            
+            // 4. Modal show
             document.getElementById("qrBox").style.display = "flex";
         }
     } catch (err) { alert("Server error"); }
 };
-
 
 window.closeQR = function () {
     document.getElementById("qrBox").style.display = "none";
