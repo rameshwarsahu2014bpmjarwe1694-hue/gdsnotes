@@ -24,7 +24,9 @@ getFirestore,
 collection,
 getDocs,
 updateDoc,
-doc
+setDoc,
+doc,
+serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -86,44 +88,60 @@ async function loadData() {
 /* 🔥 APPROVE - Updated to update Root Document too */
 window.approve = async (email, tid) => {
     try {
-        // 1. Transactions sub-collection update
-        await updateDoc(doc(db, "payments", email, "transactions", tid), {
-            status: "completed" // server side check lowercase 'completed' use kar raha hai
-        });
 
-        // 2. Root document update (Isse PDF access milega bina Index ke)
-        await setDoc(doc(db, "payments", email), {
-            status: "completed",
-            approvedAt: serverTimestamp()
-        }, { merge: true });
+        await updateDoc(
+            doc(db, "payments", email, "transactions", tid),
+            {
+                status: "completed"
+            }
+        );
+
+        await setDoc(
+            doc(db, "payments", email),
+            {
+                status: "completed",
+                approvedAt: serverTimestamp()
+            },
+            { merge: true }
+        );
 
         alert("Approved ✔");
         loadData();
+
     } catch (e) {
         alert("Error: " + e.message);
     }
-}
+};
 
 /* 🔥 REJECT */
 window.reject = async (email, tid) => {
     try {
         await updateDoc(doc(db, "payments", email, "transactions", tid), {
-            status: "rejected"
-        });
-        
-        // Root document ko 'pending' par wapas le aate hain agar rejection ho
-        await setDoc(doc(db, "payments", email), {
-            status: "pending"
-        }, { merge: true });
+            window.reject = async (email, tid) => {
+    try {
+
+        await updateDoc(
+            doc(db, "payments", email, "transactions", tid),
+            {
+                status: "rejected"
+            }
+        );
+
+        await setDoc(
+            doc(db, "payments", email),
+            {
+                status: "pending"
+            },
+            { merge: true }
+        );
 
         alert("Rejected ❌");
         loadData();
+
     } catch (e) {
         alert("Error: " + e.message);
     }
-}
-
-loadData();
+};
 
 </script>
 
