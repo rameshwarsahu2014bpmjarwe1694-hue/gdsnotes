@@ -103,101 +103,214 @@ async function loadNotes(){
 }
  window.renderNotes = function(arr){
     const box = document.getElementById("notesList");
-    if(arr.length === 0){ box.innerHTML = `<div class="empty">No notes found</div>`; return; }
-    
-    box.innerHTML = arr.map(x => `
+
+    if(arr.length === 0){
+        box.innerHTML = `<div class="empty">No notes found</div>`;
+        return;
+    }
+
+    box.innerHTML = arr.map(x => {
+
+        const category = String(x.category || "").replace(/'/g, "\\'");
+        const subject = String(x.subject || "").replace(/'/g, "\\'");
+        const title = String(x.title || "").replace(/'/g, "\\'");
+        const fileName = String(x.fileName || "").replace(/'/g, "\\'");
+
+        return `
         <div class="note">
             <h3>${safe(x.title)}</h3>
+
             <div class="meta">
                 <span class="tag">📮 ${safe(x.category || "-")}</span>
                 <span class="tag">📖 ${safe(x.subject || "-")}</span>
             </div>
-            <img src="${x.imageURL}" class="preview" onerror="this.style.display='none';">
-            ${x.description ? `<div class="desc">${safe(x.description)}</div>` : ""}
-            <button onclick="handleSecureAccess('${safe(x.category)}', '${safe(x.subject)}', '${safe(x.title)}', '${safe(x.fileName)}', ${x.price || 29})" 
-                    style="width:100%; margin-top:15px; background: #355da9; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+
+            <img
+                src="${x.imageURL || ''}"
+                class="preview"
+                onerror="this.style.display='none';"
+            >
+
+            ${
+                x.description
+                ? `<div class="desc">${safe(x.description)}</div>`
+                : ""
+            }
+
+            <button
+                onclick="handleSecureAccess(
+                    '${category}',
+                    '${subject}',
+                    '${title}',
+                    '${fileName}',
+                    ${Number(x.price || 29)}
+                )"
+                style="
+                    width:100%;
+                    margin-top:15px;
+                    background:#355da9;
+                    color:white;
+                    border:none;
+                    padding:12px;
+                    border-radius:8px;
+                    font-weight:bold;
+                    cursor:pointer;
+                "
+            >
                 Pay & Open (₹${x.price || 29})
             </button>
         </div>
-    `).join('');
-}
+        `;
+    }).join('');
+};
 
 
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
+
     const token = await auth.currentUser.getIdToken();
-    // Header mein RSH-GDS-SECURE-ACCESS jarur hona chahiye
-    const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
+
+    const secureUrl =
+        `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
 
     try {
+
         const res = await fetch(secureUrl, {
-            headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS', 'Authorization': `Bearer ${token}` }
+            headers: {
+                'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
+                'Authorization': `Bearer ${token}`
+            }
         });
 
         if (res.status === 200) {
+
             const blob = await res.blob();
-            window.open(URL.createObjectURL(blob), '_blank');
+
+            window.open(
+                URL.createObjectURL(blob),
+                '_blank'
+            );
+
             return;
         }
 
         if (res.status === 403) {
+
+            window.pendingTxn = {
+                category,
+                subject
+            };
+
             const p = price || 29;
-            const myUpiId = "6268782886@ybl"; 
-            
-            // QR Code generation
-            const qrData = `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${p}&cu=INR`;
-            const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(qrData);
-            
+
+            const myUpiId = "6268782886@ybl";
+
+            const qrData =
+                `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${p}&cu=INR`;
+
+            const qrUrl =
+                "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data="
+                + encodeURIComponent(qrData);
+
             document.getElementById("qrImage").src = qrUrl;
             document.getElementById("upiDisplay").innerText = myUpiId;
             document.getElementById("amountDisplay").innerText = `Amount: ₹${p}`;
-            
-            // Modal open karein
+
             document.getElementById("qrBox").style.display = "flex";
+
+            return;
         }
-    } catch (err) { alert("Server error"); }
+
+        alert("Access denied");
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Server error");
+    }
 };
 
 window.submitPaymentProof = async () => {
-    const txnId = document.getElementById("txnIdInput").value;
-    const file = document.getElementById("screenshotInput").files;
 
-    if (!txnId && !file) { alert("Txn ID bharein ya Screenshot upload karein!"); return; }
+    const txnId =
+        document.getElementById("txnIdInput").value.trim();
+
+    const file =
+        document.getElementById("screenshotInput").files[0];
+
+    if (!txnId && !file) {
+
+        alert("Txn ID bharein ya Screenshot upload karein!");
+
+        return;
+    }
 
     const formData = new FormData();
+
     formData.append("txnId", txnId);
-    formData.append("email", window.currentUserEmail);
-    if (file) formData.append("screenshot", file);
+
+    formData.append(
+        "email",
+        window.currentUserEmail
+    );
+
+    if (file) {
+        formData.append(
+            "screenshot",
+            file
+        );
+    }
 
     try {
-        const res = await fetch(`${BACKEND_URL}/submit-proof`, {
-            method: "POST",
-            body: formData,
-            headers: { 
-                "Authorization": `Bearer ${await auth.currentUser.getIdToken()}`,
-                "X-Source-Auth": "RSH-GDS-SECURE-ACCESS" 
+
+        const res = await fetch(
+            `${BACKEND_URL}/submit-proof`,
+            {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "Authorization":
+                        `Bearer ${await auth.currentUser.getIdToken()}`,
+                    "X-Source-Auth":
+                        "RSH-GDS-SECURE-ACCESS"
+                }
             }
-        });
-        
-        if (res.ok) { 
-            alert("Proof submit ho gaya! Admin verify karenge."); 
-            closeQR(); 
-        } else { 
-            alert("Submit karne mein error aaya."); 
+        );
+
+        if (res.ok) {
+
+            alert(
+                "Proof submit ho gaya! Admin verify karenge."
+            );
+
+            closeQR();
+
+        } else {
+
+            alert(
+                "Submit karne mein error aaya."
+            );
         }
-    } catch (e) { alert("Server error!"); }
+
+    } catch (e) {
+
+        console.error(e);
+
+        alert("Server error!");
+    }
 };
 
 window.closeQR = function () {
+
     document.getElementById("qrBox").style.display = "none";
 };
-
 
 async function autoCheckPayment(txnId) {
 
     const token = await auth.currentUser.getIdToken();
 
     const res = await fetch(
-        `${BACKEND_URL}/payment-status?txnId=${txnId}&email=${currentUserEmail}`,
+        `${BACKEND_URL}/payment-status?txnId=${txnId}&email=${window.currentUserEmail}`,
         {
             method: "POST",
             headers: {
@@ -239,23 +352,36 @@ async function autoCheckPayment(txnId) {
 }
 
 window.autoCheckPayment = autoCheckPayment;
-    window.safe = function(v){ return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
 
-    window.applyFilter = function(){
-        const q = document.getElementById("searchInput").value.toLowerCase().trim();
-        const post = document.getElementById("postFilter").value;
-        const sub = document.getElementById("subFilter").value;
-        renderNotes(window.allNotes.filter(x => 
-            (x.title.toLowerCase().includes(q)) && 
-            (post === "ALL" || x.category === post) && 
+window.safe = function(v){
+    return String(v || "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+window.applyFilter = function(){
+
+    const q = document.getElementById("searchInput").value.toLowerCase().trim();
+    const post = document.getElementById("postFilter").value;
+    const sub = document.getElementById("subFilter").value;
+
+    renderNotes(
+        window.allNotes.filter(x =>
+            x.title.toLowerCase().includes(q) &&
+            (post === "ALL" || x.category === post) &&
             (sub === "ALL" || x.subject === sub)
-        ));
-    }
+        )
+    );
+}
 
-    document.getElementById("searchInput").addEventListener("input", applyFilter);
-    document.getElementById("postFilter").addEventListener("change", applyFilter);
-    document.getElementById("subFilter").addEventListener("change", applyFilter);
-    const urlParams = new URLSearchParams(window.location.search);
+document.getElementById("searchInput").addEventListener("input", applyFilter);
+document.getElementById("postFilter").addEventListener("change", applyFilter);
+document.getElementById("subFilter").addEventListener("change", applyFilter);
+
+const urlParams = new URLSearchParams(window.location.search);
 const txnId = urlParams.get("txnId");
 
 if (txnId) {
