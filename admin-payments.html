@@ -113,11 +113,7 @@ window.approve = async (email, tid) => {
     }
 };
 
-/* 🔥 REJECT */
 window.reject = async (email, tid) => {
-    try {
-        await updateDoc(doc(db, "payments", email, "transactions", tid), {
-            window.reject = async (email, tid) => {
     try {
 
         await updateDoc(
@@ -142,7 +138,8 @@ window.reject = async (email, tid) => {
         alert("Error: " + e.message);
     }
 };
-
+    
+loadData();
 </script>
 
 </body>
