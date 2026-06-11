@@ -27,22 +27,26 @@
     </style>
 </head>
 <body>
-<<div id="qrBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:20px;">
+<div id="qrBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:20px;">
     <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; max-width:400px; width:100%;">
         <h3>Payment Required</h3>
-        <h4 id="amountDisplay">Amount: ₹29</h4>
+        <h4 id="amountDisplay" style="margin: 10px 0;">Amount: ₹29</h4>
         
         <img id="qrImage" src="" style="width:200px; height:200px; margin: 10px auto; display: block;" />
         
-        <p>Scan karein ya UPI ID copy karein:</p>
-        
         <div style="background:#f0f0f0; padding:10px; border-radius:5px; margin:10px 0; font-weight:bold;">
-            <span id="upiDisplay">loading...</span>
-            <button onclick="navigator.clipboard.writeText(document.getElementById('upiDisplay').innerText); alert('Copied!');" 
-                    style="margin-left:10px; cursor:pointer;">Copy</button>
+            <span id="upiDisplay">6268782886@ybl</span>
+            <button onclick="navigator.clipboard.writeText('6268782886@ybl'); alert('Copied!');" style="margin-left:10px; cursor:pointer;">Copy</button>
         </div>
 
-        <button onclick="closeQR()" style="margin-top:15px; background:red; color:white; border:none; padding:10px 20px; border-radius:5px;">Close</button>
+        <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px; text-align:left;">
+            <p style="font-size:13px; margin-bottom:5px;">Details bhejein (Transaction ID ya Screenshot):</p>
+            <input type="text" id="txnIdInput" placeholder="Enter Transaction ID" style="width:100%; padding:8px; margin-bottom:8px; border:1px solid #ccc; border-radius:4px;">
+            <input type="file" id="screenshotInput" accept="image/*" style="width:100%; margin-bottom:8px;">
+            <button onclick="submitPaymentProof()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Submit Proof</button>
+        </div>
+
+        <button onclick="closeQR()" style="margin-top:15px; background:red; color:white; border:none; padding:8px 20px; border-radius:5px;">Close</button>
     </div>
 </div>
 
@@ -108,24 +112,20 @@ async function loadNotes(){
                 <span class="tag">📮 ${safe(x.category || "-")}</span>
                 <span class="tag">📖 ${safe(x.subject || "-")}</span>
             </div>
-
-            <img src="${x.imageURL}" class="preview" 
-                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block'; console.log('Image Error for: ${x.title}');" 
-                 alt="Cover">
-            <div style="display:none; color:red; font-size:12px; margin-top:5px;">Image not found (Check URL)</div>
-            
+            <img src="${x.imageURL}" class="preview" onerror="this.style.display='none';">
             ${x.description ? `<div class="desc">${safe(x.description)}</div>` : ""}
-            
-            <button onclick="handleSecureAccess('${safe(x.category)}', '${safe(x.subject)}', '${safe(x.title)}', '${safe(x.fileName)}')" 
+            <button onclick="handleSecureAccess('${safe(x.category)}', '${safe(x.subject)}', '${safe(x.title)}', '${safe(x.fileName)}', ${x.price || 29})" 
                     style="width:100%; margin-top:15px; background: #355da9; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">
-                Click to Open PDF
+                Pay & Open (₹${x.price || 29})
             </button>
         </div>
     `).join('');
 }
 
+
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
     const token = await auth.currentUser.getIdToken();
+    // Header mein RSH-GDS-SECURE-ACCESS jarur hona chahiye
     const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
 
     try {
@@ -140,25 +140,52 @@ window.handleSecureAccess = async (category, subject, title, fileName, price) =>
         }
 
         if (res.status === 403) {
-            // UPI ID yahan static rakhein jo aapki hai
+            const p = price || 29;
             const myUpiId = "6268782886@ybl"; 
             
-            // 1. QR Code link (Amount aur UPI ID ke saath)
-            const qrData = `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${price}&cu=INR`;
+            // QR Code generation
+            const qrData = `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${p}&cu=INR`;
             const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(qrData);
             
             document.getElementById("qrImage").src = qrUrl;
-            
-            // 2. UPI ID dikhayein taaki user copy kar sake
             document.getElementById("upiDisplay").innerText = myUpiId;
-            document.getElementById("amountDisplay").innerText = `Amount: ₹${price}`;
+            document.getElementById("amountDisplay").innerText = `Amount: ₹${p}`;
             
-            // 3. Modal open karein
+            // Modal open karein
             document.getElementById("qrBox").style.display = "flex";
         }
     } catch (err) { alert("Server error"); }
 };
 
+window.submitPaymentProof = async () => {
+    const txnId = document.getElementById("txnIdInput").value;
+    const file = document.getElementById("screenshotInput").files;
+
+    if (!txnId && !file) { alert("Txn ID bharein ya Screenshot upload karein!"); return; }
+
+    const formData = new FormData();
+    formData.append("txnId", txnId);
+    formData.append("email", window.currentUserEmail);
+    if (file) formData.append("screenshot", file);
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/submit-proof`, {
+            method: "POST",
+            body: formData,
+            headers: { 
+                "Authorization": `Bearer ${await auth.currentUser.getIdToken()}`,
+                "X-Source-Auth": "RSH-GDS-SECURE-ACCESS" 
+            }
+        });
+        
+        if (res.ok) { 
+            alert("Proof submit ho gaya! Admin verify karenge."); 
+            closeQR(); 
+        } else { 
+            alert("Submit karne mein error aaya."); 
+        }
+    } catch (e) { alert("Server error!"); }
+};
 
 window.closeQR = function () {
     document.getElementById("qrBox").style.display = "none";
