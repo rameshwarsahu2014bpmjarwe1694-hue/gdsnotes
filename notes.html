@@ -118,7 +118,7 @@ async function loadNotes(){
             
             ${x.description ? `<div class="desc">${safe(x.description)}</div>` : ""}
             
-            // renderNotes ke andar button wale line ko aise likhein:
+            
 <button onclick="handleSecureAccess('${safe(x.category)}', '${safe(x.subject)}', '${safe(x.title)}', '${safe(x.fileName)}', ${x.price || 29})" 
         style="width:100%; margin-top:15px; background: #355da9; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">
     Pay & Open (₹${x.price || 29})
