@@ -64,12 +64,10 @@ async function loadData() {
 
     const usersSnap = await getDocs(collection(db, "payments"));
     box.innerHTML = "";
-
     for (const user of usersSnap.docs) {
         const txSnap = await getDocs(collection(db, "payments", user.id, "transactions"));
-
         txSnap.forEach(d => {
-            const t = d.data();
+         const t = d.data();
             box.innerHTML += `
             <div class="card">
                 <div><b>User:</b> ${user.id}</div>
@@ -90,15 +88,13 @@ async function loadData() {
 /* 🔥 APPROVE - Updated to update Root Document too */
 window.approve = async (email, tid) => {
     try {
-
-        await updateDoc(
+     await updateDoc(
             doc(db, "payments", email, "transactions", tid),
             {
                 status: "completed"
             }
         );
-
-        await setDoc(
+    await setDoc(
             doc(db, "payments", email),
             {
                 status: "completed",
@@ -152,7 +148,7 @@ window.deleteTx = async (email, tid) => {
 };
 
  window.loadData = loadData;
-loadData();
+    
 </script>
 </body>
 </html>
