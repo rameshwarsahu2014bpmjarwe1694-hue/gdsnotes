@@ -180,7 +180,9 @@ window.handleSecureAccess = async (category, subject, title, fileName, price) =>
                 'Authorization': `Bearer ${token}`
             }
         });
-
+console.log("Server Response Status:", res.status);
+        const debugData = await res.clone().json().catch(() => ({}));
+        console.log("Server Response Body:", debugData);
         if (res.status === 200) {
 
             const blob = await res.blob();
