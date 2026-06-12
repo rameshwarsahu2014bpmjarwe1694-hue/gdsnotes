@@ -1,4 +1,4 @@
-const CACHE_NAME = "gds-notes-v11";
+const CACHE_NAME = "gds-notes-v12";
 
 const ASSETS = [
   "./",
