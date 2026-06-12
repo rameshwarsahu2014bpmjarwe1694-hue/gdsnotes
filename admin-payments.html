@@ -27,6 +27,7 @@ updateDoc,
 setDoc,
 doc,
 serverTimestamp
+deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -79,6 +80,7 @@ async function loadData() {
                 <br>
                 <button class="btn approve" onclick="approve('${user.id}','${d.id}')">Approve</button>
                 <button class="btn reject" onclick="reject('${user.id}','${d.id}')">Reject</button>
+                <button class="btn" style="background:#444" onclick="deleteTx('${user.id}','${d.id}')">Delete</button>
             </div>
             `;
         });
@@ -138,8 +140,18 @@ window.reject = async (email, tid) => {
         alert("Error: " + e.message);
     }
 };
- window.loadData = loadData;   
-loadData();
+window.deleteTx = async (email, tid) => {
+    if(!confirm("Kya aap ise permanently delete karna chahte hain?")) return;
+    try {
+        await deleteDoc(doc(db, "payments", email, "transactions", tid));
+        alert("Deleted Successfully");
+        loadData();
+    } catch (e) {
+        alert("Error deleting: " + e.message);
+    }
+};
+
+ window.loadData = loadData;
 </script>
 </body>
 </html>
