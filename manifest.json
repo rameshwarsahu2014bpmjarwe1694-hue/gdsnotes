@@ -9,7 +9,9 @@
   "display": "fullscreen",
 
   "display_override": [
-    "fullscreen"
+    "fullscreen",
+    "standalone",
+    "window-controls-overlay"
   ],
 
   "background_color": "#ffffff",
