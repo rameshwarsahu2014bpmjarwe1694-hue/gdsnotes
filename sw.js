@@ -1,4 +1,4 @@
-const CACHE_NAME = "gds-notes-v10";
+const CACHE_NAME = "gds-notes-v11";
 
 const ASSETS = [
   "./",
@@ -6,7 +6,10 @@ const ASSETS = [
   "./manifest.json",
   "./RSH.png",
   "./icon-192.png",
-  "./icon-512.png"
+  "./icon-512.png",
+  "./notes.html",
+  "./quiz.html",
+  "./pyq.html"
 ];
 
 self.addEventListener("install", (event) => {
