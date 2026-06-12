@@ -1,14 +1,14 @@
 [
-  {
-    "relation": [
-      "delegate_permission/common.handle_all_urls"
-    ],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "io.gdsnotes.rshtwa",
-      "sha256_cert_fingerprints": [
-        "01:B3:E4:8F:7C:27:69:D2:3F:0B:59:64:41:8A:DB:BD:8C:C3:5F:65:D0:BA:1E:9E:8E:28:D6:7F:7D:B0:C3:FB"
-      ]
-    }
-  }
+{
+"relation": [
+"delegate_permission/common.handle_all_urls"
+],
+"target": {
+"namespace": "android_app",
+"package_name": "io.gdsnote.rshtwa",
+"sha256_cert_fingerprints": [
+"B3:98:23:DC:9C:3F:16:89:E0:B2:72:86:BA:3C:AA:F6:85:7F:BA:EC:CE:5D:55:A0:BD:D3:47:62:48:C1:0B:0D"
+]
+}
+}
 ]
