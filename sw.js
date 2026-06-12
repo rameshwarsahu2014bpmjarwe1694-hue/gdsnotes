@@ -3,6 +3,9 @@ const CACHE_NAME = "gds-notes-v11";
 const ASSETS = [
   "./",
   "./index.html",
+  "./login.html",
+  "./register.html",
+  "./admin.html",
   "./manifest.json",
   "./RSH.png",
   "./icon-192.png",
