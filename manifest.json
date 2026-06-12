@@ -4,8 +4,8 @@
   "short_name": "GDS Notes",
   "description": "Complete GDS Departmental Exam Notes, Study Material and Mock Tests.",
 
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/gdsnotes/",
+"scope": "/gdsnotes/"
   "display": "fullscreen",
 
   "display_override": [
