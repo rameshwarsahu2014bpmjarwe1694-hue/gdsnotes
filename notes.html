@@ -351,7 +351,14 @@ async function autoCheckPayment(txnId) {
                 window.open(URL.createObjectURL(blob), "_blank");
             }
 
-            window.pendingTxn = null;
+                    // बटन को 'Download' में बदलें 
+        const btn = document.querySelector(`button[onclick*="handleSecureAccess"]`);
+        if (btn) {
+            btn.innerText = "📥 Download PDF";
+            btn.style.backgroundColor = "#28a745";
+            btn.onclick = () => fetchAndDownloadPDF(window.pendingTxn.category, window.pendingTxn.subject);
+        }
+        window.pendingTxn = null;
 
             setTimeout(() => {
                 window.location.href = "notes.html";
