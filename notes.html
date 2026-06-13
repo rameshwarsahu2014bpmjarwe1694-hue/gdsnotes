@@ -15,9 +15,6 @@
         .note{ background:#fff; padding:18px; border-radius:16px; box-shadow:0 5px 14px rgba(0,0,0,.08); }
         .note h3{ font-size:20px; margin-bottom:8px; color:#111; }
         .meta{ font-size:14px; color:#666; margin-bottom:10px; display: flex; gap: 10px; }
-        .book-image-link { display: block; position: relative; cursor: pointer; transition: transform 0.2s; text-decoration: none; }
-        .book-image-link:hover { transform: scale(1.02); }
-        .pdf-overlay { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: #355da9; color: white; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 14px; }
         .tag{ background: #eee; padding: 4px 8px; border-radius: 6px; }
         .desc{ line-height:1.6; white-space:pre-wrap; color:#222; margin-top:8px; }
         .preview { width: 100%; max-height: 300px; object-fit: contain; border-radius: 12px; margin-top: 10px; background: #f9f9f9; }
@@ -27,30 +24,26 @@
     </style>
 </head>
 <body>
+
 <div id="qrBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:20px;">
     <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; max-width:400px; width:100%;">
         <h3>Payment Required</h3>
         <h4 id="amountDisplay" style="margin: 10px 0;">Amount: ₹29</h4>
-        
         <img id="qrImage" src="" style="width:200px; height:200px; margin: 10px auto; display: block;" />
-        
         <div style="background:#f0f0f0; padding:10px; border-radius:5px; margin:10px 0; font-weight:bold;">
             <span id="upiDisplay">6268782886@ybl</span>
             <button onclick="navigator.clipboard.writeText('6268782886@ybl'); alert('Copied!');" style="margin-left:10px; cursor:pointer;">Copy</button>
         </div>
-
         <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px; text-align:left;">
-            <p style="font-size:13px; margin-bottom:5px;">Payment Karne Ke Baad Details bhejein (Transaction ID ya Screenshot):</p>
+            <p style="font-size:13px; margin-bottom:5px;">Payment Karne Ke Baad Details bhejein:</p>
             <input type="text" id="txnIdInput" placeholder="Enter Transaction ID" style="width:100%; padding:8px; margin-bottom:8px; border:1px solid #ccc; border-radius:4px;">
             <input type="file" id="screenshotInput" accept="image/*" style="width:100%; margin-bottom:8px;">
             <button onclick="submitPaymentProof()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Submit Proof</button>
         </div>
-
         <button onclick="closeQR()" style="margin-top:15px; background:red; color:white; border:none; padding:8px 20px; border-radius:5px;">Close</button>
     </div>
 </div>
 
-    
 <div class="container">
     <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back</button>
     <div class="topbar">📚 Notes</div>
@@ -60,19 +53,21 @@
         <select id="subFilter"><option value="ALL">All Subjects</option><option value="GK">GK</option><option value="Maths">Maths</option><option value="Reasoning">Reasoning</option><option value="PO GUIDE 1">PO Guide 1</option><option value="PO GUIDE 2">PO Guide 2</option><option value="POSTAL MANUAL 5">Postal Manual Vol 5</option><option value="POSTAL MANUAL 6">Postal Manual Vol 6 Part 3</option><option value="POSTAL MANUAL 7">Postal Manual Vol 7</option></select>
     </div>
     <div id="notesList"><div class="empty">Loading...</div></div>
-    
+</div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyDjzmo0A4KhOkrqFQdOyCEek6bsPF-UVPQ",
-        authDomain: "gds-departmental-exam-studyhub.firebaseapp.com",
-        projectId: "gds-departmental-exam-studyhub",
-        storageBucket: "gds-departmental-exam-studyhub.appspot.com",
-        messagingSenderId: "759916756080",
-        appId: "1:759916756080:web:7f2c0e66458bd007e888b5"
+        // यहाँ अपना Firebase Config वापस डालें
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -80,306 +75,83 @@
     const auth = getAuth(app);
     window.BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
     window.allNotes = [];
-window.pendingTxn = null;
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        window.currentUserEmail = user.email;
-        loadNotes();
-        // 🔥 Debugging code for Mobile
-if (auth.currentUser) {
-    alert("User Email found: " + auth.currentUser.email);
-} else {
-    alert("Error: User is not logged in!");
-}
+    onAuthStateChanged(auth, (user) => {
+        if (user) { window.currentUserEmail = user.email; loadNotes(); }
+        else { window.location.href = "login.html"; }
+    });
 
-    } else {
-        window.location.href = "login.html";
-    }
-});
-
-async function loadNotes(){
-    const box = document.getElementById("notesList");
-    try {
-        const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
-        const snap = await getDocs(q);
-        window.allNotes = [];
-        snap.forEach((doc) => { window.allNotes.push({ id: doc.id, ...doc.data() }); });
+    async function loadNotes(){
+        const snap = await getDocs(query(collection(db, "notes"), orderBy("createdAt", "desc")));
+        window.allNotes = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderNotes(window.allNotes);
-    } catch(e) { box.innerHTML = `<div class="empty">Error loading data.</div>`; }
-}
- window.renderNotes = function(arr) {
-    const box = document.getElementById("notesList");
-    // LocalStorage से चेक करें कि क्या इस डिवाइस पर कुछ पेंडिंग है
-    const pendingData = JSON.parse(localStorage.getItem("pendingTxn"));
-
-    if (arr.length === 0) {
-        box.innerHTML = `<div class="empty">No notes found</div>`;
-        return;
     }
 
-    box.innerHTML = arr.map(x => {
-        const category = String(x.category || "").replace(/'/g, "\\'");
-        const subject = String(x.subject || "").replace(/'/g, "\\'");
-        const title = String(x.title || "").replace(/'/g, "\\'");
-        const fileName = String(x.fileName || "").replace(/'/g, "\\'");
-        
-        // एक यूनिक ID बना रहे हैं बटन के लिए
-        const btnId = `btn-${btoa(subject + category).substring(0, 10)}`;
-        
-        // चेक करें कि क्या यह पेंडिंग है
-        const isPending = pendingData && pendingData.subject === x.subject;
-        const btnText = isPending ? "⏳ Pending Approval" : `Pay & Open (₹${x.price || 29})`;
-        const btnColor = isPending ? "#ffc107" : "#355da9";
-
-        return `
+    window.renderNotes = function(arr){
+        const box = document.getElementById("notesList");
+        if(arr.length === 0){ box.innerHTML = `<div class="empty">No notes found</div>`; return; }
+        box.innerHTML = arr.map(x => `
         <div class="note">
             <h3>${safe(x.title)}</h3>
             <div class="meta">
                 <span class="tag">📮 ${safe(x.category || "-")}</span>
                 <span class="tag">📖 ${safe(x.subject || "-")}</span>
             </div>
-            <img src="${x.imageURL || ''}" class="preview" onerror="this.style.display='none';">
+            ${x.imageURL ? `<img src="${x.imageURL}" class="preview">` : ""}
             ${x.description ? `<div class="desc">${safe(x.description)}</div>` : ""}
-            
-            <button
-                id="${btnId}"
-                onclick="handleSecureAccess('${category}', '${subject}', '${title}', '${fileName}', ${Number(x.price || 29)})"
-                style="width:100%; margin-top:15px; background:${btnColor}; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;"
-            >
-                ${btnText}
+            <button onclick="handleSecureAccess('${x.category?.replace(/'/g, "\\'")}', '${x.subject?.replace(/'/g, "\\'")}', ${Number(x.price || 29)})"
+                style="width:100%; margin-top:15px; background:#355da9; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">
+                Pay & Open (₹${x.price || 29})
             </button>
-        </div>
-        `;
-    }).join('');
-};
+        </div>`).join('');
+    };
 
-
-
-window.handleSecureAccess = async (category, subject, title, fileName, price) => {
-    // 1. पेंडिंग चेक करें
-    const pending = JSON.parse(localStorage.getItem("pendingTxn"));
-    if (pending && pending.subject === subject) {
-        alert("आपका पेमेंट अभी 'Pending' है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
-        return;
-    }
-
-    const token = await auth.currentUser.getIdToken();
-    const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
-
-    try {
-        const res = await fetch(secureUrl, {
+    window.handleSecureAccess = async (cat, sub, price) => {
+        const token = await auth.currentUser.getIdToken();
+        const res = await fetch(`${BACKEND_URL}/get-pdf?post=${cat}&subject=${sub}`, {
             headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS', 'Authorization': `Bearer ${token}` }
         });
-
         if (res.status === 200) {
-            downloadPDF(res, subject); // नया डाउनलोड फंक्शन
-            return;
-        }
-
-        if (res.status === 403) {
-            // पेंडिंग डेटा सेव करें
-            localStorage.setItem("pendingTxn", JSON.stringify({ category, subject }));
-            // ... QR दिखाने वाला कोड ...
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `${sub}.pdf`; a.click();
+        } else if (res.status === 403) {
+            document.getElementById("amountDisplay").innerText = `Amount: ₹${price}`;
             document.getElementById("qrBox").style.display = "flex";
-            return;
         }
-        alert("Access denied");
-    } catch (err) { alert("Server error"); }
-};
+    };
 
-    async function downloadPDF(res, subject) {
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = `${subject}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-    }
-    
-
-window.submitPaymentProof = async () => {
-
-    const txnId =
-        document.getElementById("txnIdInput").value.trim();
-
-    const file =
-        document.getElementById("screenshotInput").files[0];
-
-    if (!txnId && !file) {
-
-        alert("Txn ID bharein ya Screenshot upload karein!");
-
-        return;
-    }
-
-    const formData = new FormData();
-
-    formData.append("txnId", txnId);
-
-    formData.append(
-        "email",
-        window.currentUserEmail
-    );
-
-    if (file) {
-        formData.append(
-            "screenshot",
-            file
-        );
-    }
-
-    try {
-
-        const res = await fetch(
-            `${BACKEND_URL}/submit-proof`,
-            {
-                method: "POST",
-                body: formData,
-                headers: {
-                    "Authorization":
-                        `Bearer ${await auth.currentUser.getIdToken()}`,
-                    "X-Source-Auth":
-                        "RSH-GDS-SECURE-ACCESS"
-                }
-            }
-        );
-
-        if (res.ok) {
-
-            alert(
-                "Proof submit ho gaya! Admin verify karenge."
-            );
-
-            closeQR();
-
-        } else {
-
-            alert(
-                "Submit karne mein error aaya."
-            );
-        }
-
-    } catch (e) {
-
-        console.error(e);
-
-        alert("Server error!");
-    }
-};
-
-window.closeQR = function () {
-
-    document.getElementById("qrBox").style.display = "none";
-};
-async function autoCheckPayment(txnId) {
-    const token = await auth.currentUser.getIdToken();
-
-    const res = await fetch(
-        `${BACKEND_URL}/payment-status?txnId=${txnId}&email=${window.currentUserEmail}`,
-        {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        }
-    );
-
-    const data = await res.json().catch(() => null);
-
-    if (res.ok && data?.status === "COMPLETED") {
-        alert("Payment Successful! Download button activate ho gaya hai.");
+    window.submitPaymentProof = async () => {
+        const formData = new FormData();
+        formData.append("txnId", document.getElementById("txnIdInput").value);
+        formData.append("email", window.currentUserEmail);
+        if(document.getElementById("screenshotInput").files) formData.append("screenshot", document.getElementById("screenshotInput").files);
         
-        // 1. पेंडिंग स्टेटस हटा दें
-        window.pendingTxn = null;
-        localStorage.removeItem("pendingTxn");
-
-        // 2. बटन को ढूंढें और अपडेट करें
-        const buttons = document.querySelectorAll('button');
-        buttons.forEach(btn => {
-            // जो भी बटन 'Pay & Open' वाला है, उसे अपडेट कर दें
-            if (btn.innerText.includes("Pay & Open")) {
-                btn.innerText = "📥 Download PDF";
-                btn.style.backgroundColor = "#28a745";
-                
-                // बटन का फंक्शन बदलकर डाउनलोड फंक्शन लगा दें
-                // यहाँ आपको उस कैटेगरी और सब्जेक्ट की जरूरत होगी, 
-                // आप इसे बटन में data attribute के रूप में रख सकते हैं या यहीं से निकाल सकते हैं
-                btn.onclick = async () => {
-                    // यहाँ फिर से PDF fetch करके downloadPDF कॉल करें
-                    const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(data.category || 'MTS')}&subject=${encodeURIComponent(data.subject || 'GK')}`;
-                    const pdfRes = await fetch(secureUrl, {
-                        headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS', 'Authorization': `Bearer ${token}` }
-                    });
-                    if (pdfRes.status === 200) {
-                        const blob = await pdfRes.blob();
-                        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = "notes.pdf";
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        window.URL.revokeObjectURL(url);
-                    }
-                };
-            }
+        const res = await fetch(`${BACKEND_URL}/submit-proof`, {
+            method: "POST", body: formData,
+            headers: { "Authorization": `Bearer ${await auth.currentUser.getIdToken()}`, "X-Source-Auth": "RSH-GDS-SECURE-ACCESS" }
         });
-    } 
-    else if (res.ok && data?.status === "PENDING") {
-        alert("आपका पेमेंट अभी 'Pending' है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
-    } 
-    else if (res.ok && data?.status === "NOT_FOUND") {
-        alert("ट्रांजैक्शन नहीं मिला। कृपया सही Txn ID का उपयोग करें।");
-    } 
-    else if (res.ok && data?.status === "REJECTED") {
-        alert("आपका पेमेंट रिजेक्ट कर दिया गया है।");
-        window.pendingTxn = null;
-        localStorage.removeItem("pendingTxn");
-    }
-}
-window.autoCheckPayment = autoCheckPayment;
+        if (res.ok) { alert("Proof submitted!"); closeQR(); }
+    };
 
-window.safe = function(v){
-    return String(v || "")
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-}
+    window.closeQR = () => document.getElementById("qrBox").style.display = "none";
+    window.safe = (v) => String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
 
-window.applyFilter = function(){
+    document.getElementById("searchInput").addEventListener("input", applyFilter);
+    document.getElementById("postFilter").addEventListener("change", applyFilter);
+    document.getElementById("subFilter").addEventListener("change", applyFilter);
 
-    const q = document.getElementById("searchInput").value.toLowerCase().trim();
-    const post = document.getElementById("postFilter").value;
-    const sub = document.getElementById("subFilter").value;
-
-    renderNotes(
-        window.allNotes.filter(x =>
-            x.title.toLowerCase().includes(q) &&
-            (post === "ALL" || x.category === post) &&
+    function applyFilter(){
+        const q = document.getElementById("searchInput").value.toLowerCase();
+        const post = document.getElementById("postFilter").value;
+        const sub = document.getElementById("subFilter").value;
+        renderNotes(window.allNotes.filter(x => 
+            x.title.toLowerCase().includes(q) && 
+            (post === "ALL" || x.category === post) && 
             (sub === "ALL" || x.subject === sub)
-        )
-    );
-}
-
-document.getElementById("searchInput").addEventListener("input", applyFilter);
-document.getElementById("postFilter").addEventListener("change", applyFilter);
-document.getElementById("subFilter").addEventListener("change", applyFilter);
-
-const urlParams = new URLSearchParams(window.location.search);
-const txnId = urlParams.get("txnId");
-
-if (txnId) {
-    autoCheckPayment(txnId);
-}
+        ));
+    }
 </script>
 </body>
 </html>
-
-    
