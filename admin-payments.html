@@ -86,13 +86,30 @@ async function loadData() {
     }
 }
 
-async function handleApprove(email, tid) {
+async function handleApprove(email, transactionId) {
+    if (!confirm("क्या आप इसे Approve करना चाहते हैं?")) return;
+
     try {
-        await updateDoc(doc(db, "payments", email, "transactions", tid), { status: "completed" });
-        await setDoc(doc(db, "payments", email), { status: "completed", approvedAt: serverTimestamp() }, { merge: true });
-        alert("Approved ✔");
-        loadData();
-    } catch (e) { alert("Error: " + e.message); }
+        const token = await auth.currentUser.getIdToken();
+        const res = await fetch(`${BACKEND_URL}/admin/approve-payment`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, transactionId })
+        });
+
+        if (res.ok) {
+            alert("Approved ✔");
+            loadData();
+        } else {
+            alert("Approval Failed!");
+        }
+    } catch (e) { 
+        console.error(e);
+        alert("Error: " + e.message); 
+    }
 }
 
 async function handleReject(email, tid) {
