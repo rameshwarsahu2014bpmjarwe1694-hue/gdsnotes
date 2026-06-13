@@ -170,12 +170,15 @@ async function loadNotes(){
         `;
     }).join('');
 };
-
-
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
+    // 1. सबसे पहले चेक करें कि क्या यूजर ने पहले से इस सेशन में पेमेंट पेंडिंग में डाला है
+    if (window.pendingTxn && window.pendingTxn.subject === subject) {
+        alert("आपका पेमेंट पेंडिंग में है, कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
+        return; // यहाँ से फंक्शन रुक जाएगा और QR नहीं खुलेगा
+    }
 
     const token = await auth.currentUser.getIdToken();
-
+    
     const secureUrl =
         `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
 
