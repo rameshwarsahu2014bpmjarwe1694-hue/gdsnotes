@@ -199,81 +199,173 @@ async function updateUIBasedOnPayment() {
 
 
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
-    console.log("DEBUG: Function handleSecureAccess started");
+
+    console.log("========== HANDLE SECURE ACCESS START ==========");
+
     const token = await auth.currentUser.getIdToken();
-    
+
     try {
-        console.log("DEBUG: Fetching payment status...");
-        const statusRes = await fetch(`${BACKEND_URL}/payment-status?email=${window.currentUserEmail}`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` }
+
+        console.log("DEBUG: Current User =", window.currentUserEmail);
+
+        console.log("DEBUG: Checking payment status...");
+
+        const statusRes = await fetch(
+            `${BACKEND_URL}/payment-status?email=${encodeURIComponent(window.currentUserEmail)}`,
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        console.log("DEBUG: statusRes.status =", statusRes.status);
+
+        const statusData = await statusRes.json().catch(err => {
+            console.error("DEBUG: JSON Parse Error", err);
+            return {};
         });
-        const statusData = await statusRes.json().catch(() => ({}));
-        console.log("DEBUG: Received statusData:", statusData);
 
-        const currentStatus = String(statusData.status).toLowerCase();
-        console.log("DEBUG: Normalized status:", currentStatus);
+        console.log("DEBUG: Full Response =", statusData);
 
-        if (currentStatus === "pending") {
-            console.log("DEBUG: Status is 'pending', alerting user and returning.");
-            alert("आपका पेमेंट अभी 'Pending' है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
+        alert(
+            "STATUS RESPONSE:\n\n" +
+            JSON.stringify(statusData, null, 2)
+        );
+
+        const currentStatus = String(
+            statusData?.status ||
+            statusData?.paymentStatus ||
+            statusData?.data?.status ||
+            statusData?.payment?.status ||
+            ""
+        ).trim().toLowerCase();
+
+        console.log("DEBUG: currentStatus =", currentStatus);
+
+        alert("CURRENT STATUS = " + currentStatus);
+
+        if (
+            currentStatus === "pending" ||
+            currentStatus === "approval_pending"
+        ) {
+
+            console.log("DEBUG: PENDING DETECTED");
+
+            alert(
+                "आपका पेमेंट Pending है।\n\nकृपया Admin Approval का इंतजार करें।"
+            );
+
             return;
         }
-    } catch (e) { 
-        console.error("DEBUG: Status check failed", e); 
+
+        if (
+            currentStatus === "completed" ||
+            currentStatus === "approved"
+        ) {
+
+            console.log("DEBUG: PAYMENT APPROVED");
+        }
+
+    } catch (e) {
+
+        console.error("DEBUG: Payment Status Error =", e);
+
+        alert(
+            "STATUS CHECK ERROR:\n\n" +
+            (e.message || e)
+        );
     }
-    
-    const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
-    console.log("DEBUG: Secure URL constructed:", secureUrl);
+
+    const secureUrl =
+        `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
+
+    console.log("DEBUG: Secure URL =", secureUrl);
 
     try {
+
         const res = await fetch(secureUrl, {
             headers: {
-                'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
-                'Authorization': `Bearer ${token}`
+                "X-Source-Auth": "RSH-GDS-SECURE-ACCESS",
+                "Authorization": `Bearer ${token}`
             }
         });
-        
-        console.log("DEBUG: Server Response Status:", res.status);
-        const debugData = await res.clone().json().catch(() => ({}));
-        console.log("DEBUG: Server Response Body:", debugData);
+
+        console.log("DEBUG: PDF Response Status =", res.status);
+
+        const debugData =
+            await res.clone().json().catch(() => ({}));
+
+        console.log("DEBUG: PDF Response Body =", debugData);
 
         if (res.status === 200) {
-            console.log("DEBUG: Status 200, downloading PDF...");
+
+            console.log("DEBUG: DOWNLOAD START");
+
             const blob = await res.blob();
+
             const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
+
+            const a = document.createElement("a");
+
             a.href = url;
             a.download = `${subject}.pdf`;
+
             document.body.appendChild(a);
+
             a.click();
+
+            a.remove();
+
             window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+
             return;
         }
 
         if (res.status === 403) {
-            console.log("DEBUG: Status 403, showing QR box.");
-            window.pendingTxn = { category, subject };
+
+            console.log("DEBUG: 403 RECEIVED");
+
+            alert(
+                "403 RECEIVED\n\n" +
+                JSON.stringify(debugData, null, 2)
+            );
+
+            window.pendingTxn = {
+                category,
+                subject
+            };
+
             const p = price || 29;
+
             const myUpiId = "6268782886@ybl";
-            const qrData = `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${p}&cu=INR`;
-            const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(qrData);
+
+            const qrData =
+                `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${p}&cu=INR`;
+
+            const qrUrl =
+                "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" +
+                encodeURIComponent(qrData);
 
             document.getElementById("qrImage").src = qrUrl;
             document.getElementById("upiDisplay").innerText = myUpiId;
             document.getElementById("amountDisplay").innerText = `Amount: ₹${p}`;
             document.getElementById("qrBox").style.display = "flex";
+
             return;
         }
 
-        console.log("DEBUG: Access denied, status:", res.status);
-        alert("Access denied");
+        alert("Unexpected Status: " + res.status);
 
     } catch (err) {
-        console.error("DEBUG: Catch block error:", err);
-        alert("Server error");
+
+        console.error("DEBUG: PDF Error =", err);
+
+        alert(
+            "PDF ERROR:\n\n" +
+            (err.message || err)
+        );
     }
 };
 
