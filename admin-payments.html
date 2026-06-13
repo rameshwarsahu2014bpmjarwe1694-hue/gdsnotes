@@ -109,9 +109,12 @@ async function handleDelete(email, tid) {
         await deleteDoc(doc(db, "payments", email, "transactions", tid));
         alert("Deleted Successfully");
         loadData();
-    } catch (e) { alert("Error: " + e.message); }
-}
+    } catch (e) {
+        alert("Error: " + e.message);
+    }
+};
+    window.loadData = loadData;   
+loadData();
 </script>
-
 </body>
 </html>
