@@ -203,6 +203,7 @@ window.handleSecureAccess = async (category, subject, title, fileName, price) =>
     const token = await auth.currentUser.getIdToken();
 try {
         const statusRes = await fetch(`${BACKEND_URL}/payment-status?email=${window.currentUserEmail}`, {
+            method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const statusData = await statusRes.json().catch(() => ({}));
