@@ -110,74 +110,45 @@ async function loadNotes(){
 }
  window.renderNotes = function(arr){
     const box = document.getElementById("notesList");
-
-    if(arr.length === 0){
-        box.innerHTML = `<div class="empty">No notes found</div>`;
-        return;
-    }
+    if(arr.length === 0){ box.innerHTML = `<div class="empty">No notes found</div>`; return; }
 
     box.innerHTML = arr.map(x => {
-
         const category = String(x.category || "").replace(/'/g, "\\'");
         const subject = String(x.subject || "").replace(/'/g, "\\'");
-        const title = String(x.title || "").replace(/'/g, "\\'");
-        const fileName = String(x.fileName || "").replace(/'/g, "\\'");
+        
+        // यहाँ हम तय करेंगे कि बटन 'Pay' वाला होगा या 'Download' वाला
+        // मान लेते हैं कि आपने पेमेंट स्टेटस को x.isPaid में रखा है
+        const isPaid = x.isPaid; 
 
         return `
         <div class="note">
             <h3>${safe(x.title)}</h3>
-
             <div class="meta">
                 <span class="tag">📮 ${safe(x.category || "-")}</span>
                 <span class="tag">📖 ${safe(x.subject || "-")}</span>
             </div>
-
-            <img
-                src="${x.imageURL || ''}"
-                class="preview"
-                onerror="this.style.display='none';"
-            >
-
-            ${
-                x.description
-                ? `<div class="desc">${safe(x.description)}</div>`
-                : ""
-            }
+            <img src="${x.imageURL || ''}" class="preview" onerror="this.style.display='none';">
+            ${x.description ? `<div class="desc">${safe(x.description)}</div>` : ""}
 
             <button
-                onclick="handleSecureAccess(
-                    '${category}',
-                    '${subject}',
-                    '${title}',
-                    '${fileName}',
-                    ${Number(x.price || 29)}
-                )"
-                style="
-                    width:100%;
-                    margin-top:15px;
-                    background:#355da9;
-                    color:white;
-                    border:none;
-                    padding:12px;
-                    border-radius:8px;
-                    font-weight:bold;
-                    cursor:pointer;
-                "
+                id="btn-${x.id}"
+                onclick="${isPaid ? `fetchAndDownloadPDF('${category}', '${subject}')` : `handleSecureAccess('${category}', '${subject}', '${x.title}', '${x.fileName}', ${Number(x.price || 29)})`}"
+                style="width:100%; margin-top:15px; background:${isPaid ? '#28a745' : '#355da9'}; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;"
             >
-                Pay & Open (₹${x.price || 29})
+                ${isPaid ? '📥 Download PDF' : 'Pay & Open (₹' + (x.price || 29) + ')'}
             </button>
         </div>
         `;
     }).join('');
 };
+
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
-
-    // यहाँ हम चेक कर रहे हैं कि क्या इसी subject के लिए पहले से पेंडिंग पेमेंट मौजूद है
-    if (window.pendingTxn && window.pendingTxn.subject === subject) {
-        alert("इस Subject का पेमेंट अभी 'Pending' है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
-        return; // QR नहीं खुलेगा
+    // Session के बजाय LocalStorage से चेक करें
+    const storedPending = JSON.parse(localStorage.getItem("pendingTxn"));
+    if (storedPending && storedPending.subject === subject) {
+        alert("इस Subject का पेमेंट अभी 'Pending' है।");
+        return;
     }
-
     const token = await auth.currentUser.getIdToken();
     
     const secureUrl =
@@ -359,16 +330,12 @@ async function autoCheckPayment(txnId) {
 }
 window.autoCheckPayment = autoCheckPayment;
 
-    
-async function fetchAndDownloadPDF(cat, sub) {
+    async function fetchAndDownloadPDF(cat, sub) {
     const token = await auth.currentUser.getIdToken();
     const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(cat)}&subject=${encodeURIComponent(sub)}`;
     
     const res = await fetch(secureUrl, {
-        headers: { 
-            'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS', 
-            'Authorization': `Bearer ${token}` 
-        }
+        headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS', 'Authorization': `Bearer ${token}` }
     });
 
     if (res.status === 200) {
@@ -376,15 +343,17 @@ async function fetchAndDownloadPDF(cat, sub) {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${sub}.pdf`;
+        a.download = `${sub}.pdf`; // यह एड्रेस बार में नहीं, सीधे डाउनलोड करेगा
         document.body.appendChild(a);
         a.click();
         a.remove();
+        window.URL.revokeObjectURL(url); // मेमोरी साफ़ करें
     } else {
-        alert("Download failed. Payment check karein.");
+        alert("Download failed.");
     }
 }
-    
+
+
 
 window.safe = function(v){
     return String(v || "")
