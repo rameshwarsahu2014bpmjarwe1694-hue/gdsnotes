@@ -1,436 +1,411 @@
-require('dotenv').config();
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
-const path = require('path');
-const express = require('express');
-const fs = require('fs');
-const admin = require('firebase-admin');
-const cors = require('cors');
-const axios = require('axios');
-const crypto = require('crypto');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Notes</title>
+    <style>
+        *{ margin:0; padding:0; box-sizing:border-box; font-family:Arial,Helvetica,sans-serif; }
+        body{ background:#f4f6f9; padding:15px; }
+        .container{ max-width:1000px; margin:auto; }
+        .topbar{ background:#b30000; color:#fff; padding:16px; text-align:center; font-size:24px; font-weight:700; border-radius:14px; margin-bottom:16px; }
+        .tools{ display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:12px; margin-bottom:16px; }
+        input,select{ width:100%; padding:13px; border:1px solid #ccc; border-radius:12px; font-size:15px; outline:none; background:#fff; }
+        #notesList{ display:grid; gap:14px; }
+        .note{ background:#fff; padding:18px; border-radius:16px; box-shadow:0 5px 14px rgba(0,0,0,.08); }
+        .note h3{ font-size:20px; margin-bottom:8px; color:#111; }
+        .meta{ font-size:14px; color:#666; margin-bottom:10px; display: flex; gap: 10px; }
+        .book-image-link { display: block; position: relative; cursor: pointer; transition: transform 0.2s; text-decoration: none; }
+        .book-image-link:hover { transform: scale(1.02); }
+        .pdf-overlay { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: #355da9; color: white; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 14px; }
+        .tag{ background: #eee; padding: 4px 8px; border-radius: 6px; }
+        .desc{ line-height:1.6; white-space:pre-wrap; color:#222; margin-top:8px; }
+        .preview { width: 100%; max-height: 300px; object-fit: contain; border-radius: 12px; margin-top: 10px; background: #f9f9f9; }
+        .empty{ background:#fff; padding:18px; border-radius:14px; text-align:center; color:#666; }
+        .back-btn { display: inline-block; padding: 10px 15px; background: #444; color: #fff; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 15px; font-size: 14px; }
+        @media(max-width:700px){ .tools{ grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+<div id="qrBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; max-width:400px; width:100%;">
+        <h3>Payment Required</h3>
+        <h4 id="amountDisplay" style="margin: 10px 0;">Amount: ₹29</h4>
+        
+        <img id="qrImage" src="" style="width:200px; height:200px; margin: 10px auto; display: block;" />
+        
+        <div style="background:#f0f0f0; padding:10px; border-radius:5px; margin:10px 0; font-weight:bold;">
+            <span id="upiDisplay">6268782886@ybl</span>
+            <button onclick="navigator.clipboard.writeText('6268782886@ybl'); alert('Copied!');" style="margin-left:10px; cursor:pointer;">Copy</button>
+        </div>
 
-const app = express();
+        <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px; text-align:left;">
+            <p style="font-size:13px; margin-bottom:5px;">Payment Karne Ke Baad Details bhejein (Transaction ID ya Screenshot):</p>
+            <input type="text" id="txnIdInput" placeholder="Enter Transaction ID" style="width:100%; padding:8px; margin-bottom:8px; border:1px solid #ccc; border-radius:4px;">
+            <input type="file" id="screenshotInput" accept="image/*" style="width:100%; margin-bottom:8px;">
+            <button onclick="submitPaymentProof()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Submit Proof</button>
+        </div>
 
-// --- 1. MIDDLEWARES ---
-app.use(cors());
-app.use(express.json());
-app.use((req, res, next) => {
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("X-Frame-Options", "DENY");
-    res.setHeader("X-XSS-Protection", "1; mode=block");
-    next();
-});
-// --- 2. FIREBASE SETUP ---
-const keyPath = path.join(process.cwd(), 'serviceAccountKey.json');
-if (fs.existsSync(keyPath)) {
-    if (!admin.apps.length) {
-        admin.initializeApp({
-            credential: admin.credential.cert(require(keyPath))
-        });
-    }
-    console.log("Firebase Connected Successfully!");
+        <button onclick="closeQR()" style="margin-top:15px; background:red; color:white; border:none; padding:8px 20px; border-radius:5px;">Close</button>
+    </div>
+</div>
+
+    
+<div class="container">
+    <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back</button>
+    <div class="topbar">📚 Notes</div>
+    <div class="tools">
+        <input type="text" id="searchInput" placeholder="Search notes...">
+        <select id="postFilter"><option value="ALL">All Posts</option><option value="MTS">MTS</option><option value="POSTMAN">POSTMAN</option><option value="PA/SA">PA/SA</option></select>
+        <select id="subFilter"><option value="ALL">All Subjects</option><option value="GK">GK</option><option value="Maths">Maths</option><option value="Reasoning">Reasoning</option><option value="PO GUIDE 1">PO Guide 1</option><option value="PO GUIDE 2">PO Guide 2</option><option value="POSTAL MANUAL 5">Postal Manual Vol 5</option><option value="POSTAL MANUAL 6">Postal Manual Vol 6 Part 3</option><option value="POSTAL MANUAL 7">Postal Manual Vol 7</option></select>
+    </div>
+    <div id="notesList"><div class="empty">Loading...</div></div>
+    
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDjzmo0A4KhOkrqFQdOyCEek6bsPF-UVPQ",
+        authDomain: "gds-departmental-exam-studyhub.firebaseapp.com",
+        projectId: "gds-departmental-exam-studyhub",
+        storageBucket: "gds-departmental-exam-studyhub.appspot.com",
+        messagingSenderId: "759916756080",
+        appId: "1:759916756080:web:7f2c0e66458bd007e888b5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    window.BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
+    window.allNotes = [];
+window.pendingTxn = null;
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        window.currentUserEmail = user.email;
+        loadNotes();
+        // 🔥 Debugging code for Mobile
+if (auth.currentUser) {
+    alert("User Email found: " + auth.currentUser.email);
 } else {
-    console.error("CRITICAL ERROR: serviceAccountKey.json nahi mili!");
+    alert("Error: User is not logged in!");
 }
 
-const db = admin.firestore();
-async function verifyFirebaseUser(req, res, next) {
-
-    try {
-
-        const authHeader = req.headers.authorization || "";
-
-        if (!authHeader.startsWith("Bearer ")) {
-            return res.status(401).json({
-                error: "TOKEN_REQUIRED"
-            });
-        }
-
-        const idToken = authHeader.split("Bearer ")[1];
-
-        const decoded =
-            await admin.auth().verifyIdToken(idToken);
-
-        req.user = decoded;
-console.log(`[AUTH] User: ${decoded.email}`); 
-        next();
-
-    } catch (err) {
-
-        console.error("Auth Error:", err);
-
-        return res.status(401).json({
-            error: "INVALID_TOKEN"
-        });
+    } else {
+        window.location.href = "login.html";
     }
+});
+
+async function loadNotes(){
+    const box = document.getElementById("notesList");
+    try {
+        const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
+        const snap = await getDocs(q);
+        window.allNotes = [];
+        snap.forEach((doc) => { window.allNotes.push({ id: doc.id, ...doc.data() }); });
+        renderNotes(window.allNotes);
+    } catch(e) { box.innerHTML = `<div class="empty">Error loading data.</div>`; }
 }
-// --- 3. HELPER FUNCTION ---
-const isTransactionProcessed = async (email, txnId) => {
-    const doc = await db.collection('payments')
-        .doc(email)
-        .collection('transactions')
-        .doc(txnId)
-        .get();
+ window.renderNotes = function(arr){
+    const box = document.getElementById("notesList");
 
-    return doc.exists && doc.data().status === "completed";
-};
-const findFileDynamically = (folderPath, year, post, subject) => {
-    try {
-        if (!fs.existsSync(folderPath)) return null;
-        const files = fs.readdirSync(folderPath);
-        
-        // Agar 'year' Notes hai ya missing hai, toh Subject ke naam se file dhundo
-        if (!year || year === "Notes" || year === "") {
-            return files.find(file => file.toLowerCase().includes((subject || "").toLowerCase().replace(/ /g, '-')));
-        }
-        
-        // PYQ ke liye purana logic
-        const cleanYear = year.replace('PYQ ', '');
-        const regex = new RegExp(`(?=.*${cleanYear})(?=.*${post})`, 'i');
-        return files.find(file => regex.test(file));
-    } catch (error) {
-        console.error("Search Error:", error);
-        return null;
-    }
-};
-const isValidInput = (value) => {
-    if (!value) return false;
-    if (typeof value !== "string") return false;
-
-    // block dangerous patterns
-    if (value.includes("..") || value.includes("/") || value.includes("\\")) {
-        return false;
+    if(arr.length === 0){
+        box.innerHTML = `<div class="empty">No notes found</div>`;
+        return;
     }
 
-    return true;
-};
-const clean = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, "");
+    box.innerHTML = arr.map(x => {
 
-// --- 4. ROUTE: GET PDF (PYQ Free / Notes Paid) ---
-app.get('/get-pdf', verifyFirebaseUser, async (req, res) => {
-    const referer = req.headers.referer || '';
-    const secretHeader = req.headers['x-source-auth'];
+        const category = String(x.category || "").replace(/'/g, "\\'");
+        const subject = String(x.subject || "").replace(/'/g, "\\'");
+        const title = String(x.title || "").replace(/'/g, "\\'");
+        const fileName = String(x.fileName || "").replace(/'/g, "\\'");
 
-    if (!referer.includes('github.io') && secretHeader !== 'RSH-GDS-SECURE-ACCESS') {
-        return res.status(403).send("Unauthorized Access");
-    }
+        return `
+        <div class="note">
+            <h3>${safe(x.title)}</h3>
 
-    const { year, post, subject } = req.query;
-    const email = req.user.email;
+            <div class="meta">
+                <span class="tag">📮 ${safe(x.category || "-")}</span>
+                <span class="tag">📖 ${safe(x.subject || "-")}</span>
+            </div>
 
-    if (!isValidInput(post) || !isValidInput(subject || "")) {
-        return res.status(400).json({ error: "INVALID_INPUT" });
-    }
-    if (!email || !post) {
-        return res.status(400).json({ error: "Email aur Subject zaroori hain." });
-    }
+            <img
+                src="${x.imageURL || ''}"
+                class="preview"
+                onerror="this.style.display='none';"
+            >
 
-    try {
-        if (!year || year === "undefined" || year === "" || year === "Notes") {
-            const paymentDoc = await db.collection('payments').doc(email).get();
-console.log(`[PAYMENT-CHECK] User: ${email}, Status: ${paymentDoc.data()?.status}`);
-
-   if (!paymentDoc.exists || paymentDoc.data().status !== "completed") {
-                return res.status(403).json({ error: "PAYMENT_REQUIRED" });
+            ${
+                x.description
+                ? `<div class="desc">${safe(x.description)}</div>`
+                : ""
             }
-        }
 
-        const pdfsDirectory = path.join(process.cwd(), 'pdfs');
-        const matchedFileName = findFileDynamically(pdfsDirectory, year || "", post, subject || "");
-
-        if (matchedFileName) {
-            const filePath = path.join(pdfsDirectory, matchedFileName);
-            res.setHeader('Content-Type', 'application/pdf');
-            const safeFile = path.basename(filePath);
-            const finalPath = path.join(pdfsDirectory, safeFile);
-console.log(`[ACCESS] File found: ${matchedFileName}`);
-            return res.sendFile(finalPath, (err) => {
-                if (err) {
-                    console.error("File Send Error:", err);
-                    return res.status(500).json({ error: "FILE_ERROR" });
-                }
-            });
-        } else {
-            console.log(`[ACCESS] File NOT FOUND for: ${post}, ${subject}`);
-            return res.status(404).json({ error: "File nahi mili server par." });
-        }
-    } catch (err) {
-        console.error("GET Error:", err);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
-
-
-// --- 5. PAYMENT ROUTES (Sirf Notes ke liye kaam aayenge) ---
-const PHONEPE_MID = process.env.PHONEPE_MID || "YOUR_MID"; 
-const PHONEPE_SALT_KEY = process.env.PHONEPE_SALT_KEY || "YOUR_SALT_KEY";
-const PHONEPE_SALT_INDEX = "1";
-const PHONEPE_API_URL = "https://api.phonepe.com/apis/hermes/pg/v1/pay";
-
-app.post('/submit-proof', verifyFirebaseUser, upload.single('screenshot'), async (req, res) => {
-    try {
-        const { txnId, email } = req.body;
-        console.log(`[PROOF] Submission by: ${email}, Txn: ${txnId}`);
-        const file = req.file; // Ye uploaded file hai
-
-        // Firestore mein save karein
-        await db.collection('payments')
-            .doc(email)
-            .collection('transactions')
-            .doc(txnId || "MANUAL_" + Date.now())
-            .set({
-                status: "pending",
-                transactionId: txnId,
-                screenshotPath: file ? file.path : null,
-                submittedAt: admin.firestore.FieldValue.serverTimestamp()
-            });
-
-        return res.json({ success: true });
-    } catch (err) {
-        console.error("Submit Proof Error:", err);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
+            <button
+                onclick="handleSecureAccess(
+                    '${category}',
+                    '${subject}',
+                    '${title}',
+                    '${fileName}',
+                    ${Number(x.price || 29)}
+                )"
+                style="
+                    width:100%;
+                    margin-top:15px;
+                    background:#355da9;
+                    color:white;
+                    border:none;
+                    padding:12px;
+                    border-radius:8px;
+                    font-weight:bold;
+                    cursor:pointer;
+                "
+            >
+                Pay & Open (₹${x.price || 29})
+            </button>
+        </div>
+        `;
+    }).join('');
+};
 
 
-app.post('/phonepe-webhook', async (req, res) => {
+window.handleSecureAccess = async (category, subject, title, fileName, price) => {
+
+    const token = await auth.currentUser.getIdToken();
+
+    const secureUrl =
+        `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
+
     try {
 
-        const rawBody = JSON.stringify(req.body);
-        const xVerify = req.headers['x-verify'];
-
-        const generatedSignature = crypto
-            .createHash('sha256')
-            .update(rawBody + PHONEPE_SALT_KEY)
-            .digest('hex');
-
-        if (xVerify !== generatedSignature) {
-            return res.status(401).send("Invalid Signature");
-        }
-
-        const { merchantTransactionId, state } = req.body;
-
-        if (!merchantTransactionId) {
-            return res.status(400).send("Invalid webhook");
-        }
-
-        // SAFE global transaction mapping (no email dependency)
-        const txnRef = db.collection('payments')
-            .doc("GLOBAL")
-            .collection('transactions')
-            .doc(merchantTransactionId);
-
-        const doc = await txnRef.get();
-
-        if (doc.exists && doc.data().status === "completed") {
-            return res.status(200).send("Already Processed");
-        }
-
-        if (state === "COMPLETED") {
-            await txnRef.set({
-                status: "completed",
-                verifiedVia: "webhook",
-                paidAt: admin.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-        }
-
-        return res.status(200).send("OK");
-
-    } catch (err) {
-        console.error("Webhook Error:", err);
-        return res.status(500).send("ERROR");
-    }
-});
-async function verifyPhonePePayment(txnId) {
-
-    const merchantId = PHONEPE_MID;
-
-    const apiPath = `/pg/v1/status/${merchantId}/${txnId}`;
-
-    const checksum = crypto
-        .createHash('sha256')
-        .update(apiPath + PHONEPE_SALT_KEY)
-        .digest('hex') + "###" + PHONEPE_SALT_INDEX;
-
-    const response = await axios.get(
-        `https://api.phonepe.com/apis/hermes${apiPath}`,
-        {
+        const res = await fetch(secureUrl, {
             headers: {
-                "Content-Type": "application/json",
-                "X-VERIFY": checksum,
-                "X-MERCHANT-ID": merchantId
+                'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+console.log("Server Response Status:", res.status);
+        const debugData = await res.clone().json().catch(() => ({}));
+        console.log("Server Response Body:", debugData);
+        if (res.status === 200) {
+
+            const blob = await res.blob();
+
+            window.open(
+                URL.createObjectURL(blob),
+                '_blank'
+            );
+
+            return;
+        }
+
+        if (res.status === 403) {
+
+            window.pendingTxn = {
+                category,
+                subject
+            };
+
+            const p = price || 29;
+
+            const myUpiId = "6268782886@ybl";
+
+            const qrData =
+                `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${p}&cu=INR`;
+
+            const qrUrl =
+                "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data="
+                + encodeURIComponent(qrData);
+
+            document.getElementById("qrImage").src = qrUrl;
+            document.getElementById("upiDisplay").innerText = myUpiId;
+            document.getElementById("amountDisplay").innerText = `Amount: ₹${p}`;
+
+            document.getElementById("qrBox").style.display = "flex";
+
+            return;
+        }
+
+        alert("Access denied");
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Server error");
+    }
+};
+
+window.submitPaymentProof = async () => {
+
+    const txnId =
+        document.getElementById("txnIdInput").value.trim();
+
+    const file =
+        document.getElementById("screenshotInput").files[0];
+
+    if (!txnId && !file) {
+
+        alert("Txn ID bharein ya Screenshot upload karein!");
+
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("txnId", txnId);
+
+    formData.append(
+        "email",
+        window.currentUserEmail
+    );
+
+    if (file) {
+        formData.append(
+            "screenshot",
+            file
+        );
+    }
+
+    try {
+
+        const res = await fetch(
+            `${BACKEND_URL}/submit-proof`,
+            {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "Authorization":
+                        `Bearer ${await auth.currentUser.getIdToken()}`,
+                    "X-Source-Auth":
+                        "RSH-GDS-SECURE-ACCESS"
+                }
+            }
+        );
+
+        if (res.ok) {
+
+            alert(
+                "Proof submit ho gaya! Admin verify karenge."
+            );
+
+            closeQR();
+
+        } else {
+
+            alert(
+                "Submit karne mein error aaya."
+            );
+        }
+
+    } catch (e) {
+
+        console.error(e);
+
+        alert("Server error!");
+    }
+};
+
+window.closeQR = function () {
+
+    document.getElementById("qrBox").style.display = "none";
+};
+
+async function autoCheckPayment(txnId) {
+
+    const token = await auth.currentUser.getIdToken();
+
+    const res = await fetch(
+        `${BACKEND_URL}/payment-status?txnId=${txnId}&email=${window.currentUserEmail}`,
+        {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`
             }
         }
     );
 
-    return response.data;
-}
-app.post('/initiate-payment', verifyFirebaseUser, async (req, res) => {
-    try {
-        const { email, amount, year, post, subject } = req.body;
-        if (req.user.email !== email) {
+    const data = await res.json().catch(() => null);
 
-    return res.status(403).json({
-        error: "EMAIL_MISMATCH"
-    });
+    if (res.ok && data?.status === "COMPLETED") {
 
-        }
-        const transactionId = "TXN" + Date.now();
-await db.collection('payments')
-.doc(email)
-.collection('transactions')
-.doc(transactionId)
-.set({
-    status: "pending",
-    amount,
-    requested_for: `${year} - ${post} - ${subject}`,
-    submittedAt: admin.firestore.FieldValue.serverTimestamp()
-});
-        const payload = {
-            merchantId: PHONEPE_MID,
-            merchantTransactionId: transactionId,
-            merchantUserId: email.replace(/[^a-zA-Z0-9]/g, ''),
-            amount: amount * 100, 
-            redirectUrl: `https://payment-backend-2-g6go.onrender.com/payment-status?txnId=${transactionId}&email=${email}&year=${year}&post=${post}&subject=${subject}`,
-            redirectMode: "POST",
-            paymentInstrument: { type: "PAY_PAGE" }
-        };
+        if (window.pendingTxn) {
 
-        const base64Payload = Buffer.from(JSON.stringify(payload)).toString('base64');
-        const fullURL = base64Payload + "/pg/v1/pay" + PHONEPE_SALT_KEY;
-        const checksum = crypto.createHash('sha256').update(fullURL).digest('hex') + "###" + PHONEPE_SALT_INDEX;
+            const { category, subject } = window.pendingTxn;
 
-        const response = await axios.post(PHONEPE_API_URL, 
-            { request: base64Payload },
-            { headers: { 'Content-Type': 'application/json', 'X-VERIFY': checksum, 'accept': 'application/json' } }
-        );
+            const secureUrl =
+                `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
 
-        res.json({ url: response.data.data.instrumentResponse.redirectInfo.url });
-    } catch (error) {
-        console.error("Payment Error:", error.message);
-        res.status(500).json({ error: "Payment initiation failed" });
-    }
-});
+            const pdfRes = await fetch(secureUrl, {
+                headers: {
+                    'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
 
-// --- FIX: PAYMENT STATUS ROUTES (POST for Frontend, GET for PhonePe Redirect) ---
-
-// 1. Frontend (Notes.html) se aane wali request ke liye POST route
-app.post('/payment-status', verifyFirebaseUser, async (req, res) => {
-    try {
-        const { txnId, email } = req.query;
-
-        if (!txnId || !email) return res.status(400).json({ error: "MISSING_PARAMS" });
-
-        const txnRef = db.collection('payments').doc(email).collection('transactions').doc(txnId);
-        const doc = await txnRef.get();
-
-        if (!doc.exists) return res.status(404).json({ status: "NOT_FOUND" });
-
-        const data = doc.data();
-
-        // Agar PhonePe transaction hai, toh status check karein
-        if (data.type !== "UPI_MANUAL") {
-            const verifyResult = await verifyPhonePePayment(txnId);
-            if (verifyResult?.data?.state === "COMPLETED" && data.status !== "completed") {
-                await txnRef.update({ status: "completed", verified: true });
-                return res.json({ status: "COMPLETED" });
+            if (pdfRes.status === 200) {
+                const blob = await pdfRes.blob();
+                window.open(URL.createObjectURL(blob), "_blank");
             }
+
+            window.pendingTxn = null;
+
+            setTimeout(() => {
+                window.location.href = "notes.html";
+            }, 2000);
         }
-
-        // Manual UPI ya already completed transaction ka status return karein
-        return res.json({ status: data.status.toUpperCase() });
-
-    } catch (err) {
-        console.error("POST Payment Status Error:", err);
-        res.status(500).json({ status: "ERROR" });
     }
-});
-
-// 2. PhonePe Redirect (GET) ke liye original route
-app.get('/payment-status', async (req, res) => {
-    try {
-        const { email, txnId } = req.query;
-        if (!email || !txnId) return res.redirect("https://rameshwarsahu2014bpmjarwe1694-hue.github.io/failure.html");
-
-        const verifyResult = await verifyPhonePePayment(txnId);
-        
-        if (verifyResult?.data?.state === "COMPLETED") {
-            await db.collection('payments').doc(email).collection('transactions').doc(txnId).set({
-                status: "completed",
-                paidAt: admin.firestore.FieldValue.serverTimestamp(),
-                verified: true
-            }, { merge: true });
-            await db.collection('payments')
-    .doc(email)
-    .set({
-        status: "completed",
-        paidAt: admin.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-            return res.redirect("https://rameshwarsahu2014bpmjarwe1694-hue.github.io/success.html");
+}
+else {
+        console.log("Payment status:", data?.status);
+        if (data?.status === "PENDING") {
+            alert("आपका पेमेंट अभी 'Pending' है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
+        } else if (data?.status === "NOT_FOUND") {
+            alert("ट्रांजैक्शन नहीं मिला। कृपया सही Txn ID का उपयोग करें।");
         }
-
-        return res.redirect("https://rameshwarsahu2014bpmjarwe1694-hue.github.io/failure.html");
-    } catch (err) {
-        console.error("GET Payment Status Error:", err);
-        return res.redirect("https://rameshwarsahu2014bpmjarwe1694-hue.github.io/failure.html");
     }
-});
-
-app.post('/admin/approve-payment', verifyFirebaseUser, async (req, res) => {
-    try {
-
-        const decoded = req.user;
-
-        // ✅ SINGLE CLEAN ADMIN CHECK
-        if (!decoded?.admin) {
-            return res.status(403).json({
-                error: "ADMIN_ONLY"
-            });
-        }
-
-        const { email, transactionId } = req.body;
-console.log(`[ADMIN] Approving: ${email}, Txn: ${transactionId}`);
-        if (!email || !transactionId) {
-            return res.status(400).json({
-                error: "MISSING_DATA"
-            });
-        }
-
-        await db.collection('payments')
-    .doc(email)
-    .collection('transactions')
-    .doc(transactionId)
-    .update({
-        status: "completed",
-        approvedBy: decoded.email || decoded.uid,
-        approvedAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-await db.collection('payments')
-    .doc(email)
-    .set({
-        status: "completed",
-        approvedAt: admin.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-
-        return res.json({ success: true });
-
-    } catch (err) {
-        console.error("ADMIN_APPROVE_ERROR:", err);
-        return res.status(500).json({ error: "ADMIN_ERROR" });
     }
-});
-// --- 6. SERVER START ---
+window.autoCheckPayment = autoCheckPayment;
 
-// Yahan folder check karein
-if (!fs.existsSync('uploads')) {
-    fs.mkdirSync('uploads');
-    console.log("Uploads folder created.");
+window.safe = function(v){
+    return String(v || "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
 }
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-    console.log(`Server live on port ${PORT}`);
-});
+window.applyFilter = function(){
+
+    const q = document.getElementById("searchInput").value.toLowerCase().trim();
+    const post = document.getElementById("postFilter").value;
+    const sub = document.getElementById("subFilter").value;
+
+    renderNotes(
+        window.allNotes.filter(x =>
+            x.title.toLowerCase().includes(q) &&
+            (post === "ALL" || x.category === post) &&
+            (sub === "ALL" || x.subject === sub)
+        )
+    );
+}
+
+document.getElementById("searchInput").addEventListener("input", applyFilter);
+document.getElementById("postFilter").addEventListener("change", applyFilter);
+document.getElementById("subFilter").addEventListener("change", applyFilter);
+
+const urlParams = new URLSearchParams(window.location.search);
+const txnId = urlParams.get("txnId");
+
+if (txnId) {
+    autoCheckPayment(txnId);
+}
+</script>
+</body>
+</html>
 
     
