@@ -86,6 +86,13 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         window.currentUserEmail = user.email;
         loadNotes();
+        // 🔥 Debugging code for Mobile
+if (auth.currentUser) {
+    alert("User Email found: " + auth.currentUser.email);
+} else {
+    alert("Error: User is not logged in!");
+}
+
     } else {
         window.location.href = "login.html";
     }
