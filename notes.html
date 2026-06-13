@@ -191,14 +191,14 @@ console.log("Server Response Status:", res.status);
         const debugData = await res.clone().json().catch(() => ({}));
         console.log("Server Response Body:", debugData);
         if (res.status === 200) {
-
             const blob = await res.blob();
-
-            window.open(
-                URL.createObjectURL(blob),
-                '_blank'
-            );
-
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${subject}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
             return;
         }
 
@@ -315,7 +315,6 @@ window.closeQR = function () {
 };
 
 async function autoCheckPayment(txnId) {
-
     const token = await auth.currentUser.getIdToken();
 
     const res = await fetch(
@@ -323,7 +322,8 @@ async function autoCheckPayment(txnId) {
         {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${token}`
+                "Authorization": `Bearer ${token}`,
+                "X-Source-Auth": "RSH-GDS-SECURE-ACCESS"
             }
         }
     );
@@ -331,36 +331,19 @@ async function autoCheckPayment(txnId) {
     const data = await res.json().catch(() => null);
 
     if (res.ok && data?.status === "COMPLETED") {
-
         if (window.pendingTxn) {
+            alert("Payment Successful! Download button activate ho gaya hai.");
 
-            const { category, subject } = window.pendingTxn;
-
-            const secureUrl =
-                `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
-
-            const pdfRes = await fetch(secureUrl, {
-                headers: {
-                    'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-                    // बटन को 'Download' में बदलें 
-        const btn = document.querySelector(`button[onclick*="handleSecureAccess"]`);
-        if (btn) {
-            btn.innerText = "📥 Download PDF";
-            btn.style.backgroundColor = "#28a745";
-            btn.onclick = () => fetchAndDownloadPDF(window.pendingTxn.category, window.pendingTxn.subject);
+            // बटन को 'Download' में बदलें
+            const btn = document.querySelector(`button[onclick*="handleSecureAccess"]`);
+            if (btn) {
+                btn.innerText = "📥 Download PDF";
+                btn.style.backgroundColor = "#28a745";
+                btn.onclick = () => fetchAndDownloadPDF(window.pendingTxn.category, window.pendingTxn.subject);
+            }
+            window.pendingTxn = null;
         }
-        window.pendingTxn = null;
-
-            setTimeout(() => {
-                window.location.href = "notes.html";
-            }, 2000);
-        }
-    }
-}
-else {
+    } else {
         console.log("Payment status:", data?.status);
         if (data?.status === "PENDING") {
             alert("आपका पेमेंट अभी 'Pending' है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
@@ -368,8 +351,9 @@ else {
             alert("ट्रांजैक्शन नहीं मिला। कृपया सही Txn ID का उपयोग करें।");
         }
     }
-    }
+}
 window.autoCheckPayment = autoCheckPayment;
+
     
 async function fetchAndDownloadPDF(cat, sub) {
     const token = await auth.currentUser.getIdToken();
