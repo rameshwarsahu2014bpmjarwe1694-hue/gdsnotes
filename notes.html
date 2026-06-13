@@ -198,7 +198,7 @@ async function updateUIBasedOnPayment() {
 
 
 
-Window.handleSecureAccess = async (category, subject, title, fileName, price) => {
+window.handleSecureAccess = async (category, subject, title, fileName, price) => {
     console.log("DEBUG: Function handleSecureAccess started");
     const token = await auth.currentUser.getIdToken();
     
