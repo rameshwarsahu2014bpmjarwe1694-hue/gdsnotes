@@ -108,63 +108,46 @@ async function loadNotes(){
         renderNotes(window.allNotes);
     } catch(e) { box.innerHTML = `<div class="empty">Error loading data.</div>`; }
 }
- window.renderNotes = function(arr){
+ window.renderNotes = function(arr) {
     const box = document.getElementById("notesList");
+    // LocalStorage से चेक करें कि क्या इस डिवाइस पर कुछ पेंडिंग है
+    const pendingData = JSON.parse(localStorage.getItem("pendingTxn"));
 
-    if(arr.length === 0){
+    if (arr.length === 0) {
         box.innerHTML = `<div class="empty">No notes found</div>`;
         return;
     }
 
     box.innerHTML = arr.map(x => {
-
         const category = String(x.category || "").replace(/'/g, "\\'");
         const subject = String(x.subject || "").replace(/'/g, "\\'");
         const title = String(x.title || "").replace(/'/g, "\\'");
         const fileName = String(x.fileName || "").replace(/'/g, "\\'");
+        
+        // एक यूनिक ID बना रहे हैं बटन के लिए
+        const btnId = `btn-${btoa(subject + category).substring(0, 10)}`;
+        
+        // चेक करें कि क्या यह पेंडिंग है
+        const isPending = pendingData && pendingData.subject === x.subject;
+        const btnText = isPending ? "⏳ Pending Approval" : `Pay & Open (₹${x.price || 29})`;
+        const btnColor = isPending ? "#ffc107" : "#355da9";
 
         return `
         <div class="note">
             <h3>${safe(x.title)}</h3>
-
             <div class="meta">
                 <span class="tag">📮 ${safe(x.category || "-")}</span>
                 <span class="tag">📖 ${safe(x.subject || "-")}</span>
             </div>
-
-            <img
-                src="${x.imageURL || ''}"
-                class="preview"
-                onerror="this.style.display='none';"
-            >
-
-            ${
-                x.description
-                ? `<div class="desc">${safe(x.description)}</div>`
-                : ""
-            }
-
+            <img src="${x.imageURL || ''}" class="preview" onerror="this.style.display='none';">
+            ${x.description ? `<div class="desc">${safe(x.description)}</div>` : ""}
+            
             <button
-                onclick="handleSecureAccess(
-                    '${category}',
-                    '${subject}',
-                    '${title}',
-                    '${fileName}',
-                    ${Number(x.price || 29)}
-                )"
-                style="
-                    width:100%;
-                    margin-top:15px;
-                    background:#355da9;
-                    color:white;
-                    border:none;
-                    padding:12px;
-                    border-radius:8px;
-                    font-weight:bold;
-                    cursor:pointer;
-                "
+                id="${btnId}"
+                onclick="handleSecureAccess('${category}', '${subject}', '${title}', '${fileName}', ${Number(x.price || 29)})"
+                style="width:100%; margin-top:15px; background:${btnColor}; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;"
             >
-                Pay & Open (₹${x.price || 29})
+                ${btnText}
             </button>
         </div>
         `;
@@ -172,72 +155,52 @@ async function loadNotes(){
 };
 
 
+
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
+    // 1. पेंडिंग चेक करें
+    const pending = JSON.parse(localStorage.getItem("pendingTxn"));
+    if (pending && pending.subject === subject) {
+        alert("आपका पेमेंट अभी 'Pending' है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
+        return;
+    }
 
     const token = await auth.currentUser.getIdToken();
-
-    const secureUrl =
-        `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
+    const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
 
     try {
-
         const res = await fetch(secureUrl, {
-            headers: {
-                'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS', 'Authorization': `Bearer ${token}` }
         });
-console.log("Server Response Status:", res.status);
-        const debugData = await res.clone().json().catch(() => ({}));
-        console.log("Server Response Body:", debugData);
+
         if (res.status === 200) {
-
-            const blob = await res.blob();
-
-            window.open(
-                URL.createObjectURL(blob),
-                '_blank'
-            );
-
+            downloadPDF(res, subject); // नया डाउनलोड फंक्शन
             return;
         }
 
         if (res.status === 403) {
-
-            window.pendingTxn = {
-                category,
-                subject
-            };
-
-            const p = price || 29;
-
-            const myUpiId = "6268782886@ybl";
-
-            const qrData =
-                `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${p}&cu=INR`;
-
-            const qrUrl =
-                "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data="
-                + encodeURIComponent(qrData);
-
-            document.getElementById("qrImage").src = qrUrl;
-            document.getElementById("upiDisplay").innerText = myUpiId;
-            document.getElementById("amountDisplay").innerText = `Amount: ₹${p}`;
-
+            // पेंडिंग डेटा सेव करें
+            localStorage.setItem("pendingTxn", JSON.stringify({ category, subject }));
+            // ... QR दिखाने वाला कोड ...
             document.getElementById("qrBox").style.display = "flex";
-
             return;
         }
-
         alert("Access denied");
-
-    } catch (err) {
-
-        console.error(err);
-
-        alert("Server error");
-    }
+    } catch (err) { alert("Server error"); }
 };
+
+    async function downloadPDF(res, subject) {
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `${subject}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    }
+    
 
 window.submitPaymentProof = async () => {
 
@@ -313,9 +276,7 @@ window.closeQR = function () {
 
     document.getElementById("qrBox").style.display = "none";
 };
-
 async function autoCheckPayment(txnId) {
-
     const token = await auth.currentUser.getIdToken();
 
     const res = await fetch(
@@ -331,43 +292,56 @@ async function autoCheckPayment(txnId) {
     const data = await res.json().catch(() => null);
 
     if (res.ok && data?.status === "COMPLETED") {
+        alert("Payment Successful! Download button activate ho gaya hai.");
+        
+        // 1. पेंडिंग स्टेटस हटा दें
+        window.pendingTxn = null;
+        localStorage.removeItem("pendingTxn");
 
-        if (window.pendingTxn) {
-
-            const { category, subject } = window.pendingTxn;
-
-            const secureUrl =
-                `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
-
-            const pdfRes = await fetch(secureUrl, {
-                headers: {
-                    'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (pdfRes.status === 200) {
-                const blob = await pdfRes.blob();
-                window.open(URL.createObjectURL(blob), "_blank");
+        // 2. बटन को ढूंढें और अपडेट करें
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(btn => {
+            // जो भी बटन 'Pay & Open' वाला है, उसे अपडेट कर दें
+            if (btn.innerText.includes("Pay & Open")) {
+                btn.innerText = "📥 Download PDF";
+                btn.style.backgroundColor = "#28a745";
+                
+                // बटन का फंक्शन बदलकर डाउनलोड फंक्शन लगा दें
+                // यहाँ आपको उस कैटेगरी और सब्जेक्ट की जरूरत होगी, 
+                // आप इसे बटन में data attribute के रूप में रख सकते हैं या यहीं से निकाल सकते हैं
+                btn.onclick = async () => {
+                    // यहाँ फिर से PDF fetch करके downloadPDF कॉल करें
+                    const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(data.category || 'MTS')}&subject=${encodeURIComponent(data.subject || 'GK')}`;
+                    const pdfRes = await fetch(secureUrl, {
+                        headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS', 'Authorization': `Bearer ${token}` }
+                    });
+                    if (pdfRes.status === 200) {
+                        const blob = await pdfRes.blob();
+                        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = "notes.pdf";
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                    }
+                };
             }
-
-            window.pendingTxn = null;
-
-            setTimeout(() => {
-                window.location.href = "notes.html";
-            }, 2000);
-        }
+        });
+    } 
+    else if (res.ok && data?.status === "PENDING") {
+        alert("आपका पेमेंट अभी 'Pending' है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
+    } 
+    else if (res.ok && data?.status === "NOT_FOUND") {
+        alert("ट्रांजैक्शन नहीं मिला। कृपया सही Txn ID का उपयोग करें।");
+    } 
+    else if (res.ok && data?.status === "REJECTED") {
+        alert("आपका पेमेंट रिजेक्ट कर दिया गया है।");
+        window.pendingTxn = null;
+        localStorage.removeItem("pendingTxn");
     }
 }
-else {
-        console.log("Payment status:", data?.status);
-        if (data?.status === "PENDING") {
-            alert("आपका पेमेंट अभी 'Pending' है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
-        } else if (data?.status === "NOT_FOUND") {
-            alert("ट्रांजैक्शन नहीं मिला। कृपया सही Txn ID का उपयोग करें।");
-        }
-    }
-    }
 window.autoCheckPayment = autoCheckPayment;
 
 window.safe = function(v){
