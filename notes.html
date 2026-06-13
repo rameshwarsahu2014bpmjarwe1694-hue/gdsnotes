@@ -332,26 +332,36 @@ window.autoCheckPayment = autoCheckPayment;
     const token = await auth.currentUser.getIdToken();
     const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(cat)}&subject=${encodeURIComponent(sub)}`;
     
-    // डाउनलोड शुरू होने का इंडिकेशन दें
-    alert("Downloading " + sub + "...");
-    
-    const res = await fetch(secureUrl, {
-        headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS', 'Authorization': `Bearer ${token}` }
-    });
+    try {
+        const res = await fetch(secureUrl, {
+            headers: { 
+                'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS', 
+                'Authorization': `Bearer ${token}` 
+            }
+        });
 
-    if (res.status === 200) {
-        const blob = await res.blob();
-        // टाइप सेट करें ताकि ब्राउज़र इसे PDF समझे
-        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${sub}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-    } else {
-        alert("Download failed. Payment verify karein.");
+        if (res.status === 200) {
+            // यहाँ हम PDF को 'blob' में बदल रहे हैं
+            const blob = await res.blob();
+            
+            // नया लिंक बनाकर उसे 'download' एट्रिब्यूट दे रहे हैं
+            const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/octet-stream' }));
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${sub}.pdf`; // यह फाइल का नाम तय करता है
+            document.body.appendChild(a);
+            a.click(); // क्लिक ट्रिगर करना
+            
+            // सफाई करना
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+        } else {
+            alert("Download failed. Status: " + res.status);
+        }
+    } catch (e) {
+        alert("Error: " + e.message);
     }
 }
 
