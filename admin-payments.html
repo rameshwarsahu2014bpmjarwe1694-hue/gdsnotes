@@ -59,6 +59,7 @@ async function loadData() {
             const txSnap = await getDocs(collection(db, "payments", user.id, "transactions"));
             txSnap.forEach(d => {
                 const t = d.data();
+                if (t.status !== "pending") return;
                 const card = document.createElement("div");
                 card.className = "card";
                 card.innerHTML = `
