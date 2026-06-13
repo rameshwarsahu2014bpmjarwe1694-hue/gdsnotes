@@ -359,7 +359,15 @@ async function autoCheckPayment(txnId) {
         }
     }
 }
-
+else {
+        console.log("Payment status:", data?.status);
+        if (data?.status === "PENDING") {
+            alert("आपका पेमेंट अभी 'Pending' है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
+        } else if (data?.status === "NOT_FOUND") {
+            alert("ट्रांजैक्शन नहीं मिला। कृपया सही Txn ID का उपयोग करें।");
+        }
+    }
+    }
 window.autoCheckPayment = autoCheckPayment;
 
 window.safe = function(v){
