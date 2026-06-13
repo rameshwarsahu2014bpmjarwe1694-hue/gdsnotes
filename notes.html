@@ -171,10 +171,11 @@ async function loadNotes(){
     }).join('');
 };
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
-    // 1. सबसे पहले चेक करें कि क्या यूजर ने पहले से इस सेशन में पेमेंट पेंडिंग में डाला है
+
+    // यहाँ हम चेक कर रहे हैं कि क्या इसी subject के लिए पहले से पेंडिंग पेमेंट मौजूद है
     if (window.pendingTxn && window.pendingTxn.subject === subject) {
-        alert("आपका पेमेंट पेंडिंग में है, कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
-        return; // यहाँ से फंक्शन रुक जाएगा और QR नहीं खुलेगा
+        alert("इस Subject का पेमेंट अभी 'Pending' है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
+        return; // QR नहीं खुलेगा
     }
 
     const token = await auth.currentUser.getIdToken();
@@ -333,11 +334,9 @@ async function autoCheckPayment(txnId) {
 
     const data = await res.json().catch(() => null);
 
-    if (res.ok && data?.status === "COMPLETED") {
+        if (res.ok && data?.status === "COMPLETED") {
         if (window.pendingTxn) {
             alert("Payment Successful! Download button activate ho gaya hai.");
-
-            // बटन को 'Download' में बदलें
             const btn = document.querySelector(`button[onclick*="handleSecureAccess"]`);
             if (btn) {
                 btn.innerText = "📥 Download PDF";
@@ -346,6 +345,9 @@ async function autoCheckPayment(txnId) {
             }
             window.pendingTxn = null;
         }
+    } else if (res.ok && data?.status === "REJECTED") {
+        alert("आपका पेमेंट एडमिन द्वारा रिजेक्ट कर दिया गया है। कृपया दोबारा पेमेंट करें।");
+        window.pendingTxn = null; 
     } else {
         console.log("Payment status:", data?.status);
         if (data?.status === "PENDING") {
@@ -354,7 +356,7 @@ async function autoCheckPayment(txnId) {
             alert("ट्रांजैक्शन नहीं मिला। कृपया सही Txn ID का उपयोग करें।");
         }
     }
-}
+
 window.autoCheckPayment = autoCheckPayment;
 
     
