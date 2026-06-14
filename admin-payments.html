@@ -101,17 +101,12 @@ async function handleApprove(email, transactionId) {
             body: JSON.stringify({ email, transactionId })
         });
 
-        const result = await res.json().catch(() => ({}));
-
-console.log("HTTP Status:", res.status);
-console.log("Response:", result);
-
-if (res.ok) {
-    alert("Approved ✔");
-    loadData();
-} else {
-    alert("Approval Failed\n\n" + JSON.stringify(result));
-}
+        if (res.ok) {
+            alert("Approved ✔");
+            loadData();
+        } else {
+            alert("Approval Failed!");
+        }
     } catch (e) { 
         console.error(e);
         alert("Error: " + e.message); 
