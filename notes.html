@@ -101,6 +101,7 @@ async function loadNotes(){
         window.allNotes = [];
         snap.forEach((doc) => { window.allNotes.push({ id: doc.id, ...doc.data() }); });
         renderNotes(window.allNotes);
+        updateUIBasedOnPayment();
     } catch(e) { box.innerHTML = `<div class="empty">Error loading data.</div>`; }
 }
 
@@ -195,7 +196,6 @@ async function updateUIBasedOnPayment() {
         `;
     }).join('');
 };
-updateUIBasedOnPayment();
     
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
     const token = await auth.currentUser.getIdToken();
