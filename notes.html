@@ -317,8 +317,6 @@ if (currentStatus === "completed") {
 
     } catch (err) {
 
-        console.error("DEBUG: PDF Error =", err);
-
         alert(
             "PDF ERROR:\n\n" +
             (err.message || err)
@@ -390,8 +388,6 @@ window.submitPaymentProof = async () => {
         }
 
     } catch (e) {
-
-        console.error(e);
 
         alert("Server error!");
     }
