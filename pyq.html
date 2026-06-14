@@ -417,12 +417,14 @@ window.nav = function(step) {
 alert("Please wait 20 to 30 seconds. PDF is opening...");
     try {
         const url = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
-
+console.log("DEBUG 1: Requesting URL:", url);
         const response = await fetch(url, {
-            method: 'POST',
+            method: 'GET',
             headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS' }
         });
-
+console.log("DEBUG 2: Response Status:", response.status);
+        const responseData = await response.text(); 
+        console.log("DEBUG 3: Raw Response Data:", responseData);
         if (!response.ok) throw new Error("File load nahi ho saki.");
 
         const blob = await response.blob();
@@ -430,7 +432,8 @@ alert("Please wait 20 to 30 seconds. PDF is opening...");
         window.open(blobUrl, "_blank");
 
     } catch (err) {
-        alert("Error: " + err.message);
+        console.error("DEBUG 4: Final Catch Error:", err);
+        alert("Asli Error: " + err.message);
     } finally {
         openBtn.innerText = originalText;
         openBtn.disabled = false;
