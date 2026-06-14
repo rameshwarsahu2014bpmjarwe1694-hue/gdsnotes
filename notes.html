@@ -115,17 +115,23 @@ async function updateUIBasedOnPayment() {
         });
         const data = await res.json().catch(() => ({}));
 
-        if (data.status === "COMPLETED") {
-            const buttons = document.querySelectorAll('button[id^="btn-"]');
-            buttons.forEach(btn => {
+        const buttons = document.querySelectorAll('button[id^="btn-"]');
+        buttons.forEach(btn => {
+            if (data.status === "COMPLETED") {
                 btn.innerText = "📥 Download PDF";
                 btn.style.backgroundColor = "#28a745";
                 // क्लिक पर डाउनलोड ट्रिगर करें
                 btn.onclick = () => handleSecureAccess(btn.dataset.cat, btn.dataset.sub, null, null, null);
-            });
-        }
+            } else {
+                btn.innerText = "Pay & Open (₹29)";
+                btn.style.backgroundColor = "#355da9";
+                // क्लिक पर वापस ओरिजिनल फंक्शन ट्रिगर करें
+                btn.onclick = () => handleSecureAccess(btn.dataset.cat, btn.dataset.sub, btn.dataset.title, btn.dataset.file, 29);
+            }
+        });
     } catch(e) { console.error("UI Update Error:", e); }
 }
+
 
  window.renderNotes = function(arr){
     const box = document.getElementById("notesList");
@@ -166,31 +172,7 @@ async function updateUIBasedOnPayment() {
                 : ""
             }
 
-            <button
-                id="${btnId}"
-                data-cat="${x.category}"
-                data-sub="${x.subject}"
-                onclick="handleSecureAccess(
-                    '${category}',
-                    '${subject}',
-                    '${title}',
-                    '${fileName}',
-                    ${Number(x.price || 29)}
-                )"
-                style="
-                    width:100%;
-                    margin-top:15px;
-                    background:#355da9;
-                    color:white;
-                    border:none;
-                    padding:12px;
-                    border-radius:8px;
-                    font-weight:bold;
-                    cursor:pointer;
-                "
-            >
-                Pay & Open (₹${x.price || 29})
-            </button>
+            <button id="${btnId}" data-cat="${x.category}" data-sub="${x.subject}" onclick="handleSecureAccess('${category}', '${subject}', '${title}', '${fileName}', ${Number(x.price || 29)})" style="width:100%; margin-top:15px; background:#355da9; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">Checking...</button>
         </div>
         `;
     }).join('');
