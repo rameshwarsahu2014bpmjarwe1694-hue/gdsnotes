@@ -413,12 +413,14 @@ window.nav = function(step) {
     // 1. Firebase से Token निकालें
     const token = await auth.currentUser.getIdToken(); 
     
-    const openBtn = document.getElementById("openPdfBtn");
+    const openBtn = document.getElementById("openPdfBtn"); 
     openBtn.disabled = true;
 
     try {
-        const url = `${BACKEND_URL}/get-pdf?year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
-        
+        // pyq.html mein URL aise banayein
+const url = `${BACKEND_URL}/get-pdf?year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}&subject=`; 
+// subject ko empty ya 'All' bhej kar check karein
+        console.log("Fetching URL:", url); 
         const response = await fetch(url, {
             method: 'GET',
             headers: { 
