@@ -418,8 +418,7 @@ document.getElementById("openPdfBtn").onclick = async () => {
     openBtn.disabled = true;
 
     try {
-        const url = `${BACKEND_URL}/get-pdf?year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
-        
+        const url = `${BACKEND_URL}/get-pdf?year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}&subject=ALL`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 
@@ -463,6 +462,17 @@ document.getElementById("openPdfBtn").onclick = async () => {
     window.goBack = function() {
     window.location.href = "dashboard.html";
 };
+script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const btn = document.getElementById("openPdfBtn");
+        if (btn) {
+            btn.addEventListener("click", function() {
+                alert("Button Clicked Successfully!");
+            });
+        } else {
+            alert("Button ID 'openPdfBtn' nahi mil raha!");
+        }
+    });
 </script>
 <script>
 
