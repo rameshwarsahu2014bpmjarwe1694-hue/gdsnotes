@@ -85,17 +85,21 @@ window.pendingTxn = null;
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
+        console.log("User logged in:", user.email);
+        alert("Step 2: User mil gaya: " + user.email);
         window.currentUserEmail = user.email;
         loadNotes();
         // ऑटोमैटिक स्टेटस चेक करने के लिए इंटरवल (हर 10 सेकंड में)
         setInterval(updateUIBasedOnPayment, 10000); 
     } else {
+        alert("Step 2 Error: User login nahi hai");
         window.location.href = "login.html";
     }
 });
 
 async function loadNotes(){
     const box = document.getElementById("notesList");
+    alert("Step 3: loadNotes chala");
     try {
         const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
         const snap = await getDocs(q);
@@ -104,7 +108,9 @@ console.log("Snapshot received, total docs:", snap.size); // इससे पत
         snap.forEach((doc) => { window.allNotes.push({ id: doc.id, ...doc.data() }); });
         renderNotes(window.allNotes);
         updateUIBasedOnPayment();
-    } catch(e) { box.innerHTML = `<div class="empty">Error loading data.</div>`; }
+    } catch(e) { 
+        alert("Step 5 Error (Database): " + e.message);
+        box.innerHTML = `<div class="empty">Error loading data.</div>`; }
 }
 
 // यह फंक्शन बटन्स को अपडेट करेगा
