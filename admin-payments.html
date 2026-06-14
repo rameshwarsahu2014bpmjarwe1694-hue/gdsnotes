@@ -116,8 +116,7 @@ async function handleApprove(email, transactionId) {
             const errData = await res.json();
             alert("Failed: " + (errData.error || "Unknown Error"));
         }
-    } catch (e) { 
-        console.error(e);
+    } catch (e) {
         alert("Error: " + e.message); 
     }
 }
