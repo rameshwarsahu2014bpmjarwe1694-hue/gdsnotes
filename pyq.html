@@ -405,46 +405,58 @@ window.nav = function(step) {
     `;
 };
 
-    // DOWNLOAD LOGIC (Circle add kiya aur duplicate alert hata diya)
-document.getElementById("openPdfBtn").onclick = async () => {
+    document.getElementById("openPdfBtn").onclick = async () => {
     const year = document.getElementById("yearSelect").value;
     const post = document.getElementById("postSelect").value;
-    const circle = document.getElementById("circleSelect").value; // Circle add kiya
+    const circle = document.getElementById("circleSelect").value;
 
     if (!auth.currentUser) return alert("Pehle login karein!");
-    if (!year || !post || !circle) return alert("Pehle Year, Post aur Circle select karein!");
+    
+    // Circle optional rakho - sab required mat karo
+    if (!year || !post) return alert("Pehle Year aur Post select karein!");
 
-    const token = await auth.currentUser.getIdToken(); 
+    const token = await auth.currentUser.getIdToken();
     const openBtn = document.getElementById("openPdfBtn");
     openBtn.disabled = true;
+    openBtn.textContent = "Loading...";
 
     try {
-        const url = `${BACKEND_URL}/get-pyq?year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}&circle=${encodeURIComponent(circle)}`;
+        const url = `${BACKEND_URL}/get-pyq?year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}&circle=${encodeURIComponent(circle || "")}`;
+        
+        console.log("[DEBUG] Requesting PDF:", url); // Debug
+        
         const response = await fetch(url, {
             method: 'GET',
-            headers: { 
+            headers: {
                 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
-                'Authorization': `Bearer ${token}` 
+                'Authorization': `Bearer ${token}`
             }
         });
 
-        if (response.status === 200) {
+        console.log("[DEBUG] Response status:", response.status); // Debug
+
+        if (response.ok) {
             const blob = await response.blob();
             const urlBlob = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = urlBlob;
-            a.download = `${post}_${year}_${circle}.pdf`;
-            document.body.appendChild(a);
+            a.download = `${post}_${year}_${circle || "All"}.pdf`;
+            [document.body.app](https://document.body.app)endChild(a);
             a.click();
             a.remove();
             window.URL.revokeObjectURL(urlBlob);
         } else {
-            alert("File nahi mili ya access denied hai. Status: " + response.status);
+            // Error response body padhao
+            const errData = await response.json().catch(() => ({}));
+            console.error("[DEBUG] Error response:", errData);
+            alert(`File nahi mili! Status: ${response.status}\n${errData.error || ""}`);
         }
     } catch (err) {
-        alert("Error: " + err.message);
+        console.error("[DEBUG] Fetch error:", err);
+        alert("Network Error: " + [err.me](https://err.me)ssage);
     } finally {
         openBtn.disabled = false;
+        openBtn.textContent = "Open PDF";
     }
 };
 
