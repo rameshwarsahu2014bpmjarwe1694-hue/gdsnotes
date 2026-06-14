@@ -37,6 +37,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
 const ADMIN_EMAIL = "rameshwarsahu2014bpmjarwe1694@gmail.com";
 
 onAuthStateChanged(auth, (user) => {
