@@ -13,8 +13,7 @@ small{color:#aaa}
 </head>
 <body>
 
-<h2>💰 Admin Payment Dashboard</h2>
-<button onclick="setMyAdminRights()" style="background:blue; color:white; padding:10px;">Set My Admin Rights</button>  
+<h2>💰 Admin Payment Dashboard</h2>  
 <div id="list">Loading...</div>
 
 <script type="module">
@@ -143,19 +142,7 @@ async function handleDelete(email, tid) {
         alert("Error: " + e.message);
     }
 };
-    async function setMyAdminRights() {
-    try {
-        const token = await auth.currentUser.getIdToken(true);
-        const res = await fetch(`${BACKEND_URL}/set-admin-rights`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const msg = await res.text();
-        alert(msg);
-    } catch(e) { alert("Error: " + e.message); }
-}
-window.setMyAdminRights = setMyAdminRights;
     window.loadData = loadData;   
-loadData();
 </script>
 </body>
 </html>
