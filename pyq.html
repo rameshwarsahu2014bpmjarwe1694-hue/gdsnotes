@@ -441,7 +441,7 @@ window.nav = function(step) {
             const a = document.createElement("a");
             a.href = urlBlob;
             a.download = `${post}_${year}_${circle || "All"}.pdf`;
-            [document.body.app](https://document.body.app)endChild(a);
+            document.body.appendChild(a);
             a.click();
             a.remove();
             window.URL.revokeObjectURL(urlBlob);
@@ -453,7 +453,7 @@ window.nav = function(step) {
         }
     } catch (err) {
         console.error("[DEBUG] Fetch error:", err);
-        alert("Network Error: " + [err.me](https://err.me)ssage);
+        alert("Network Error: " + err.message);
     } finally {
         openBtn.disabled = false;
         openBtn.textContent = "Open PDF";
