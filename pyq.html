@@ -419,7 +419,7 @@ alert("Please wait 20 to 30 seconds. PDF is opening...");
         const url = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
 
         const response = await fetch(url, {
-            method: 'GET',
+            method: 'POST',
             headers: { 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS' }
         });
 
