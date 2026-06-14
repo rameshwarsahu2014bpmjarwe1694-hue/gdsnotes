@@ -142,18 +142,25 @@ async function loadNotes(){
                 : ""
             }
 
-            <button id="${btnId}" data-cat="${x.category}" data-sub="${x.subject}" onclick="handleSecureAccess('${category}', '${subject}', '${title}', '${fileName}', ${Number(x.price || 29)})" style="width:100%; margin-top:15px; background:#355da9; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">Checking...</button>
-        </div>
+            // renderNotes() के अंदर बटन को ऐसे लिखें:
+<button 
+    id="${btnId}" 
+    class="payment-btn"
+    data-cat="${x.category}" 
+    data-sub="${x.subject}" 
+    onclick="handleSecureAccess('${category}', '${subject}', '${title}', '${fileName}', ${Number(x.price || 29)})"
+    style="...">
+    Loading...
+</button>
         `;
     }).join('');
 };
 
-// यह फंक्शन बटन्स को अपडेट करेगा
+// 1. UI अपडेट फंक्शन
 async function updateUIBasedOnPayment() {
     if (!window.currentUserEmail) return;
     const token = await auth.currentUser.getIdToken();
     try {
-        // हम एक नया बैकएंड रूट मान रहे हैं जो सिर्फ status देता है
         const res = await fetch(`${BACKEND_URL}/payment-status?email=${window.currentUserEmail}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -164,109 +171,43 @@ async function updateUIBasedOnPayment() {
             if (data.status === "COMPLETED") {
                 btn.innerText = "📥 Download PDF";
                 btn.style.backgroundColor = "#28a745";
-                // क्लिक पर डाउनलोड ट्रिगर करें
                 btn.onclick = () => handleSecureAccess(btn.dataset.cat, btn.dataset.sub, null, null, null);
             } else {
                 btn.innerText = "Pay & Open (₹29)";
                 btn.style.backgroundColor = "#355da9";
-                // क्लिक पर वापस ओरिजिनल फंक्शन ट्रिगर करें
                 btn.onclick = () => handleSecureAccess(btn.dataset.cat, btn.dataset.sub, btn.dataset.title, btn.dataset.file, 29);
             }
         });
-        } catch(e) { 
+    } catch(e) { 
         console.log("--- UI UPDATE ERROR DETAILED ---");
         console.error("Error Message:", e.message);
-        console.error("Error Stack:", e.stack);
     }
 }
-    
-    
-window.handleSecureAccess = async (category, subject, title, fileName, price) => {
+
+// 2. handleSecureAccess फंक्शन
+async function handleSecureAccess(cat, sub, title, file, price) {
+    if (!window.currentUserEmail) return alert("Please login first!");
+
     const token = await auth.currentUser.getIdToken();
-
     try {
-        const statusRes = await fetch(`${BACKEND_URL}/payment-status`, {
-            method: "POST",
-            headers: { "Authorization": `Bearer ${token}` }
+        // चेक करें क्या पेमेंट है
+        const res = await fetch(`${BACKEND_URL}/payment-status?email=${window.currentUserEmail}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
+        const data = await res.json();
 
-        const statusData = await statusRes.json().catch(() => ({}));
-        const currentStatus = String(statusData?.status ?? "").trim().toLowerCase();
-
-        if (currentStatus === "pending") {
-            alert("आपका पेमेंट Pending है। कृपया Admin द्वारा Approval का इंतजार करें।");
-            return;
+        if (data.status === "COMPLETED") {
+            // अगर पेमेंट है तो सीधे डाउनलोड
+            window.location.href = `${BACKEND_URL}/download?cat=${cat}&sub=${sub}&email=${window.currentUserEmail}`;
+        } else {
+            // अगर पेमेंट नहीं है तो पेमेंट गेटवे खोलें
+            initiatePayment(cat, sub, title, file, price);
         }
-
-    } catch (e) {
-        alert("सिस्टम में एरर है, कृपया बाद में कोशिश करें।");
-        return;
+    } catch(e) {
+        console.error("Access Error:", e);
+        alert("Something went wrong. Please try again.");
     }
-
-    const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
-
-    try {
-        const res = await fetch(secureUrl, {
-            headers: {
-                "X-Source-Auth": "RSH-GDS-SECURE-ACCESS",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-
-        if (res.status === 200) {
-        alert("Payment verified! Downloading start...");
-         
-            const blob = await res.blob();
-
-            const url = window.URL.createObjectURL(blob);
-
-            const a = document.createElement("a");
-
-            a.href = url;
-            a.download = `${subject}.pdf`;
-
-            document.body.appendChild(a);
-
-            a.click();
-
-            a.remove();
-
-            window.URL.revokeObjectURL(url);
-
-            return;
-        }
-
-        if (res.status === 403) {
-        window.pendingTxn = {
-                category,
-                subject
-            };
-
-            const p = price || 29;
-
-            const myUpiId = "6268782886@ybl";
-
-            const qrData =
-                `upi://pay?pa=${myUpiId}&pn=NotesStore&am=${p}&cu=INR`;
-
-            const qrUrl =
-                "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" +
-                encodeURIComponent(qrData);
-
-            document.getElementById("qrImage").src = qrUrl;
-            document.getElementById("upiDisplay").innerText = myUpiId;
-            document.getElementById("amountDisplay").innerText = `Amount: ₹${p}`;
-            document.getElementById("qrBox").style.display = "flex";
-
-            return;
-        }
-
-        alert("Unexpected Status: " + res.status);
-    } catch (err) {
-        alert("PDF download failed. Please try again.");
-    }
-};
+}
 
 
 window.submitPaymentProof = async () => {
