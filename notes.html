@@ -103,36 +103,6 @@ async function loadNotes(){
         renderNotes(window.allNotes);
     } catch(e) { box.innerHTML = `<div class="empty">Error loading data.</div>`; }
 }
-
-// यह फंक्शन बटन्स को अपडेट करेगा
-async function updateUIBasedOnPayment() {
-    if (!window.currentUserEmail) return;
-    const token = await auth.currentUser.getIdToken();
-    try {
-        // हम एक नया बैकएंड रूट मान रहे हैं जो सिर्फ status देता है
-        const res = await fetch(`${BACKEND_URL}/payment-status?email=${window.currentUserEmail}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json().catch(() => ({}));
-
-        const buttons = document.querySelectorAll('button[id^="btn-"]');
-        buttons.forEach(btn => {
-            if (data.status === "COMPLETED") {
-                btn.innerText = "📥 Download PDF";
-                btn.style.backgroundColor = "#28a745";
-                // क्लिक पर डाउनलोड ट्रिगर करें
-                btn.onclick = () => handleSecureAccess(btn.dataset.cat, btn.dataset.sub, null, null, null);
-            } else {
-                btn.innerText = "Pay & Open (₹29)";
-                btn.style.backgroundColor = "#355da9";
-                // क्लिक पर वापस ओरिजिनल फंक्शन ट्रिगर करें
-                btn.onclick = () => handleSecureAccess(btn.dataset.cat, btn.dataset.sub, btn.dataset.title, btn.dataset.file, 29);
-            }
-        });
-    } catch(e) { console.error("UI Update Error:", e); }
-}
-
-
  window.renderNotes = function(arr){
     const box = document.getElementById("notesList");
 
@@ -178,7 +148,39 @@ async function updateUIBasedOnPayment() {
     }).join('');
 };
 
+// यह फंक्शन बटन्स को अपडेट करेगा
+async function updateUIBasedOnPayment() {
+    if (!window.currentUserEmail) return;
+    const token = await auth.currentUser.getIdToken();
+    try {
+        // हम एक नया बैकएंड रूट मान रहे हैं जो सिर्फ status देता है
+        const res = await fetch(`${BACKEND_URL}/payment-status?email=${window.currentUserEmail}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json().catch(() => ({}));
 
+        const buttons = document.querySelectorAll('button[id^="btn-"]');
+        buttons.forEach(btn => {
+            if (data.status === "COMPLETED") {
+                btn.innerText = "📥 Download PDF";
+                btn.style.backgroundColor = "#28a745";
+                // क्लिक पर डाउनलोड ट्रिगर करें
+                btn.onclick = () => handleSecureAccess(btn.dataset.cat, btn.dataset.sub, null, null, null);
+            } else {
+                btn.innerText = "Pay & Open (₹29)";
+                btn.style.backgroundColor = "#355da9";
+                // क्लिक पर वापस ओरिजिनल फंक्शन ट्रिगर करें
+                btn.onclick = () => handleSecureAccess(btn.dataset.cat, btn.dataset.sub, btn.dataset.title, btn.dataset.file, 29);
+            }
+        });
+        } catch(e) { 
+        console.log("--- UI UPDATE ERROR DETAILED ---");
+        console.error("Error Message:", e.message);
+        console.error("Error Stack:", e.stack);
+    }
+}
+    
+    
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
     const token = await auth.currentUser.getIdToken();
 
