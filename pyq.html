@@ -405,20 +405,21 @@ window.nav = function(step) {
     `;
 };
 
-    // pyq.html mein document.getElementById("openPdfBtn").onclick ko replace karein
+    // DOWNLOAD LOGIC (Circle add kiya aur duplicate alert hata diya)
 document.getElementById("openPdfBtn").onclick = async () => {
     const year = document.getElementById("yearSelect").value;
     const post = document.getElementById("postSelect").value;
+    const circle = document.getElementById("circleSelect").value; // Circle add kiya
 
     if (!auth.currentUser) return alert("Pehle login karein!");
-    if (!year || !post) return alert("Pehle Year aur Post select karein!");
+    if (!year || !post || !circle) return alert("Pehle Year, Post aur Circle select karein!");
 
     const token = await auth.currentUser.getIdToken(); 
     const openBtn = document.getElementById("openPdfBtn");
     openBtn.disabled = true;
 
     try {
-const url = `${BACKEND_URL}/get-pyq?year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
+        const url = `${BACKEND_URL}/get-pyq?year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}&circle=${encodeURIComponent(circle)}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 
@@ -428,12 +429,11 @@ const url = `${BACKEND_URL}/get-pyq?year=${encodeURIComponent(year)}&post=${enco
         });
 
         if (response.status === 200) {
-            // Notes jaisa Download Logic
             const blob = await response.blob();
             const urlBlob = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = urlBlob;
-            a.download = `${post}_${year}.pdf`; // File ka naam
+            a.download = `${post}_${year}_${circle}.pdf`;
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -441,7 +441,6 @@ const url = `${BACKEND_URL}/get-pyq?year=${encodeURIComponent(year)}&post=${enco
         } else {
             alert("File nahi mili ya access denied hai. Status: " + response.status);
         }
-
     } catch (err) {
         alert("Error: " + err.message);
     } finally {
@@ -449,33 +448,22 @@ const url = `${BACKEND_URL}/get-pyq?year=${encodeURIComponent(year)}&post=${enco
     }
 };
 
+document.getElementById("yearSelect").onchange = fetchQuestions;
+document.getElementById("postSelect").onchange = fetchQuestions;
+document.getElementById("circleSelect").onchange = fetchQuestions; // Circle add kiya
 
-    document.getElementById("yearSelect").onchange = fetchQuestions;
-    document.getElementById("postSelect").onchange = fetchQuestions;
-    document.getElementById("startQuizBtn").onclick = () => {
-        if(allQuestions.length === 0) return alert("Pehle Year aur Post select karke load hone dein!");
-        document.getElementById("paymentUI").style.display = "none";
-        document.getElementById("startQuizBtn").style.display = "none";
-        document.getElementById("quizDisplay").style.display = "block";
-        window.renderQuiz();
-    };
-    window.goBack = function() {
+document.getElementById("startQuizBtn").onclick = () => {
+    if(allQuestions.length === 0) return alert("Pehle Year aur Post select karke load hone dein!");
+    document.getElementById("paymentUI").style.display = "none";
+    document.getElementById("startQuizBtn").style.display = "none";
+    document.getElementById("quizDisplay").style.display = "block";
+    window.renderQuiz();
+};
+
+window.goBack = function() {
     window.location.href = "dashboard.html";
 };
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const btn = document.getElementById("openPdfBtn");
-        if (btn) {
-            btn.addEventListener("click", function() {
-                alert("Button Clicked Successfully!");
-            });
-        } else {
-            alert("Button ID 'openPdfBtn' nahi mil raha!");
-        }
-    });
 </script>
-<script>
-
 /* RIGHT CLICK BLOCK */
 document.addEventListener("contextmenu", function(e) {
     e.preventDefault();
