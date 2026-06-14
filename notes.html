@@ -210,14 +210,14 @@ window.handleSecureAccess = async (category, subject, title, fileName, price) =>
         console.log("DEBUG: Checking payment status...");
 
         const statusRes = await fetch(
-            `${BACKEND_URL}/payment-status?email=${encodeURIComponent(window.currentUserEmail)}`,
-            {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            }
-        );
+    `${BACKEND_URL}/payment-status`,
+    {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    }
+);
 
         console.log("DEBUG: statusRes.status =", statusRes.status);
 
@@ -234,38 +234,21 @@ window.handleSecureAccess = async (category, subject, title, fileName, price) =>
         );
 
         const currentStatus = String(
-            statusData?.status ||
-            statusData?.paymentStatus ||
-            statusData?.data?.status ||
-            statusData?.payment?.status ||
-            ""
-        ).trim().toLowerCase();
+    statusData?.status ?? ""
+).trim().toLowerCase();
 
-        console.log("DEBUG: currentStatus =", currentStatus);
+console.log("HTTP Status:", statusRes.status);
+console.log("Status Response:", statusData);
+console.log("Current Status:", currentStatus);
 
-        alert("CURRENT STATUS = " + currentStatus);
+if (currentStatus === "pending") {
+    alert("आपका पेमेंट Pending है। कृपया Admin द्वारा Approval का इंतजार करें।");
+    return;
+}
 
-        if (
-            currentStatus === "pending" ||
-            currentStatus === "approval_pending"
-        ) {
-
-            console.log("DEBUG: PENDING DETECTED");
-
-            alert(
-                "आपका पेमेंट Pending है।\n\nकृपया Admin Approval का इंतजार करें।"
-            );
-
-            return;
-        }
-
-        if (
-            currentStatus === "completed" ||
-            currentStatus === "approved"
-        ) {
-
-            console.log("DEBUG: PAYMENT APPROVED");
-        }
+if (currentStatus === "completed") {
+    console.log("Payment Approved");
+}
 
     } catch (e) {
 
