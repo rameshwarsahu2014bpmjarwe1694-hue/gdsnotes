@@ -195,8 +195,8 @@ async function updateUIBasedOnPayment() {
         `;
     }).join('');
 };
-
-
+updateUIBasedOnPayment();
+    
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
     const token = await auth.currentUser.getIdToken();
 
