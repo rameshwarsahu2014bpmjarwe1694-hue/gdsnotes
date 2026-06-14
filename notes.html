@@ -155,8 +155,8 @@ async function loadNotes(){
         `;
     }).join('');
 };
-
-// 1. UI अपडेट फंक्शन
+updateUIBasedOnPayment(); 
+}
 async function updateUIBasedOnPayment() {
     if (!window.currentUserEmail) return;
     const token = await auth.currentUser.getIdToken();
@@ -166,23 +166,22 @@ async function updateUIBasedOnPayment() {
         });
         const data = await res.json().catch(() => ({}));
 
-        const buttons = document.querySelectorAll('button[id^="btn-"]');
-        buttons.forEach(btn => {
-            if (data.status === "COMPLETED") {
+        // यहाँ .payment-btn क्लास का इस्तेमाल करें (यह ज्यादा पक्का है)
+        const buttons = document.querySelectorAll('.payment-btn'); 
+        
+        if (data.status === "COMPLETED") {
+            buttons.forEach(btn => {
                 btn.innerText = "📥 Download PDF";
                 btn.style.backgroundColor = "#28a745";
-                btn.onclick = () => handleSecureAccess(btn.dataset.cat, btn.dataset.sub, null, null, null);
-            } else {
-                btn.innerText = "Pay & Open (₹29)";
-                btn.style.backgroundColor = "#355da9";
-                btn.onclick = () => handleSecureAccess(btn.dataset.cat, btn.dataset.sub, btn.dataset.title, btn.dataset.file, 29);
-            }
-        });
-    } catch(e) { 
-        console.log("--- UI UPDATE ERROR DETAILED ---");
-        console.error("Error Message:", e.message);
-    }
+                btn.onclick = (e) => {
+                    e.preventDefault(); // बटन की पुरानी क्लिक इवेंट को रोके
+                    handleSecureAccess(btn.dataset.cat, btn.dataset.sub, null, null, null);
+                };
+            });
+        }
+    } catch(e) { console.error("UI Update Error:", e); }
 }
+
 
 // 2. handleSecureAccess फंक्शन
 async function handleSecureAccess(cat, sub, title, file, price) {
