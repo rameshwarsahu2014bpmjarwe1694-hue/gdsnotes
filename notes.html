@@ -78,6 +78,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    console.log("Firebase initialized successfully");
     window.BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
     window.allNotes = [];
 window.pendingTxn = null;
@@ -98,6 +99,7 @@ async function loadNotes(){
     try {
         const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
         const snap = await getDocs(q);
+console.log("Snapshot received, total docs:", snap.size); // इससे पता चलेगा डेटा मिला या नहीं
         window.allNotes = [];
         snap.forEach((doc) => { window.allNotes.push({ id: doc.id, ...doc.data() }); });
         renderNotes(window.allNotes);
@@ -129,6 +131,7 @@ async function updateUIBasedOnPayment() {
 }
 
  window.renderNotes = function(arr){
+     console.log("Rendering started for count:", arr.length);
     const box = document.getElementById("notesList");
 
     if(arr.length === 0){
