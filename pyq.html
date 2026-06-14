@@ -405,48 +405,51 @@ window.nav = function(step) {
     `;
 };
 
-    document.getElementById("openPdfBtn").onclick = async () => {
+    // pyq.html mein document.getElementById("openPdfBtn").onclick ko replace karein
+document.getElementById("openPdfBtn").onclick = async () => {
     const year = document.getElementById("yearSelect").value;
     const post = document.getElementById("postSelect").value;
 
     if (!auth.currentUser) return alert("Pehle login karein!");
     if (!year || !post) return alert("Pehle Year aur Post select karein!");
 
-    // 1. Firebase से Token निकालें
     const token = await auth.currentUser.getIdToken(); 
-    
-    const openBtn = document.getElementById("openPdfBtn"); 
+    const openBtn = document.getElementById("openPdfBtn");
     openBtn.disabled = true;
 
     try {
-        // pyq.html mein URL aise banayein
-const url = `${BACKEND_URL}/get-pdf?year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}&subject=`; 
-// subject ko empty ya 'All' bhej kar check karein
-        console.log("Fetching URL:", url); 
+        const url = `${BACKEND_URL}/get-pdf?year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
+        
         const response = await fetch(url, {
             method: 'GET',
             headers: { 
                 'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}` 
             }
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText);
+        if (response.status === 200) {
+            // Notes jaisa Download Logic
+            const blob = await response.blob();
+            const urlBlob = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = urlBlob;
+            a.download = `${post}_${year}.pdf`; // File ka naam
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(urlBlob);
+        } else {
+            alert("File nahi mili ya access denied hai. Status: " + response.status);
         }
 
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        window.open(blobUrl, "_blank");
-
     } catch (err) {
-        console.error("Error:", err);
         alert("Error: " + err.message);
     } finally {
         openBtn.disabled = false;
     }
 };
+
 
     document.getElementById("yearSelect").onchange = fetchQuestions;
     document.getElementById("postSelect").onchange = fetchQuestions;
