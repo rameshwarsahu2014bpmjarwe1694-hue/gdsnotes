@@ -199,17 +199,10 @@ async function updateUIBasedOnPayment() {
 
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
 
-    console.log("========== HANDLE SECURE ACCESS START ==========");
-
     const token = await auth.currentUser.getIdToken();
 
     try {
-
-        console.log("DEBUG: Current User =", window.currentUserEmail);
-
-        console.log("DEBUG: Checking payment status...");
-
-        const statusRes = await fetch(
+ const statusRes = await fetch(
     `${BACKEND_URL}/payment-status`,
     {
         method: "POST",
@@ -219,14 +212,9 @@ window.handleSecureAccess = async (category, subject, title, fileName, price) =>
     }
 );
 
-        console.log("DEBUG: statusRes.status =", statusRes.status);
-
         const statusData = await statusRes.json().catch(err => {
-            console.error("DEBUG: JSON Parse Error", err);
             return {};
         });
-
-        console.log("DEBUG: Full Response =", statusData);
 
         alert(
             "STATUS RESPONSE:\n\n" +
@@ -237,22 +225,15 @@ window.handleSecureAccess = async (category, subject, title, fileName, price) =>
     statusData?.status ?? ""
 ).trim().toLowerCase();
 
-console.log("HTTP Status:", statusRes.status);
-console.log("Status Response:", statusData);
-console.log("Current Status:", currentStatus);
-
 if (currentStatus === "pending") {
     alert("आपका पेमेंट Pending है। कृपया Admin द्वारा Approval का इंतजार करें।");
     return;
 }
 
 if (currentStatus === "completed") {
-    console.log("Payment Approved");
 }
 
     } catch (e) {
-
-        console.error("DEBUG: Payment Status Error =", e);
 
         alert(
             "STATUS CHECK ERROR:\n\n" +
@@ -263,8 +244,6 @@ if (currentStatus === "completed") {
     const secureUrl =
         `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
 
-    console.log("DEBUG: Secure URL =", secureUrl);
-
     try {
 
         const res = await fetch(secureUrl, {
@@ -274,16 +253,13 @@ if (currentStatus === "completed") {
             }
         });
 
-        console.log("DEBUG: PDF Response Status =", res.status);
 
         const debugData =
             await res.clone().json().catch(() => ({}));
 
-        console.log("DEBUG: PDF Response Body =", debugData);
 
         if (res.status === 200) {
 
-            console.log("DEBUG: DOWNLOAD START");
 
             const blob = await res.blob();
 
@@ -307,7 +283,6 @@ if (currentStatus === "completed") {
 
         if (res.status === 403) {
 
-            console.log("DEBUG: 403 RECEIVED");
 
             alert(
                 "403 RECEIVED\n\n" +
@@ -469,7 +444,6 @@ window.autoCheckPayment = async function(txnId) {
             setTimeout(() => { window.location.href = "notes.html"; }, 2000);
         }
     } else {
-        console.log("Payment status:", data?.status);
         if (data?.status === "PENDING") {
             alert("आपका पेमेंट अभी 'Pending' है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।");
         } else if (data?.status === "NOT_FOUND") {
