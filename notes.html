@@ -198,54 +198,30 @@ async function updateUIBasedOnPayment() {
 
 
 window.handleSecureAccess = async (category, subject, title, fileName, price) => {
-
     const token = await auth.currentUser.getIdToken();
 
     try {
- const statusRes = await fetch(
-    `${BACKEND_URL}/payment-status`,
-    {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-    }
-);
-
-        const statusData = await statusRes.json().catch(err => {
-            return {};
+        const statusRes = await fetch(`${BACKEND_URL}/payment-status`, {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${token}` }
         });
 
-        alert(
-            "STATUS RESPONSE:\n\n" +
-            JSON.stringify(statusData, null, 2)
-        );
+        const statusData = await statusRes.json().catch(() => ({}));
+        const currentStatus = String(statusData?.status ?? "").trim().toLowerCase();
 
-        const currentStatus = String(
-    statusData?.status ?? ""
-).trim().toLowerCase();
-
-if (currentStatus === "pending") {
-    alert("आपका पेमेंट Pending है। कृपया Admin द्वारा Approval का इंतजार करें।");
-    return;
-}
-
-if (currentStatus === "completed") {
-}
+        if (currentStatus === "pending") {
+            alert("आपका पेमेंट Pending है। कृपया Admin द्वारा Approval का इंतजार करें।");
+            return;
+        }
 
     } catch (e) {
-
-        alert(
-            "STATUS CHECK ERROR:\n\n" +
-            (e.message || e)
-        );
+        alert("सिस्टम में एरर है, कृपया बाद में कोशिश करें।");
+        return;
     }
 
-    const secureUrl =
-        `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
+    const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
 
     try {
-
         const res = await fetch(secureUrl, {
             headers: {
                 "X-Source-Auth": "RSH-GDS-SECURE-ACCESS",
@@ -254,13 +230,9 @@ if (currentStatus === "completed") {
         });
 
 
-        const debugData =
-            await res.clone().json().catch(() => ({}));
-
-
         if (res.status === 200) {
-
-
+        alert("Payment verified! Downloading start...");
+         
             const blob = await res.blob();
 
             const url = window.URL.createObjectURL(blob);
@@ -282,14 +254,7 @@ if (currentStatus === "completed") {
         }
 
         if (res.status === 403) {
-
-
-            alert(
-                "403 RECEIVED\n\n" +
-                JSON.stringify(debugData, null, 2)
-            );
-
-            window.pendingTxn = {
+        window.pendingTxn = {
                 category,
                 subject
             };
@@ -314,13 +279,8 @@ if (currentStatus === "completed") {
         }
 
         alert("Unexpected Status: " + res.status);
-
     } catch (err) {
-
-        alert(
-            "PDF ERROR:\n\n" +
-            (err.message || err)
-        );
+        alert("PDF download failed. Please try again.");
     }
 };
 
