@@ -91,32 +91,37 @@ async function handleApprove(email, transactionId) {
     if (!confirm("क्या आप इसे Approve करना चाहते हैं?")) return;
 
     try {
-        const token = await auth.currentUser.getIdToken();
+        // 'true' force refresh करता है, जिससे नया टोकन मिलता है
+        const user = auth.currentUser;
+        if (!user) {
+            alert("आप लॉगिन नहीं हैं!");
+            return;
+        }
+        
+        const token = await user.getIdToken(true); 
+        
         const res = await fetch(`${BACKEND_URL}/admin/approve-payment`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${token}`, // यहाँ टोकन जा रहा है
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ email, transactionId })
         });
 
-        const result = await res.json().catch(() => ({}));
-
-console.log("HTTP Status:", res.status);
-console.log("Response:", result);
-
-if (res.ok) {
-    alert("Approved ✔");
-    loadData();
-} else {
-    alert("Approval Failed\n\n" + JSON.stringify(result));
-}
+        if (res.ok) {
+            alert("Approved ✔");
+            loadData();
+        } else {
+            const errData = await res.json();
+            alert("Failed: " + (errData.error || "Unknown Error"));
+        }
     } catch (e) { 
         console.error(e);
         alert("Error: " + e.message); 
     }
 }
+
 
 async function handleReject(email, tid) {
     try {
