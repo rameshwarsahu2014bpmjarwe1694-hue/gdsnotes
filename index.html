@@ -231,11 +231,19 @@ function installApp() {
     deferredPrompt = null;
 }
 
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-    .then(() => console.log('Service Worker Registered successfully'))
-    .catch((err) => console.log('Service Worker registration failed', err));
-  }
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js');
+      console.log("Service Worker Registered");
+
+      // Har page load par update check
+      reg.update();
+    } catch (err) {
+      console.error("SW registration failed", err);
+    }
+  });
+}
 </script>
 </body>
 </html>
