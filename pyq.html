@@ -343,35 +343,35 @@ ${currentIdx !== allQuestions.length - 1
     const url = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
     
     try {
-        // Fetch का उपयोग करके रिस्पॉन्स चेक करें
         const response = await fetch(url, {
             method: 'GET',
-            headers: {
-                'x-source-auth': 'RSH-GDS-SECURE-ACCESS' // यह हेडर जरूरी है!
-            }
+            headers: { 'x-source-auth': 'RSH-GDS-SECURE-ACCESS' }
         });
 
+        // 1. रिस्पॉन्स की जांच करें
         if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.error || "Failed to fetch PDF");
+            const errorText = await response.text(); // JSON के बजाय text पढ़ें
+            throw new Error(`Server error: ${errorText}`);
         }
 
-        // अगर सब ठीक है, तो Blob बनाएँ और डाउनलोड करें
+        // 2. Blob में बदलने से पहले चेक करें कि क्या रिस्पॉन्स वाकई में PDF है
         const blob = await response.blob();
+        if (blob.type !== 'application/pdf') {
+            throw new Error("Server ne PDF file nahi bheji, balki kuch aur data bheja hai.");
+        }
+
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.setAttribute('download', `${post}_${year}_PYQ.pdf`);
+        link.download = `${post}_${year}_PYQ.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     } catch (err) {
-        alert("Error: " + err.message);
+        alert("Asli Error: " + err.message); // अब आपको पता चलेगा कि असल में क्या एरर है
     }
 };
-
-
-
-    
+    document.getElementById("yearSelect").onchange = fetchQuestions;
+    document.getElementById("postSelect").onchange = fetchQuestions;
     document.getElementById("startQuizBtn").onclick = () => {
         if(allQuestions.length === 0) return alert("Pehle Year aur Post select karke load hone dein!");
         document.getElementById("paymentUI").style.display = "none";
