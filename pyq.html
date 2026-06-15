@@ -333,28 +333,42 @@ ${currentIdx !== allQuestions.length - 1
     `;
 };
 
-    document.getElementById("openPdfBtn").onclick = () => {
+    document.getElementById("openPdfBtn").onclick = async () => {
     const year = document.getElementById("yearSelect").value;
     const post = document.getElementById("postSelect").value;
 
     if (!currentUserEmail) return alert("Pehle login karein!");
     if (!year || !post) return alert("Pehle Year aur Post select karein!");
 
-    // URL तैयार करें
     const url = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
     
-    // फाइल डाउनलोड करने के लिए एक अस्थायी लिंक बनाएँ
-    const link = document.createElement('a');
-    link.href = url;
-    
-    // 'download' एट्रिब्यूट फाइल को फोर्सफुली डाउनलोड कराता है
-    link.setAttribute('download', `${post}_${year}_PYQ.pdf`);
-    
-    // लिंक को बॉडी में जोड़ें, क्लिक करें और फिर हटा दें
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+        // Fetch का उपयोग करके रिस्पॉन्स चेक करें
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'x-source-auth': 'RSH-GDS-SECURE-ACCESS' // यह हेडर जरूरी है!
+            }
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.error || "Failed to fetch PDF");
+        }
+
+        // अगर सब ठीक है, तो Blob बनाएँ और डाउनलोड करें
+        const blob = await response.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', `${post}_${year}_PYQ.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (err) {
+        alert("Error: " + err.message);
+    }
 };
+
 
 
     document.getElementById("yearSelect").onchange = fetchQuestions;
