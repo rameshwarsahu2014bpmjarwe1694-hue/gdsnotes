@@ -29,9 +29,7 @@
 
 <div class="container">
     <h1>Previous Year Questions</h1>
-    <button onclick="window.location.href='dashboard.html'" style="width: 100%; padding: 10px; margin-bottom: 15px; cursor: pointer; border-radius: 8px; border: 1px solid #ccc; background: #eee;">
-        ⬅ वापस जाएं (Back)
-    </button>
+
     <div class="selector-grid">
         <select id="yearSelect">
             <option value="">वर्ष / कैटेगरी चुनें</option>
@@ -108,7 +106,7 @@
     const db = getFirestore(app);
     
     // YEH RAHA AAPKA RENDER URL
-    window.BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
+    const BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
 
     let allQuestions = [];
     let currentIdx = 0;
@@ -116,72 +114,42 @@
     let quizHistory = {}; 
     let currentUserEmail = "";
 
-        // Strict Login Guard
+    // Login logic
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUserEmail = user.email;
-            console.log("Access Granted for:", currentUserEmail);
         } else {
-            // Agar login nahi hai toh turant bahar bhejo
+            alert("Security Alert: Please login first!");
             window.location.href = "login.html"; 
-            alert("Security Alert: Is page ke liye login zaroori hai!");
         }
     });
 
-
     async function fetchQuestions() {
-    const year = document.getElementById("yearSelect").value;
-    const post = document.getElementById("postSelect").value;
-    const circle = document.getElementById("circleSelect").value;
-    const status = document.getElementById("statusBox");
+        const year = document.getElementById("yearSelect").value;
+        const post = document.getElementById("postSelect").value;
+        const status = document.getElementById("statusBox");
+        if (!year || !post) return;
 
-    // Agar Year aur Post select nahi hai toh ruko
-    if (!year || !post) return;
+        status.style.display = "block";
+        status.style.background = "#e1f5fe";
+        status.innerHTML = "लोड हो रहा है...";
 
-    status.style.display = "block";
-    status.style.background = "#e1f5fe";
-    status.innerHTML = "डेटा लोड हो रहा है...";
+        try {
+            const q = query(collection(db, "pyqQuestions"), where("category", "==", year), where("post", "==", post));
+            const querySnapshot = await getDocs(q);
+            allQuestions = [];
+            querySnapshot.forEach((doc) => { allQuestions.push({ id: doc.id, ...doc.data() }); });
 
-    try {
-        let q;
-        if (circle === "" || circle === "All India") {
-            // "All India" select hone par sirf Year aur Post ke basis par saara data uthao
-            q = query(
-                collection(db, "pyqQuestions"), 
-                where("category", "==", year), 
-                where("post", "==", post)
-            );
-        } else {
-            // Specific Circle select hone par filter apply karo
-            q = query(
-                collection(db, "pyqQuestions"), 
-                where("category", "==", year), 
-                where("post", "==", post),
-                where("circle", "==", circle)
-            );
-        }
-
-        const querySnapshot = await getDocs(q);
-        allQuestions = [];
-        querySnapshot.forEach((doc) => { 
-            allQuestions.push({ id: doc.id, ...doc.data() }); 
-        });
-
-        if (allQuestions.length > 0) {
-            status.style.background = "#d4edda";
-            status.innerHTML = `✅ ${allQuestions.length} सवाल मिले!`;
-        } else {
-            status.style.background = "#fff3cd";
-            status.innerHTML = "❌ डेटा नहीं मिला।";
-        }
-    } catch (error) { 
-        console.error(error);
-        status.innerHTML = "⚠️ Error fetching data."; 
+            if (allQuestions.length > 0) {
+                status.style.background = "#d4edda";
+                status.innerHTML = `✅ ${allQuestions.length} सवाल मिले!`;
+            } else {
+                status.style.background = "#fff3cd";
+                status.innerHTML = "❌ डेटा नहीं मिला।";
+            }
+        } catch (error) { status.innerHTML = "⚠️ Error loading data."; }
     }
-}
 
-// Circle change hone par bhi data fetch trigger ho
-document.getElementById("circleSelect").onchange = fetchQuestions;
     window.renderQuiz = function() {
         const quizDisplay = document.getElementById("quizDisplay");
         const q = allQuestions[currentIdx];
@@ -403,161 +371,36 @@ window.nav = function(step) {
     `;
 };
 
-    document.getElementById("openPdfBtn").onclick = async () => {
-    const year = document.getElementById("yearSelect").value;
-    const post = document.getElementById("postSelect").value;
-    const circle = document.getElementById("circleSelect").value;
+    document.getElementById("openPdfBtn").onclick = () => {
 
-    if (!auth.currentUser) return alert("Pehle login karein!");
-    
-    // Circle optional rakho - sab required mat karo
-    if (!year || !post) return alert("Pehle Year aur Post select karein!");
+    const year =
+    document.getElementById("yearSelect").value;
 
-    const token = await auth.currentUser.getIdToken();
-    const openBtn = document.getElementById("openPdfBtn");
-    openBtn.disabled = true;
-    openBtn.textContent = "Loading...";
+    const post =
+    document.getElementById("postSelect").value;
 
-    try {
-        const url = `${BACKEND_URL}/get-pyq?year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}&circle=${encodeURIComponent(circle || "")}`;
-        
-        console.log("[DEBUG] Requesting PDF:", url); // Debug
-        
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'X-Source-Auth': 'RSH-GDS-SECURE-ACCESS',
-                'Authorization': `Bearer ${token}`
-            }
-        });
+    if(!currentUserEmail)
+        return alert("Pehle login karein!");
 
-        console.log("[DEBUG] Response status:", response.status); // Debug
+    if(!year || !post)
+        return alert("Pehle Year aur Post select karein!");
 
-        if (response.ok) {
-            const blob = await response.blob();
-            const urlBlob = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = urlBlob;
-            a.download = `${post}_${year}_${circle || "All"}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(urlBlob);
-        } else {
-            // Error response body padhao
-            const errData = await response.json().catch(() => ({}));
-            console.error("[DEBUG] Error response:", errData);
-            alert(`File nahi mili! Status: ${response.status}\n${errData.error || ""}`);
-        }
-    } catch (err) {
-        console.error("[DEBUG] Fetch error:", err);
-        alert("Network Error: " + err.message);
-    } finally {
-        openBtn.disabled = false;
-        openBtn.textContent = "Open PDF";
-    }
+    const url =
+`${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
+
+    window.open(url, "_blank");
+
 };
 
-document.getElementById("startQuizBtn").onclick = () => {
-    if(allQuestions.length === 0) return alert("Pehle Year aur Post select karke load hone dein!");
-    document.getElementById("paymentUI").style.display = "none";
-    document.getElementById("startQuizBtn").style.display = "none";
-    document.getElementById("quizDisplay").style.display = "block";
-    window.renderQuiz();
-};
-
-window.goBack = function() {
-    window.location.href = "dashboard.html";
-};
-
-/* RIGHT CLICK BLOCK */
-document.addEventListener("contextmenu", function(e) {
-    e.preventDefault();
-});
-
-/* COPY BLOCK */
-document.addEventListener("copy", function(e) {
-    e.preventDefault();
-});
-
-/* CUT BLOCK */
-document.addEventListener("cut", function(e) {
-    e.preventDefault();
-});
-
-/* PASTE BLOCK */
-document.addEventListener("paste", function(e) {
-    e.preventDefault();
-});
-
-/* TEXT SELECT BLOCK */
-document.addEventListener("selectstart", function(e) {
-    e.preventDefault();
-});
-
-/* DRAG BLOCK */
-document.addEventListener("dragstart", function(e) {
-    e.preventDefault();
-});
-
-/* SCREENSHOT SHORTCUT BLOCK */
-document.addEventListener("keydown", function(e) {
-
-    // Print Screen
-if (e.key === "PrintScreen") {
-
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText("");
-    }
-
-    alert("Screenshot Disabled");
-
-    e.preventDefault();
-}
-
-    // Ctrl+Shift+S
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "s") {
-        e.preventDefault();
-    }
-
-    // Ctrl+U
-    if (e.ctrlKey && e.key.toLowerCase() === "u") {
-        e.preventDefault();
-    }
-
-    // F12
-    if (e.key === "F12") {
-        e.preventDefault();
-    }
-
-    // Ctrl+Shift+I
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "i") {
-        e.preventDefault();
-    }
-
-    // Ctrl+Shift+J
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "j") {
-        e.preventDefault();
-    }
-
-    // Ctrl+S
-    if (e.ctrlKey && e.key.toLowerCase() === "s") {
-        e.preventDefault();
-    }
-
-});
-
-/* SCREEN RECORD WARNING */
-setInterval(() => {
-
-    if (document.hidden) {
-
-        console.log("Screen may be recording");
-
-    }
-
-}, 2000);
-
+    document.getElementById("yearSelect").onchange = fetchQuestions;
+    document.getElementById("postSelect").onchange = fetchQuestions;
+    document.getElementById("startQuizBtn").onclick = () => {
+        if(allQuestions.length === 0) return alert("Pehle Year aur Post select karke load hone dein!");
+        document.getElementById("paymentUI").style.display = "none";
+        document.getElementById("startQuizBtn").style.display = "none";
+        document.getElementById("quizDisplay").style.display = "block";
+        window.renderQuiz();
+    };
 </script>
 </body>
 </html>
