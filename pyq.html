@@ -38,35 +38,6 @@
             <option>PYQ 2026</option><option>Model Paper</option><option>Practice Set</option>
             <option>Mock Test</option>
         </select>
-        <!-- नया Circle Selector -->
-    <select id="circleSelect">
-        <option value="">सर्कल चुनें</option>
-        <option>All India</option>
-        <option>Andhra Pradesh</option>
-    <option>Assam</option>
-    <option>Bihar</option>
-    <option>Chhattisgarh</option>
-    <option>Delhi</option>
-    <option>Gujarat</option>
-    <option>Haryana</option>
-    <option>Himachal Pradesh</option>
-    <option>Jammu & Kashmir</option>
-    <option>Jharkhand</option>
-    <option>Karnataka</option>
-    <option>Kerala</option>
-    <option>Madhya Pradesh</option>
-    <option>Maharashtra</option>
-    <option>North East</option>
-    <option>Odisha</option>
-    <option>Punjab</option>
-    <option>Rajasthan</option>
-    <option>Tamil Nadu</option>
-    <option>Telangana</option>
-    <option>Uttar Pradesh</option>
-    <option>Uttarakhand</option>
-    <option>West Bengal</option>
-
-</select>
         <select id="postSelect">
             <option value="">पोस्ट चुनें</option>
             <option>MTS</option><option>POSTMAN</option><option>PA-SA</option>
@@ -192,16 +163,7 @@ ${currentIdx !== allQuestions.length - 1
             });
         }
     };
-/* Line 203 aur 205 ke beech mein ye paste karein */
 
-window.nav = function(step) {
-    const newIdx = currentIdx + step;
-    if (newIdx >= 0 && newIdx < allQuestions.length) {
-        currentIdx = newIdx;
-        window.renderQuiz();
-    }
-};
-    
     window.checkAns = function(btn, selected, correct) {
 
     const btns = document.querySelectorAll('.option');
@@ -372,25 +334,15 @@ window.nav = function(step) {
 };
 
     document.getElementById("openPdfBtn").onclick = () => {
+        const year = document.getElementById("yearSelect").value;
+        const post = document.getElementById("postSelect").value;
 
-    const year =
-    document.getElementById("yearSelect").value;
+        if(!currentUserEmail) return alert("Pehle login karein!");
+        if(!year || !post) return alert("Pehle Year aur Post select karein!");
 
-    const post =
-    document.getElementById("postSelect").value;
-
-    if(!currentUserEmail)
-        return alert("Pehle login karein!");
-
-    if(!year || !post)
-        return alert("Pehle Year aur Post select karein!");
-
-    const url =
-`${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
-
-    window.open(url, "_blank");
-
-};
+        const url = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
+        window.open(url, "_blank");
+    };
 
     document.getElementById("yearSelect").onchange = fetchQuestions;
     document.getElementById("postSelect").onchange = fetchQuestions;
