@@ -385,7 +385,7 @@ window.nav = function(step) {
     if (!year || !post) return alert("Pehle Year aur Post select karein!");
      // 1. तुरंत अलर्ट दिखाएं
     alert("Downloading shuru ho gayi hai! \n\nKripya 30 se 180 seconds tak wait karein, Server load ki wajah se samay lag sakta hai.");
-    const url = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
+    const url = `${BACKEND_URL}/get-pyq-pdf?email=${encodeURIComponent(currentUserEmail)}&year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
     
     try {
         console.log("Fetching URL:", url); // URL चेक करने के लिए
