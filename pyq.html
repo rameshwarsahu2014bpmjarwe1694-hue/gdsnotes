@@ -426,6 +426,11 @@ window.nav = function(step) {
     } catch (err) {
         console.error("Final Error Catch:", err); // सबसे महत्वपूर्ण लॉग
         alert("Asli Error: " + err.message);
+    } finally {
+        // काम खत्म होने पर बटन वापस सही करें
+        btn.disabled = false;
+        btn.textContent = "Open PDF";
+        btn.style.background = "var(--primary)";
     }
 };
 
