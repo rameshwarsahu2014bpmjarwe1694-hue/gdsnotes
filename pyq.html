@@ -447,7 +447,99 @@ document.getElementById("startQuizBtn").onclick = () => {
     document.getElementById("quizDisplay").style.display = "block";
     window.renderQuiz();
 };
+window.goBack = function() {
+    window.location.href = "dashboard.html";
+};
+
+/* RIGHT CLICK BLOCK */
+document.addEventListener("contextmenu", function(e) {
+    e.preventDefault();
+});
+
+/* COPY BLOCK */
+document.addEventListener("copy", function(e) {
+    e.preventDefault();
+});
+
+/* CUT BLOCK */
+document.addEventListener("cut", function(e) {
+    e.preventDefault();
+});
+
+/* PASTE BLOCK */
+document.addEventListener("paste", function(e) {
+    e.preventDefault();
+});
+
+/* TEXT SELECT BLOCK */
+document.addEventListener("selectstart", function(e) {
+    e.preventDefault();
+});
+
+/* DRAG BLOCK */
+document.addEventListener("dragstart", function(e) {
+    e.preventDefault();
+});
+
+/* SCREENSHOT SHORTCUT BLOCK */
+document.addEventListener("keydown", function(e) {
+
+    // Print Screen
+if (e.key === "PrintScreen") {
+
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText("");
+    }
+
+    alert("Screenshot Disabled");
+
+    e.preventDefault();
+}
+
+    // Ctrl+Shift+S
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+    }
+
+    // Ctrl+U
+    if (e.ctrlKey && e.key.toLowerCase() === "u") {
+        e.preventDefault();
+    }
+
+    // F12
+    if (e.key === "F12") {
+        e.preventDefault();
+    }
+
+    // Ctrl+Shift+I
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "i") {
+        e.preventDefault();
+    }
+
+    // Ctrl+Shift+J
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "j") {
+        e.preventDefault();
+    }
+
+    // Ctrl+S
+    if (e.ctrlKey && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+    }
+
+});
+
+/* SCREEN RECORD WARNING */
+setInterval(() => {
+
+    if (document.hidden) {
+
+        console.log("Screen may be recording");
+
+    }
+
+}, 2000);
 
 </script>
 </body>
 </html>
+
