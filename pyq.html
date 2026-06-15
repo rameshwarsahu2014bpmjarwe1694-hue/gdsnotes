@@ -371,8 +371,7 @@ ${currentIdx !== allQuestions.length - 1
 
 
 
-    document.getElementById("yearSelect").onchange = fetchQuestions;
-    document.getElementById("postSelect").onchange = fetchQuestions;
+    
     document.getElementById("startQuizBtn").onclick = () => {
         if(allQuestions.length === 0) return alert("Pehle Year aur Post select karke load hone dein!");
         document.getElementById("paymentUI").style.display = "none";
