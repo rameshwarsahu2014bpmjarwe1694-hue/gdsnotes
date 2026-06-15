@@ -231,7 +231,7 @@ window.handleSecureAccess = async (category, subject, title, fileName, price) =>
         return;
     }
 
-    const secureUrl = `${BACKEND_URL}/get-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
+    const secureUrl = `${BACKEND_URL}/get-notes-pdf?year=Notes&post=${encodeURIComponent(category)}&subject=${encodeURIComponent(subject)}`;
 
     try {
         const res = await fetch(secureUrl, {
