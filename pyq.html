@@ -380,7 +380,11 @@ window.nav = function(step) {
 
     if (!currentUserEmail) return alert("Pehle login karein!");
     if (!year || !post) return alert("Pehle Year aur Post select karein!");
-
+        
+     btn.disabled = true;
+     btn.textContent = "Please wait (30-90s)... Downloading...";
+     btn.style.background = "#6c757d";
+        
     const url = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
     
     try {
