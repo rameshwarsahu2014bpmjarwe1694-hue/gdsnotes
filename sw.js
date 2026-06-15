@@ -9,7 +9,10 @@ const ASSETS = [
   "./manifest.json",
   "./RSH.png",
   "./icon-192.png",
-  "./icon-512.png"
+  "./icon-512.png",
+  "./quiz.html",
+  "./pyq.html",
+  "./notes.html"
 ];
 
 self.addEventListener("install", (event) => {
