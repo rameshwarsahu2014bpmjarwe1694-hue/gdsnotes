@@ -447,9 +447,6 @@ document.getElementById("startQuizBtn").onclick = () => {
     document.getElementById("quizDisplay").style.display = "block";
     window.renderQuiz();
 };
-window.goBack = function() {
-    window.location.href = "dashboard.html";
-};
 
 /* RIGHT CLICK BLOCK */
 document.addEventListener("contextmenu", function(e) {
@@ -527,18 +524,6 @@ if (e.key === "PrintScreen") {
     }
 
 });
-
-/* SCREEN RECORD WARNING */
-setInterval(() => {
-
-    if (document.hidden) {
-
-        console.log("Screen may be recording");
-
-    }
-
-}, 2000);
-
 </script>
 </body>
 </html>
