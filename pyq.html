@@ -343,20 +343,30 @@ ${currentIdx !== allQuestions.length - 1
     const url = `${BACKEND_URL}/get-pdf?email=${encodeURIComponent(currentUserEmail)}&year=${encodeURIComponent(year)}&post=${encodeURIComponent(post)}`;
     
     try {
+        console.log("Fetching URL:", url); // URL चेक करने के लिए
+        
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'x-source-auth': 'RSH-GDS-SECURE-ACCESS' }
         });
 
+        console.log("Response status:", response.status); // स्टेटस चेक (200, 403, 500)
+
         // 1. रिस्पॉन्स की जांच करें
         if (!response.ok) {
-            const errorText = await response.text(); // JSON के बजाय text पढ़ें
+            const errorText = await response.text(); 
+            console.error("Server Error Response:", errorText); // एरर मैसेज लॉग करें
             throw new Error(`Server error: ${errorText}`);
         }
 
-        // 2. Blob में बदलने से पहले चेक करें कि क्या रिस्पॉन्स वाकई में PDF है
+        // 2. Blob में बदलने से पहले जांच
+        console.log("Response headers content-type:", response.headers.get("Content-Type"));
+        
         const blob = await response.blob();
+        console.log("Blob created successfully. Size:", blob.size, "Type:", blob.type);
+
         if (blob.type !== 'application/pdf') {
+            console.warn("Received blob is not a PDF!");
             throw new Error("Server ne PDF file nahi bheji, balki kuch aur data bheja hai.");
         }
 
@@ -366,19 +376,25 @@ ${currentIdx !== allQuestions.length - 1
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        console.log("Download triggered successfully.");
+
     } catch (err) {
-        alert("Asli Error: " + err.message); // अब आपको पता चलेगा कि असल में क्या एरर है
+        console.error("Final Error Catch:", err); // सबसे महत्वपूर्ण लॉग
+        alert("Asli Error: " + err.message);
     }
 };
-    document.getElementById("yearSelect").onchange = fetchQuestions;
-    document.getElementById("postSelect").onchange = fetchQuestions;
-    document.getElementById("startQuizBtn").onclick = () => {
-        if(allQuestions.length === 0) return alert("Pehle Year aur Post select karke load hone dein!");
-        document.getElementById("paymentUI").style.display = "none";
-        document.getElementById("startQuizBtn").style.display = "none";
-        document.getElementById("quizDisplay").style.display = "block";
-        window.renderQuiz();
-    };
+
+document.getElementById("yearSelect").onchange = fetchQuestions;
+document.getElementById("postSelect").onchange = fetchQuestions;
+document.getElementById("startQuizBtn").onclick = () => {
+    console.log("Start Quiz clicked. Questions length:", allQuestions.length);
+    if(allQuestions.length === 0) return alert("Pehle Year aur Post select karke load hone dein!");
+    document.getElementById("paymentUI").style.display = "none";
+    document.getElementById("startQuizBtn").style.display = "none";
+    document.getElementById("quizDisplay").style.display = "block";
+    window.renderQuiz();
+};
+
 </script>
 </body>
 </html>
