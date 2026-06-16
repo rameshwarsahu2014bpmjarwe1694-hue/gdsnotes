@@ -27,6 +27,13 @@ input {
 <button onclick="startProcess()">Create PDF</button>
 
 <script>
+    function toBase64(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+    });
+    }
     function updateProgress(msg, value) {
     const bar = document.getElementById("progressBar");
     const text = document.getElementById("progressText");
@@ -65,14 +72,9 @@ input {
     
 async function readPageNumber(img) {
 
-    // STEP 1 preprocessing (top & bottom crop ke liye canvas banayenge)
     const w = img.width;
     const h = img.height;
 
-    const topImg = new Image();
-    const bottomImg = new Image();
-
-    // temporary canvas for cropping
     const tempCanvas = document.createElement("canvas");
     const ctx = tempCanvas.getContext("2d");
 
@@ -81,7 +83,6 @@ async function readPageNumber(img) {
 
     ctx.drawImage(img, 0, 0);
 
-    // TOP crop canvas
     const topCanvas = document.createElement("canvas");
     topCanvas.width = w;
     topCanvas.height = h * 0.18;
@@ -89,7 +90,6 @@ async function readPageNumber(img) {
     const tctx = topCanvas.getContext("2d");
     tctx.drawImage(tempCanvas, 0, 0, w, h * 0.18, 0, 0, w, h * 0.18);
 
-    // BOTTOM crop canvas
     const bottomCanvas = document.createElement("canvas");
     bottomCanvas.width = w;
     bottomCanvas.height = h * 0.18;
@@ -97,30 +97,27 @@ async function readPageNumber(img) {
     const bctx = bottomCanvas.getContext("2d");
     bctx.drawImage(tempCanvas, 0, h * 0.82, w, h * 0.18, 0, 0, w, h * 0.18);
 
-    // 🔥 APPLY PREPROCESSING (STEP 1 FUNCTION USE)
-    const cleanTop = prepareCanvasFromImage(topCanvas, 1);
-    const cleanBottom = prepareCanvasFromImage(bottomCanvas, 1);
-
-    // OCR RUN
-    const top = await Tesseract.recognize(cleanTop, "eng");
-    const bottom = await Tesseract.recognize(cleanBottom, "eng");
+    const top = await Tesseract.recognize(topCanvas, "eng");
+    const bottom = await Tesseract.recognize(bottomCanvas, "eng");
 
     const t = top.data.text.match(/\d+/);
     const b = bottom.data.text.match(/\d+/);
 
-    if (t && b) {
-        return Number(t[0]);
-    }
-
+    if (t && b) return Number(t[0]);
     if (t) return Number(t[0]);
     if (b) return Number(b[0]);
 
     return null;
 }
+    
 async function makePDF(images) {
     const { jsPDF } = window.jspdf;
 
-    images.sort((a, b) => a.page - b.page);
+    images.sort((a, b) => {
+    const pa = a.page ?? 0;
+    const pb = b.page ?? 0;
+    return pa - pb;
+});
 
     const pdf = new jsPDF();
 
@@ -158,12 +155,18 @@ async function process(files) {
         await new Promise(r => img.onload = r);
 
         const page = await readPageNumber(img);
+        if (page === null || isNaN(page)) {
+    return {
+        page: 999999,
+        data: base64
+    };
+}
 
-        URL.revokeObjectURL(url);
-
+        const base64 = await toBase64(file);
+const page = await readPageNumber(img);
         return {
             page,
-            data: url
+            data: base64
         };
     });
 
@@ -173,7 +176,7 @@ async function process(files) {
 
     await makePDF(arr);
 }
-
+    
 function startProcess() {
     const files = document.getElementById("files").files;
     if (!files.length) {
