@@ -34,10 +34,6 @@ input {
     bar.value = value;
     text.innerText = `${msg} - ${Math.round(value)}%`;
 }
-    let currentProgress = 0;
-
-function smoothProgress(target) {
-    let currentProgress = 0;
 
 function smoothProgress(target) {
     const bar = document.getElementById("progressBar");
@@ -193,7 +189,11 @@ async function process(files) {
 
         return {
             page,
-            data: img.src
+            const url = URL.createObjectURL(file);
+
+img.src = url;
+...
+return { page, data: url };
         };
     });
 
