@@ -33,33 +33,7 @@ input {
 
     bar.value = value;
     text.innerText = `${msg} - ${Math.round(value)}%`;
-}
-
-function smoothProgress(target) {
-    const bar = document.getElementById("progressBar");
-
-    const interval = setInterval(() => {
-        if (currentProgress >= target) {
-            clearInterval(interval);
-            return;
-        }
-
-        currentProgress += 1;
-        bar.value = currentProgress;
-    }, 10);
-}
-    const bar = document.getElementById("progressBar");
-
-    const interval = setInterval(() => {
-        if (currentProgress >= target) {
-            clearInterval(interval);
-            return;
-        }
-
-        currentProgress += 1;
-        bar.value = currentProgress;
-    }, 10);
-}
+}     
     function prepareCanvasFromImage(img, scale = 1) {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
