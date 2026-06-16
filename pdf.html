@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Image to Sorted PDF (OCR)</title>
+<title>Smart OCR PDF (Sorted)</title>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -12,90 +12,94 @@ body {
     font-family: Arial;
     padding: 20px;
 }
-input {
-    margin-bottom: 15px;
+
+progress {
+    width: 100%;
+    height: 20px;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>Image to Sorted PDF (OCR Page Detect)</h2>
-<progress id="progressBar" value="0" max="100" style="width:100%; height:20px;"></progress>
+<h2>Smart Image → Sorted PDF (OCR)</h2>
+
+<progress id="progressBar" value="0" max="100"></progress>
 <p id="progressText">Waiting...</p>
+
 <input type="file" id="files" multiple accept="image/*">
 <button onclick="startProcess()">Create PDF</button>
 
 <script>
-    function toBase64(file) {
+
+let progress = 0;
+
+/* ---------------- PROGRESS ---------------- */
+function updateProgress(msg, value) {
+    document.getElementById("progressBar").value = value;
+    document.getElementById("progressText").innerText = `${msg} ${Math.round(value)}%`;
+}
+
+/* ---------------- BASE64 ---------------- */
+function toBase64(file) {
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
         reader.readAsDataURL(file);
     });
-    }
-    function updateProgress(msg, value) {
-    const bar = document.getElementById("progressBar");
-    const text = document.getElementById("progressText");
+}
 
-    bar.value = value;
-    text.innerText = `${msg} - ${Math.round(value)}%`;
-}     
-    function prepareCanvasFromImage(img, scale = 1) {
+/* ---------------- IMAGE CLEAN ---------------- */
+function prepareCanvasFromImage(img) {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
-    canvas.width = img.width * scale;
-    canvas.height = img.height * scale;
-
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    // grayscale + contrast boost
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imgData.data;
-
-    for (let i = 0; i < data.length; i += 4) {
-        let avg = (data[i] + data[i+1] + data[i+2]) / 3;
-
-        // grayscale
-        avg = avg * 1.2; // contrast boost
-
-        avg = avg > 140 ? 255 : 0; // threshold clean text
-
-        data[i] = data[i+1] = data[i+2] = avg;
-    }
-
-    ctx.putImageData(imgData, 0, 0);
-
-    return canvas;
-    }
-    
-async function readPageNumber(img) {
-
-    const w = img.width;
-    const h = img.height;
-
-    const tempCanvas = document.createElement("canvas");
-    const ctx = tempCanvas.getContext("2d");
-
-    tempCanvas.width = w;
-    tempCanvas.height = h;
+    canvas.width = img.width;
+    canvas.height = img.height;
 
     ctx.drawImage(img, 0, 0);
 
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < data.data.length; i += 4) {
+        let avg = (data.data[i] + data.data[i+1] + data.data[i+2]) / 3;
+        avg = avg > 150 ? 255 : 0;
+
+        data.data[i] = data.data[i+1] = data.data[i+2] = avg;
+    }
+
+    ctx.putImageData(data, 0, 0);
+
+    return canvas;
+}
+
+/* ---------------- OCR ---------------- */
+async function readPageNumber(img) {
+
+    const h = img.height;
+    const w = img.width;
+
+    const canvas = prepareCanvasFromImage(img);
+
     const topCanvas = document.createElement("canvas");
+    const bottomCanvas = document.createElement("canvas");
+
     topCanvas.width = w;
     topCanvas.height = h * 0.18;
 
-    const tctx = topCanvas.getContext("2d");
-    tctx.drawImage(tempCanvas, 0, 0, w, h * 0.18, 0, 0, w, h * 0.18);
-
-    const bottomCanvas = document.createElement("canvas");
     bottomCanvas.width = w;
     bottomCanvas.height = h * 0.18;
 
+    const tctx = topCanvas.getContext("2d");
     const bctx = bottomCanvas.getContext("2d");
-    bctx.drawImage(tempCanvas, 0, h * 0.82, w, h * 0.18, 0, 0, w, h * 0.18);
+
+    tctx.drawImage(canvas, 0, 0, w, h * 0.18, 0, 0, w, h * 0.18);
+    bctx.drawImage(canvas, 0, h * 0.82, w, h * 0.18, 0, 0, w, h * 0.18);
 
     const top = await Tesseract.recognize(topCanvas, "eng");
     const bottom = await Tesseract.recognize(bottomCanvas, "eng");
@@ -103,49 +107,40 @@ async function readPageNumber(img) {
     const t = top.data.text.match(/\d+/);
     const b = bottom.data.text.match(/\d+/);
 
-    if (t && b) return Number(t[0]);
     if (t) return Number(t[0]);
     if (b) return Number(b[0]);
 
-    return null;
+    return 999999;
 }
-    
+
+/* ---------------- PDF ---------------- */
 async function makePDF(images) {
+
     const { jsPDF } = window.jspdf;
 
-    images.sort((a, b) => {
-    const pa = a.page ?? 0;
-    const pb = b.page ?? 0;
-    return pa - pb;
-});
+    images.sort((a, b) => a.page - b.page);
 
     const pdf = new jsPDF();
 
-    images.forEach((item, index) => {
-        if (index > 0) pdf.addPage();
+    images.forEach((item, i) => {
+        if (i > 0) pdf.addPage();
 
         const w = pdf.internal.pageSize.getWidth();
         const h = pdf.internal.pageSize.getHeight();
 
-        pdf.addImage(
-            item.data,
-            "JPEG",
-            0,
-            0,
-            w,
-            h,
-            "",
-            "FAST"
-        );
+        pdf.addImage(item.data, "JPEG", 0, 0, w, h);
     });
 
     pdf.save("Sorted.pdf");
 }
 
+/* ---------------- PROCESS ---------------- */
 async function process(files) {
-    const arr = [];
 
-    const tasks = [...files].map(async (file) => {
+    const arr = [];
+    let done = 0;
+
+    for (const file of files) {
 
         const url = URL.createObjectURL(file);
 
@@ -155,36 +150,35 @@ async function process(files) {
         await new Promise(r => img.onload = r);
 
         const page = await readPageNumber(img);
-        if (page === null || isNaN(page)) {
-    return {
-        page: 999999,
-        data: base64
-    };
-}
-
         const base64 = await toBase64(file);
-const page = await readPageNumber(img);
-        return {
+
+        URL.revokeObjectURL(url);
+
+        arr.push({
             page,
             data: base64
-        };
-    });
+        });
 
-    const results = await Promise.all(tasks);
-
-    arr.push(...results);
+        done++;
+        updateProgress("Processing", (done / files.length) * 100);
+    }
 
     await makePDF(arr);
 }
-    
+
+/* ---------------- START ---------------- */
 function startProcess() {
+
     const files = document.getElementById("files").files;
+
     if (!files.length) {
         alert("Select images first");
         return;
     }
+
     process(files);
 }
+
 </script>
 
 </body>
