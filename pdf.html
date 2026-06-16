@@ -174,26 +174,22 @@ async function makePDF(images) {
 async function process(files) {
     const arr = [];
 
-    // 🚀 parallel OCR tasks
     const tasks = [...files].map(async (file) => {
 
+        const url = URL.createObjectURL(file);
+
         const img = new Image();
-        img.src = URL.createObjectURL(file);
+        img.src = url;
 
         await new Promise(r => img.onload = r);
 
         const page = await readPageNumber(img);
 
-        // memory cleanup (IMPORTANT)
-        URL.revokeObjectURL(img.src);
+        URL.revokeObjectURL(url);
 
         return {
             page,
-            const url = URL.createObjectURL(file);
-
-img.src = url;
-...
-return { page, data: url };
+            data: url
         };
     });
 
