@@ -26,6 +26,34 @@ input {
 <button onclick="startProcess()">Create PDF</button>
 
 <script>
+    function prepareCanvasFromImage(img, scale = 1) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // grayscale + contrast boost
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imgData.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+        let avg = (data[i] + data[i+1] + data[i+2]) / 3;
+
+        // grayscale
+        avg = avg * 1.2; // contrast boost
+
+        avg = avg > 140 ? 255 : 0; // threshold clean text
+
+        data[i] = data[i+1] = data[i+2] = avg;
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+
+    return canvas;
+    }
 async function readPageNumber(img) {
     const topCanvas = document.createElement("canvas");
     const bottomCanvas = document.createElement("canvas");
