@@ -134,37 +134,42 @@ async function makePDF(images) {
     pdf.save("Sorted.pdf");
 }
 
-/* ---------------- PROCESS ---------------- */
 async function process(files) {
-
     const arr = [];
     let done = 0;
 
     for (const file of files) {
-
         const url = URL.createObjectURL(file);
-
         const img = new Image();
         img.src = url;
-
         await new Promise(r => img.onload = r);
 
         const page = await readPageNumber(img);
         const base64 = await toBase64(file);
-
         URL.revokeObjectURL(url);
 
-        arr.push({
-            page,
-            data: base64
-        });
-
+        arr.push({ page, data: base64 });
         done++;
         updateProgress("Processing", (done / files.length) * 100);
     }
 
-    await makePDF(arr);
+    // DUPLICATE REMOVAL & SORTING LOGIC
+    const uniqueMap = new Map();
+    arr.forEach(item => {
+        // Sirf unhi pages ko rakhega jinka number detect hua hai
+        // Aur duplicate page numbers ko ignore kar dega
+        if (!uniqueMap.has(item.page)) {
+            uniqueMap.set(item.page, item);
+        }
+    });
+
+    // Map se array mein convert karke ascending order mein sort karna
+    const sortedArr = Array.from(uniqueMap.values()).sort((a, b) => a.page - b.page);
+    
+    await makePDF(sortedArr);
+    alert("PDF Created Successfully!");
 }
+
 
 /* ---------------- START ---------------- */
 function startProcess() {
