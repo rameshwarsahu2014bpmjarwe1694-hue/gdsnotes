@@ -147,10 +147,6 @@ async function readPageNumber(img) {
 
     return null;
 }
-
-    const top = await Tesseract.recognize(topCanvas, "eng");
-    
-
 async function makePDF(images) {
     const { jsPDF } = window.jspdf;
 
