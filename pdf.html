@@ -54,35 +54,62 @@ input {
 
     return canvas;
     }
+    
 async function readPageNumber(img) {
-    const topCanvas = document.createElement("canvas");
-    const bottomCanvas = document.createElement("canvas");
+    async function readPageNumber(img) {
 
+    // STEP 1 preprocessing (top & bottom crop ke liye canvas banayenge)
     const w = img.width;
     const h = img.height;
 
+    const topImg = new Image();
+    const bottomImg = new Image();
+
+    // temporary canvas for cropping
+    const tempCanvas = document.createElement("canvas");
+    const ctx = tempCanvas.getContext("2d");
+
+    tempCanvas.width = w;
+    tempCanvas.height = h;
+
+    ctx.drawImage(img, 0, 0);
+
+    // TOP crop canvas
+    const topCanvas = document.createElement("canvas");
     topCanvas.width = w;
     topCanvas.height = h * 0.18;
 
+    const tctx = topCanvas.getContext("2d");
+    tctx.drawImage(tempCanvas, 0, 0, w, h * 0.18, 0, 0, w, h * 0.18);
+
+    // BOTTOM crop canvas
+    const bottomCanvas = document.createElement("canvas");
     bottomCanvas.width = w;
     bottomCanvas.height = h * 0.18;
 
-    const tctx = topCanvas.getContext("2d");
     const bctx = bottomCanvas.getContext("2d");
+    bctx.drawImage(tempCanvas, 0, h * 0.82, w, h * 0.18, 0, 0, w, h * 0.18);
 
-    tctx.drawImage(img, 0, 0, w, h * 0.18);
+    // 🔥 APPLY PREPROCESSING (STEP 1 FUNCTION USE)
+    const cleanTop = prepareCanvasFromImage(topCanvas, 1);
+    const cleanBottom = prepareCanvasFromImage(bottomCanvas, 1);
 
-    bctx.drawImage(
-        img,
-        0,
-        h * 0.82,
-        w,
-        h * 0.18,
-        0,
-        0,
-        w,
-        h * 0.18
-    );
+    // OCR RUN
+    const top = await Tesseract.recognize(cleanTop, "eng");
+    const bottom = await Tesseract.recognize(cleanBottom, "eng");
+
+    const t = top.data.text.match(/\d+/);
+    const b = bottom.data.text.match(/\d+/);
+
+    if (t && b) {
+        return Number(t[0]);
+    }
+
+    if (t) return Number(t[0]);
+    if (b) return Number(b[0]);
+
+    return null;
+}
 
     const top = await Tesseract.recognize(topCanvas, "eng");
     const bottom = await Tesseract.recognize(bottomCanvas, "eng");
@@ -133,7 +160,9 @@ async function makePDF(images) {
 async function process(files) {
     const arr = [];
 
-    for (const file of files) {
+    // 🚀 parallel OCR tasks
+    const tasks = [...files].map(async (file) => {
+
         const img = new Image();
         img.src = URL.createObjectURL(file);
 
@@ -141,11 +170,18 @@ async function process(files) {
 
         const page = await readPageNumber(img);
 
-        arr.push({
+        // memory cleanup (IMPORTANT)
+        URL.revokeObjectURL(img.src);
+
+        return {
             page,
             data: img.src
-        });
-    }
+        };
+    });
+
+    const results = await Promise.all(tasks);
+
+    arr.push(...results);
 
     await makePDF(arr);
 }
