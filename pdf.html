@@ -21,11 +21,49 @@ input {
 <body>
 
 <h2>Image to Sorted PDF (OCR Page Detect)</h2>
-
+<progress id="progressBar" value="0" max="100" style="width:100%; height:20px;"></progress>
+<p id="progressText">Waiting...</p>
 <input type="file" id="files" multiple accept="image/*">
 <button onclick="startProcess()">Create PDF</button>
 
 <script>
+    function updateProgress(msg, value) {
+    const bar = document.getElementById("progressBar");
+    const text = document.getElementById("progressText");
+
+    bar.value = value;
+    text.innerText = `${msg} - ${Math.round(value)}%`;
+}
+    let currentProgress = 0;
+
+function smoothProgress(target) {
+    let currentProgress = 0;
+
+function smoothProgress(target) {
+    const bar = document.getElementById("progressBar");
+
+    const interval = setInterval(() => {
+        if (currentProgress >= target) {
+            clearInterval(interval);
+            return;
+        }
+
+        currentProgress += 1;
+        bar.value = currentProgress;
+    }, 10);
+}
+    const bar = document.getElementById("progressBar");
+
+    const interval = setInterval(() => {
+        if (currentProgress >= target) {
+            clearInterval(interval);
+            return;
+        }
+
+        currentProgress += 1;
+        bar.value = currentProgress;
+    }, 10);
+}
     function prepareCanvasFromImage(img, scale = 1) {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -56,7 +94,6 @@ input {
     }
     
 async function readPageNumber(img) {
-    async function readPageNumber(img) {
 
     // STEP 1 preprocessing (top & bottom crop ke liye canvas banayenge)
     const w = img.width;
