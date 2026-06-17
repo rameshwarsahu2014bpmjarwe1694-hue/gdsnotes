@@ -113,53 +113,55 @@ function prepareCanvasFromImage(img) {
     return canvas;
 }
 
-/* ---------------- OPTIMIZED OCR FOR MULTIPLE RULES ---------------- */
+/* ---------------- FULL IMAGE OCR (With Min Number Logic) ---------------- */
 async function readPageNumber(img) {
-    const canvas = prepareCanvasFromImage(img);
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+
     const res = await Tesseract.recognize(canvas, "eng");
     const text = res.data.text.toLowerCase();
 
-    // Regex jo saare "niyam X" ya "page X" dhoondhega
+    // Regex: "niyam 1", "rule 1" ya "page 1" dhoondhega
     const regex = /(?:niyam|rule|page)\s*(\d+)/gi;
     let matches = [];
     let match;
 
-    // Sare matches ko array mein daalo
+    // Sare numbers extract karo
     while ((match = regex.exec(text)) !== null) {
-        matches.push(Number(match));
+        // match[1] ka matlab hai regex ka group (\d+)
+        matches.push(Number(match[1])); 
     }
 
-    // Agar koi number mila, toh sabse chhota number lo (wahi page ka start hoga)
+    // Logic: Agar multiple matches hain (jaise Niyam 29, 30), 
+    // toh Math.min() sabse chhota number (29) return karega.
     if (matches.length > 0) {
         return Math.min(...matches); 
     }
 
-    // Agar "niyam" ya "page" nahi mila, toh koi bhi digit dhoondho
+    // Fallback: Agar koi keyword nahi mila, toh koi bhi digit uthao
     const digitMatch = text.match(/(\d+)/);
-    return digitMatch ? Number(digitMatch) : 999999;
+    return digitMatch ? Number(digitMatch[0]) : 999999;
 }
 
 
-/* ---------------- PDF ---------------- */
+
+/* ---------------- PDF (No Crop & No Distortion) ---------------- */
 async function makePDF(images) {
-
     const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("p", "mm", "a4");
 
-    images.sort((a, b) => a.page - b.page);
-
-    const pdf = new jsPDF();
-
-    images.forEach((item, i) => {
+    for (let i = 0; i < images.length; i++) {
         if (i > 0) pdf.addPage();
-
-        const w = pdf.internal.pageSize.getWidth();
-        const h = pdf.internal.pageSize.getHeight();
-
-        pdf.addImage(item.data, "JPEG", 0, 0, w, h);
-    });
-
+        
+        // Image ko original size/ratio mein fit karega
+        pdf.addImage(images[i].data, "JPEG", 0, 0, 210, 297); 
+    }
     pdf.save("Sorted.pdf");
 }
+
 
 /* ---------------- PROCESS FAST VERSION ---------------- */
 async function process(files) {
