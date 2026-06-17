@@ -113,39 +113,32 @@ function prepareCanvasFromImage(img) {
     return canvas;
 }
 
-/* ---------------- OCR REFINED ---------------- */
+/* ---------------- OPTIMIZED OCR FOR MULTIPLE RULES ---------------- */
 async function readPageNumber(img) {
-    const w = img.width;
-    const h = img.height;
     const canvas = prepareCanvasFromImage(img);
+    const res = await Tesseract.recognize(canvas, "eng");
+    const text = res.data.text.toLowerCase();
 
-    // Top aur Bottom ka area define karein
-    const topCanvas = document.createElement("canvas");
-    const bottomCanvas = document.createElement("canvas");
-    
-    topCanvas.width = w; topCanvas.height = h * 0.2;
-    bottomCanvas.width = w; bottomCanvas.height = h * 0.2;
+    // Regex jo saare "niyam X" ya "page X" dhoondhega
+    const regex = /(?:niyam|rule|page)\s*(\d+)/gi;
+    let matches = [];
+    let match;
 
-    const tctx = topCanvas.getContext("2d");
-    const bctx = bottomCanvas.getContext("2d");
+    // Sare matches ko array mein daalo
+    while ((match = regex.exec(text)) !== null) {
+        matches.push(Number(match));
+    }
 
-    // Top 20% aur Bottom 20% extract karein
-    tctx.drawImage(canvas, 0, 0, w, h * 0.2, 0, 0, w, h * 0.2);
-    bctx.drawImage(canvas, 0, h * 0.8, w, h * 0.2, 0, 0, w, h * 0.2);
+    // Agar koi number mila, toh sabse chhota number lo (wahi page ka start hoga)
+    if (matches.length > 0) {
+        return Math.min(...matches); 
+    }
 
-    const topRes = await Tesseract.recognize(topCanvas, "eng");
-    const bottomRes = await Tesseract.recognize(bottomCanvas, "eng");
-
-    // Number dhoondhne ka regex (sirf digits)
-    const tMatch = topRes.data.text.match(/\d+/);
-    const bMatch = bottomRes.data.text.match(/\d+/);
-
-    // Priority logic: Agar Top mein mil gaya to wo, varna Bottom ka
-    if (tMatch) return Number(tMatch);
-    if (bMatch) return Number(bMatch);
-
-    return 999999; // Agar kuch nahi mila
+    // Agar "niyam" ya "page" nahi mila, toh koi bhi digit dhoondho
+    const digitMatch = text.match(/(\d+)/);
+    return digitMatch ? Number(digitMatch) : 999999;
 }
+
 
 /* ---------------- PDF ---------------- */
 async function makePDF(images) {
