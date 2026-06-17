@@ -113,7 +113,7 @@ function prepareCanvasFromImage(img) {
     return canvas;
 }
 
-/* ---------------- FULL IMAGE OCR (With Min Number Logic) ---------------- */
+/* ---------------- TARGETED OCR (Only Page Number Focus) ---------------- */
 async function readPageNumber(img) {
     const canvas = document.createElement("canvas");
     canvas.width = img.naturalWidth;
@@ -121,45 +121,50 @@ async function readPageNumber(img) {
     const ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0);
 
-    const res = await Tesseract.recognize(canvas, "eng");
-    const text = res.data.text.toLowerCase();
+    // Scan area: Top 20% aur Bottom 20% center
+    const w = canvas.width;
+    const h = canvas.height;
+    const areas = [
+        { x: w * 0.3, y: 0, w: w * 0.4, h: h * 0.25 },     // Top Center
+        { x: w * 0.3, y: h * 0.75, w: w * 0.4, h: h * 0.25 } // Bottom Center
+    ];
 
-    // Regex: "niyam 1", "rule 1" ya "page 1" dhoondhega
-    const regex = /(?:niyam|rule|page)\s*(\d+)/gi;
-    let matches = [];
-    let match;
+    let pageNumbers = [];
 
-    // Sare numbers extract karo
-    while ((match = regex.exec(text)) !== null) {
-        // match[1] ka matlab hai regex ka group (\d+)
-        matches.push(Number(match[1])); 
+    for (const area of areas) {
+        const areaCanvas = document.createElement("canvas");
+        areaCanvas.width = area.w;
+        areaCanvas.height = area.h;
+        areaCanvas.getContext("2d").drawImage(canvas, area.x, area.y, area.w, area.h, 0, 0, area.w, area.h);
+        
+        // Tesseract sirf "Page" aur numbers par focus karega
+        const res = await Tesseract.recognize(areaCanvas, "eng", {
+            tessedit_char_whitelist: '0123456789page'
+        });
+        
+        const text = res.data.text.toLowerCase();
+        // Sirf "page X" pattern dhoondho
+        const regex = /page\s*(\d+)/gi;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+            pageNumbers.push(Number(match));
+        }
     }
 
-    // Logic: Agar multiple matches hain (jaise Niyam 29, 30), 
-    // toh Math.min() sabse chhota number (29) return karega.
-    if (matches.length > 0) {
-        return Math.min(...matches); 
-    }
-
-    // Fallback: Agar koi keyword nahi mila, toh koi bhi digit uthao
-    const digitMatch = text.match(/(\d+)/);
-    return digitMatch ? Number(digitMatch[0]) : 999999;
+    return pageNumbers.length > 0 ? Math.min(...pageNumbers) : 999999;
 }
 
-
-
-/* ---------------- PDF (No Crop & No Distortion) ---------------- */
+/* ---------------- PDF (Original Quality, No Crop) ---------------- */
 async function makePDF(images) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF("p", "mm", "a4");
 
     for (let i = 0; i < images.length; i++) {
         if (i > 0) pdf.addPage();
-        
-        // Image ko original size/ratio mein fit karega
+        // Original Quality Maintain Rakhi Hai
         pdf.addImage(images[i].data, "JPEG", 0, 0, 210, 297); 
     }
-    pdf.save("Sorted.pdf");
+    pdf.save("Sorted_Pages.pdf");
 }
 
 
