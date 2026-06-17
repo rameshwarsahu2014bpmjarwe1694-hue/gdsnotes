@@ -113,39 +113,38 @@ function prepareCanvasFromImage(img) {
     return canvas;
 }
 
-/* ---------------- OCR ---------------- */
+/* ---------------- OCR REFINED ---------------- */
 async function readPageNumber(img) {
-
-    const h = img.height;
     const w = img.width;
-
+    const h = img.height;
     const canvas = prepareCanvasFromImage(img);
 
+    // Top aur Bottom ka area define karein
     const topCanvas = document.createElement("canvas");
     const bottomCanvas = document.createElement("canvas");
-
-    topCanvas.width = w;
-    topCanvas.height = h * 0.18;
-
-    bottomCanvas.width = w;
-    bottomCanvas.height = h * 0.18;
+    
+    topCanvas.width = w; topCanvas.height = h * 0.2;
+    bottomCanvas.width = w; bottomCanvas.height = h * 0.2;
 
     const tctx = topCanvas.getContext("2d");
     const bctx = bottomCanvas.getContext("2d");
 
-    tctx.drawImage(canvas, 0, 0, w, h * 0.18, 0, 0, w, h * 0.18);
-    bctx.drawImage(canvas, 0, h * 0.82, w, h * 0.18, 0, 0, w, h * 0.18);
+    // Top 20% aur Bottom 20% extract karein
+    tctx.drawImage(canvas, 0, 0, w, h * 0.2, 0, 0, w, h * 0.2);
+    bctx.drawImage(canvas, 0, h * 0.8, w, h * 0.2, 0, 0, w, h * 0.2);
 
-    const top = await Tesseract.recognize(topCanvas, "eng");
-    const bottom = await Tesseract.recognize(bottomCanvas, "eng");
+    const topRes = await Tesseract.recognize(topCanvas, "eng");
+    const bottomRes = await Tesseract.recognize(bottomCanvas, "eng");
 
-    const t = top.data.text.match(/\d+/);
-    const b = bottom.data.text.match(/\d+/);
+    // Number dhoondhne ka regex (sirf digits)
+    const tMatch = topRes.data.text.match(/\d+/);
+    const bMatch = bottomRes.data.text.match(/\d+/);
 
-    if (t) return Number(t[0]);
-    if (b) return Number(b[0]);
+    // Priority logic: Agar Top mein mil gaya to wo, varna Bottom ka
+    if (tMatch) return Number(tMatch);
+    if (bMatch) return Number(bMatch);
 
-    return 999999;
+    return 999999; // Agar kuch nahi mila
 }
 
 /* ---------------- PDF ---------------- */
@@ -169,6 +168,7 @@ async function makePDF(images) {
     pdf.save("Sorted.pdf");
 }
 
+/* ---------------- PROCESS REFINED ---------------- */
 async function process(files) {
     const arr = [];
     let done = 0;
@@ -183,26 +183,30 @@ async function process(files) {
         const base64 = await toBase64(file);
         URL.revokeObjectURL(url);
 
-        arr.push({ page, data: base64 });
+        // Sirf unhi ko lein jo valid page number hain, 
+        // ya agar page number nahi mila to use manual review ke liye end mein rakhein
+        arr.push({ page, data: base64, originalName: file.name });
+        
         done++;
         updateProgress("Processing", (done / files.length) * 100);
     }
 
-    // DUPLICATE REMOVAL & SORTING LOGIC
-    const uniqueMap = new Map();
+    // SORTING LOGIC: Page numbers ke according sort karein
+    arr.sort((a, b) => a.page - b.page);
+
+    // DEDUPLICATION: Agar same page number do baar aaye to pehla wala rakhein
+    const finalArr = [];
+    const seen = new Set();
+    
     arr.forEach(item => {
-        // Sirf unhi pages ko rakhega jinka number detect hua hai
-        // Aur duplicate page numbers ko ignore kar dega
-        if (!uniqueMap.has(item.page)) {
-            uniqueMap.set(item.page, item);
+        if (!seen.has(item.page)) {
+            finalArr.push(item);
+            seen.add(item.page);
         }
     });
 
-    // Map se array mein convert karke ascending order mein sort karna
-    const sortedArr = Array.from(uniqueMap.values()).sort((a, b) => a.page - b.page);
-    
-    await makePDF(sortedArr);
-    alert("PDF Created Successfully!");
+    await makePDF(finalArr);
+    alert("PDF " + finalArr.length + " pages ke saath generate ho gayi!");
 }
 
 
