@@ -168,46 +168,49 @@ async function makePDF(images) {
     pdf.save("Sorted.pdf");
 }
 
-/* ---------------- PROCESS REFINED ---------------- */
+/* ---------------- PROCESS FAST VERSION ---------------- */
 async function process(files) {
     const arr = [];
+    const fileList = Array.from(files);
     let done = 0;
 
-    for (const file of files) {
-        const url = URL.createObjectURL(file);
-        const img = new Image();
-        img.src = url;
-        await new Promise(r => img.onload = r);
-
-        const page = await readPageNumber(img);
-        const base64 = await toBase64(file);
-        URL.revokeObjectURL(url);
-
-        // Sirf unhi ko lein jo valid page number hain, 
-        // ya agar page number nahi mila to use manual review ke liye end mein rakhein
-        arr.push({ page, data: base64, originalName: file.name });
+    // Concurrency limit: Ek baar mein sirf 3 images process karein (Taaki browser hang na ho)
+    const limit = 3; 
+    
+    for (let i = 0; i < fileList.length; i += limit) {
+        const batch = fileList.slice(i, i + limit);
         
-        done++;
-        updateProgress("Processing", (done / files.length) * 100);
+        // Batch ki saari images parallel process karein
+        const batchPromises = batch.map(async (file) => {
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.src = url;
+            await new Promise(r => img.onload = r);
+
+            const page = await readPageNumber(img);
+            const base64 = await toBase64(file);
+            URL.revokeObjectURL(url);
+            
+            return { page, data: base64, originalName: file.name };
+        });
+
+        const results = await Promise.all(batchPromises);
+        arr.push(...results);
+        
+        done += results.length;
+        updateProgress("Processing", (done / fileList.length) * 100);
     }
 
-    // SORTING LOGIC: Page numbers ke according sort karein
-    arr.sort((a, b) => a.page - b.page);
-
-    // DEDUPLICATION: Agar same page number do baar aaye to pehla wala rakhein
-    const finalArr = [];
-    const seen = new Set();
-    
-    arr.forEach(item => {
-        if (!seen.has(item.page)) {
-            finalArr.push(item);
-            seen.add(item.page);
-        }
+    // SORTING & DEDUPLICATION
+    const uniqueMap = new Map();
+    arr.sort((a, b) => a.page - b.page).forEach(item => {
+        if (!uniqueMap.has(item.page)) uniqueMap.set(item.page, item);
     });
 
-    await makePDF(finalArr);
-    alert("PDF " + finalArr.length + " pages ke saath generate ho gayi!");
+    await makePDF(Array.from(uniqueMap.values()));
+    alert("PDF " + uniqueMap.size + " pages ke saath ban gayi!");
 }
+
 
 
 /* ---------------- START ---------------- */
