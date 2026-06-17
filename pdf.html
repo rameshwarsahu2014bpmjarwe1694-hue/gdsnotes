@@ -113,23 +113,25 @@ function prepareCanvasFromImage(img) {
     return canvas;
 }
 
-/* ---------------- TARGETED OCR (Only Page Number Focus) ---------------- */
-async function readPageNumber(img) {
+/* ---------------- FINAL: TOP & BOTTOM 50% SCAN LOGIC ---------------- */
+
+async function readPageNumber(img, index) {
     const canvas = document.createElement("canvas");
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
     const ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0);
 
-    // Scan area: Top 20% aur Bottom 20% center
     const w = canvas.width;
     const h = canvas.height;
+    
+    // Top aur Bottom 50% (50% center area) scan karna
     const areas = [
-        { x: w * 0.3, y: 0, w: w * 0.4, h: h * 0.25 },     // Top Center
-        { x: w * 0.3, y: h * 0.75, w: w * 0.4, h: h * 0.25 } // Bottom Center
+        { x: 0, y: 0, w: w, h: h * 0.5 },     // Top 50%
+        { x: 0, y: h * 0.5, w: w, h: h * 0.5 } // Bottom 50%
     ];
 
-    let pageNumbers = [];
+    let matches = [];
 
     for (const area of areas) {
         const areaCanvas = document.createElement("canvas");
@@ -137,82 +139,58 @@ async function readPageNumber(img) {
         areaCanvas.height = area.h;
         areaCanvas.getContext("2d").drawImage(canvas, area.x, area.y, area.w, area.h, 0, 0, area.w, area.h);
         
-        // Tesseract sirf "Page" aur numbers par focus karega
-        const res = await Tesseract.recognize(areaCanvas, "eng", {
-            tessedit_char_whitelist: '0123456789page'
-        });
-        
+        const res = await Tesseract.recognize(areaCanvas, "eng");
         const text = res.data.text.toLowerCase();
-        // Sirf "page X" pattern dhoondho
-        const regex = /page\s*(\d+)/gi;
+
+        const regex = /(?:page\s*)?(\d+)/gi;
         let match;
         while ((match = regex.exec(text)) !== null) {
-            pageNumbers.push(Number(match));
+            // Sahi extraction: match use kiya hai
+            const val = Number(match); 
+            if (val > 0 && val < 500) {
+                matches.push(val);
+            }
         }
     }
 
-    return pageNumbers.length > 0 ? Math.min(...pageNumbers) : 999999;
+    return matches.length > 0 ? Math.min(...matches) : (1000 + index);
 }
 
-/* ---------------- PDF (Original Quality, No Crop) ---------------- */
-async function makePDF(images) {
+async function makePDF(allData) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF("p", "mm", "a4");
 
-    for (let i = 0; i < images.length; i++) {
+    for (let i = 0; i < allData.length; i++) {
         if (i > 0) pdf.addPage();
-        // Original Quality Maintain Rakhi Hai
-        pdf.addImage(images[i].data, "JPEG", 0, 0, 210, 297); 
+        // Original quality maintain
+        pdf.addImage(allData[i].data, "JPEG", 0, 0, 210, 297, undefined, 'FAST');
     }
     pdf.save("Sorted_Pages.pdf");
 }
 
-
-/* ---------------- PROCESS FAST VERSION ---------------- */
 async function process(files) {
-    const arr = [];
     const fileList = Array.from(files);
-    let done = 0;
+    let allData = [];
 
-    // Concurrency limit: Ek baar mein sirf 3 images process karein (Taaki browser hang na ho)
-    const limit = 3; 
-    
-    for (let i = 0; i < fileList.length; i += limit) {
-        const batch = fileList.slice(i, i + limit);
+    for (let i = 0; i < fileList.length; i++) {
+        const file = fileList[i];
+        const url = URL.createObjectURL(file);
         
-        // Batch ki saari images parallel process karein
-        const batchPromises = batch.map(async (file) => {
-            const url = URL.createObjectURL(file);
-            const img = new Image();
-            img.src = url;
-            await new Promise(r => img.onload = r);
+        const img = new Image();
+        img.src = url;
+        await new Promise(r => img.onload = r);
 
-            const page = await readPageNumber(img);
-            const base64 = await toBase64(file);
-            URL.revokeObjectURL(url);
-            
-            return { page, data: base64, originalName: file.name };
-        });
-
-        const results = await Promise.all(batchPromises);
-        arr.push(...results);
+        const page = await readPageNumber(img, i);
+        const data = await toBase64(file); 
+        URL.revokeObjectURL(url);
         
-        done += results.length;
-        updateProgress("Processing", (done / fileList.length) * 100);
+        allData.push({ page, data });
+        updateProgress("Processing", ((i + 1) / fileList.length) * 100);
     }
 
-    // SORTING & DEDUPLICATION
-    const uniqueMap = new Map();
-    arr.sort((a, b) => a.page - b.page).forEach(item => {
-        if (!uniqueMap.has(item.page)) uniqueMap.set(item.page, item);
-    });
-
-    await makePDF(Array.from(uniqueMap.values()));
-    alert("PDF " + uniqueMap.size + " pages ke saath ban gayi!");
+    allData.sort((a, b) => a.page - b.page);
+    await makePDF(allData);
 }
-
-
-
 /* ---------------- START ---------------- */
 function startProcess() {
 
