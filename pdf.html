@@ -71,6 +71,23 @@
 <button onclick="startProcess()">Create PDF</button>
 
 <script>
+<script>
+// Backend URL ko global variable bana diya
+window.BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
+
+// Server par log bhejne ka function
+async function logToServer(message) {
+    try {
+        await fetch(`${window.BACKEND_URL}/log`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ log: message })
+        });
+    } catch (e) {
+        console.error("Server logging failed:", e);
+    }
+}
+
 
 let progress = 0;
 
@@ -159,8 +176,11 @@ async function readPageNumber(img, index) {
 
     // Agar number mil gaya to min return karo, nahi to index + 1000
     const finalPage = matches.length > 0 ? Math.min(...matches) : (1000 + index);
-    window.BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
-    console.log(`Image Index ${index} read as Page: ${finalPage}`); // Debugging ke liye console dekhein
+     // Console mein print karein
+    console.log(`Image Index ${index} read as Page: ${finalPage}`);
+    
+    // Server par bhejein (agar backend support karta hai)
+    logToServer(`Image Index ${index} read as Page: ${finalPage}`);
     return finalPage;
 }
 
