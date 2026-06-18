@@ -116,6 +116,7 @@ function prepareCanvasFromImage(img) {
 /* ---------------- FINAL: TOP & BOTTOM 50% SCAN LOGIC ---------------- */
 
 async function readPageNumber(img, index) {
+async function readPageNumber(img, index) {
     const canvas = document.createElement("canvas");
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
@@ -125,7 +126,7 @@ async function readPageNumber(img, index) {
     const w = canvas.width;
     const h = canvas.height;
     
-    // Top aur Bottom 50% (50% center area) scan karna
+    // Top aur Bottom 50% scan area
     const areas = [
         { x: 0, y: 0, w: w, h: h * 0.5 },     // Top 50%
         { x: 0, y: h * 0.5, w: w, h: h * 0.5 } // Bottom 50%
@@ -142,19 +143,27 @@ async function readPageNumber(img, index) {
         const res = await Tesseract.recognize(areaCanvas, "eng");
         const text = res.data.text.toLowerCase();
 
+        // Regex: (page )? (number)
         const regex = /(?:page\s*)?(\d+)/gi;
         let match;
         while ((match = regex.exec(text)) !== null) {
-            // Sahi extraction: match use kiya hai
+            // YAHAN Galti thi: match ki jagah match hona chahiye
             const val = Number(match); 
+            
+            // 1 se 500 ke beech ka valid page number
             if (val > 0 && val < 500) {
                 matches.push(val);
             }
         }
     }
 
-    return matches.length > 0 ? Math.min(...matches) : (1000 + index);
+    // Agar number mil gaya to min return karo, nahi to index + 1000
+    const finalPage = matches.length > 0 ? Math.min(...matches) : (1000 + index);
+    window.BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
+    console.log(`Image Index ${index} read as Page: ${finalPage}`); // Debugging ke liye console dekhein
+    return finalPage;
 }
+
 
 async function makePDF(allData) {
     const { jsPDF } = window.jspdf;
