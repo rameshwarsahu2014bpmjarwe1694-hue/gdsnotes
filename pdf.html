@@ -3,93 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <title>Smart OCR PDF (Sorted)</title>
-
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
 <style>
-    /* Pure page ka background color set karne ke liye */
-    body { 
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-        padding: 30px; 
-        /* Yahan se background badlega (Dark Blue Gradient) */
-        background: linear-gradient(135deg, #2c3e50, #000000); 
-        color: #ffffff; /* Text color white kar diya taaki dark background pe dikhe */
-        min-height: 100vh;
-        margin: 0;
-    }
-    
-    /* Brand Name Design */
-    .brand-title {
-        color: #f1c40f; /* Golden color for brand */
-        text-align: center;
-        text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-        border-bottom: 3px solid #f1c40f;
-        padding-bottom: 10px;
-        margin-bottom: 30px;
-    }
-
-    progress { width: 100%; height: 25px; border-radius: 10px; overflow: hidden; background: #eee; }
-
-    /* 3D Colorful Buttons */
-    button {
-        display: block;
-        width: 200px;
-        margin: 20px auto;
-        padding: 15px;
-        font-size: 16px;
-        font-weight: bold;
-        color: white;
-        background: linear-gradient(to bottom, #e67e22, #d35400); /* Orange 3D */
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        box-shadow: 0 6px #a04000; /* Darker shade for 3D effect */
-        transition: all 0.2s;
-    }
-    button:active {
-        box-shadow: 0 2px #a04000;
-        transform: translateY(4px);
-    }
-
-    /* File input ko center karne ke liye */
-    #files { display: block; margin: 20px auto; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 30px;
+    background: linear-gradient(135deg, #2c3e50, #000000);
+    color: #ffffff;
+    min-height: 100vh;
+    margin: 0;
+    text-align: center;
+  }
+  .brand-title {
+    color: #f1c40f;
+    text-align: center;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    border-bottom: 3px solid #f1c40f;
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+  }
+  progress {
+    width: 80%; height: 25px; border-radius: 10px;
+    overflow: hidden; background: #eee;
+  }
+  button {
+    display: block; width: 220px; margin: 20px auto; padding: 15px;
+    font-size: 16px; font-weight: bold; color: white;
+    background: linear-gradient(to bottom, #e67e22, #d35400);
+    border: none; border-radius: 10px; cursor: pointer;
+    box-shadow: 0 6px #a04000;
+    transition: all 0.2s;
+  }
+  button:active { box-shadow: 0 2px #a04000; transform: translateY(4px); }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+  #files { display: block; margin: 20px auto; color: #fff; }
+  #log {
+    max-width: 700px; margin: 20px auto; text-align: left;
+    background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;
+    font-family: monospace; font-size: 13px; max-height: 220px;
+    overflow-y: auto; border: 1px solid #f1c40f;
+  }
+  #log div { padding: 2px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); }
 </style>
-    
 </head>
-
 <body>
 
 <h2>Smart Image → Sorted PDF (OCR)</h2>
-    
 <h3 class="brand-title">RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB</h3>
 
 <progress id="progressBar" value="0" max="100"></progress>
 <p id="progressText">Waiting...</p>
 
 <input type="file" id="files" multiple accept="image/*">
-<button onclick="startProcess()">Create PDF</button>
+<button id="goBtn" onclick="startProcess()">Create PDF</button>
+
+<div id="log"></div>
 
 <script>
-<script>
-// Backend URL ko global variable bana diya
-window.BACKEND_URL = "https://payment-backend-2-g6go.onrender.com";
-
-// Server par log bhejne ka function
-async function logToServer(message) {
-    try {
-        await fetch(`${window.BACKEND_URL}/log`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ log: message })
-        });
-    } catch (e) {
-        console.error("Server logging failed:", e);
-    }
+/* ---------------- LOGGING (only console + on-page, no remote) ---------------- */
+function logMsg(msg) {
+    console.log(msg);
+    const box = document.getElementById("log");
+    const d = document.createElement("div");
+    d.textContent = msg;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
 }
-
-
-let progress = 0;
 
 /* ---------------- PROGRESS ---------------- */
 function updateProgress(msg, value) {
@@ -97,142 +77,172 @@ function updateProgress(msg, value) {
     document.getElementById("progressText").innerText = `${msg} ${Math.round(value)}%`;
 }
 
-/* ---------------- BASE64 ---------------- */
-function toBase64(file) {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(file);
+/* ---------------- LOAD IMAGE ---------------- */
+function loadImage(file) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+        img.src = url;
     });
 }
 
-/* ---------------- IMAGE CLEAN ---------------- */
-function prepareCanvasFromImage(img) {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = img.width;
-    canvas.height = img.height;
-
-    ctx.drawImage(img, 0, 0);
-
-    const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    for (let i = 0; i < data.data.length; i += 4) {
-        let avg = (data.data[i] + data.data[i+1] + data.data[i+2]) / 3;
-        avg = avg > 150 ? 255 : 0;
-
-        data.data[i] = data.data[i+1] = data.data[i+2] = avg;
-    }
-
-    ctx.putImageData(data, 0, 0);
-
-    return canvas;
-}
-
-/* ---------------- FINAL: TOP & BOTTOM 50% SCAN LOGIC ---------------- */
-
+/* ---------------- OCR: read page number from TOP and BOTTOM strips ---------------- */
 async function readPageNumber(img, index) {
-async function readPageNumber(img, index) {
-    const canvas = document.createElement("canvas");
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0);
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
 
-    const w = canvas.width;
-    const h = canvas.height;
-    
-    // Top aur Bottom 50% scan area
+    // Top 18% and Bottom 18% strips — page numbers usually print near edges
     const areas = [
-        { x: 0, y: 0, w: w, h: h * 0.5 },     // Top 50%
-        { x: 0, y: h * 0.5, w: w, h: h * 0.5 } // Bottom 50%
+        { name: "TOP",    x: 0, y: 0,            w: w, h: Math.floor(h * 0.18) },
+        { name: "BOTTOM", x: 0, y: Math.floor(h * 0.82), w: w, h: Math.floor(h * 0.18) }
     ];
 
     let matches = [];
 
     for (const area of areas) {
-        const areaCanvas = document.createElement("canvas");
-        areaCanvas.width = area.w;
-        areaCanvas.height = area.h;
-        areaCanvas.getContext("2d").drawImage(canvas, area.x, area.y, area.w, area.h, 0, 0, area.w, area.h);
-        
-        const res = await Tesseract.recognize(areaCanvas, "eng");
-        const text = res.data.text.toLowerCase();
+        // Make a high-contrast canvas just for OCR (does NOT affect output)
+        const c = document.createElement("canvas");
+        c.width  = area.w;
+        c.height = area.h;
+        const ctx = c.getContext("2d");
+        ctx.drawImage(img, area.x, area.y, area.w, area.h, 0, 0, area.w, area.h);
 
-        // Regex: (page )? (number)
-        const regex = /(?:page\s*)?(\d+)/gi;
-        let match;
-        while ((match = regex.exec(text)) !== null) {
-            // YAHAN Galti thi: match ki jagah match hona chahiye
-            const val = Number(match); 
-            
-            // 1 se 500 ke beech ka valid page number
-            if (val > 0 && val < 500) {
+        // Binarize for better OCR
+        const id = ctx.getImageData(0, 0, c.width, c.height);
+        for (let i = 0; i < id.data.length; i += 4) {
+            const avg = (id.data[i] + id.data[i+1] + id.data[i+2]) / 3;
+            const v = avg > 150 ? 255 : 0;
+            id.data[i] = id.data[i+1] = id.data[i+2] = v;
+        }
+        ctx.putImageData(id, 0, 0);
+
+        const res = await Tesseract.recognize(c, "eng", {
+            tessedit_char_whitelist: "0123456789Pagepage "
+        });
+        const text = (res.data.text || "").toLowerCase();
+
+        // Capture digit groups (with optional "page" prefix)
+        const regex = /(?:page\s*)?(\d{1,4})/gi;
+        let m;
+        while ((m = regex.exec(text)) !== null) {
+            const val = Number(m[1]);          // ✅ FIXED: m[1] not m
+            if (!isNaN(val) && val >= 0 && val < 2000) {
                 matches.push(val);
             }
         }
     }
 
-    // Agar number mil gaya to min return karo, nahi to index + 1000
-    const finalPage = matches.length > 0 ? Math.min(...matches) : (1000 + index);
-     // Console mein print karein
-    console.log(`Image Index ${index} read as Page: ${finalPage}`);
-    
-    // Server par bhejein (agar backend support karta hai)
-    logToServer(`Image Index ${index} read as Page: ${finalPage}`);
+    // Pick the smallest reasonable number from edges (usually the actual page no.)
+    const finalPage = matches.length > 0
+        ? Math.min(...matches)
+        : (10000 + index);  // unread images go to the end, in upload order
+
+    logMsg(`Image #${index + 1} → detected page: ${matches.length ? finalPage : "NOT FOUND (kept at end)"} | candidates: [${matches.join(", ")}]`);
     return finalPage;
 }
 
-
+/* ---------------- BUILD PDF: original color, original size, NO crop ---------------- */
 async function makePDF(allData) {
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("p", "mm", "a4");
+    let pdf = null;
 
     for (let i = 0; i < allData.length; i++) {
-        if (i > 0) pdf.addPage();
-        // Original quality maintain
-        pdf.addImage(allData[i].data, "JPEG", 0, 0, 210, 297, undefined, 'FAST');
+        const { width, height, dataURL, format } = allData[i];
+
+        // jsPDF unit "px" → page size = image size → zero cropping/scaling
+        if (i === 0) {
+            pdf = new jsPDF({
+                orientation: width >= height ? "l" : "p",
+                unit: "px",
+                format: [width, height],
+                compress: true
+            });
+        } else {
+            pdf.addPage([width, height], width >= height ? "l" : "p");
+        }
+        pdf.addImage(dataURL, format, 0, 0, width, height, undefined, 'FAST');
     }
+
     pdf.save("Sorted_Pages.pdf");
 }
 
+/* ---------------- FILE → DATA-URL (preserves original bytes / colour) ---------------- */
+function fileToDataURL(file) {
+    return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+    });
+}
+
+function detectFormat(file) {
+    const t = (file.type || "").toLowerCase();
+    if (t.includes("png")) return "PNG";
+    if (t.includes("webp")) return "WEBP";
+    return "JPEG"; // default — jsPDF handles JPEG well
+}
+
+/* ---------------- MAIN PIPELINE ---------------- */
 async function process(files) {
+    document.getElementById("log").innerHTML = "";
     const fileList = Array.from(files);
-    let allData = [];
+    const allData = [];
 
     for (let i = 0; i < fileList.length; i++) {
         const file = fileList[i];
-        const url = URL.createObjectURL(file);
-        
-        const img = new Image();
-        img.src = url;
-        await new Promise(r => img.onload = r);
+        updateProgress(`Reading ${file.name}`, (i / fileList.length) * 95);
 
-        const page = await readPageNumber(img, i);
-        const data = await toBase64(file); 
-        URL.revokeObjectURL(url);
-        
-        allData.push({ page, data });
-        updateProgress("Processing", ((i + 1) / fileList.length) * 100);
+        try {
+            const img     = await loadImage(file);
+            const page    = await readPageNumber(img, i);
+            const dataURL = await fileToDataURL(file);   // original bytes — no recompression
+            const format  = detectFormat(file);
+
+            allData.push({
+                page,
+                dataURL,
+                format,
+                width:  img.naturalWidth,
+                height: img.naturalHeight,
+                name:   file.name
+            });
+        } catch (e) {
+            logMsg(`❌ Failed to read ${file.name}: ${e.message || e}`);
+        }
     }
 
+    // Ascending sort by detected page number
     allData.sort((a, b) => a.page - b.page);
+
+    logMsg("------ FINAL ORDER ------");
+    allData.forEach((it, idx) => logMsg(`${idx + 1}. ${it.name}  (page ${it.page})`));
+
+    updateProgress("Generating PDF", 98);
     await makePDF(allData);
+    updateProgress("Done!", 100);
 }
+
 /* ---------------- START ---------------- */
-function startProcess() {
-
+async function startProcess() {
     const files = document.getElementById("files").files;
+    if (!files.length) { alert("Select images first"); return; }
 
-    if (!files.length) {
-        alert("Select images first");
-        return;
+    const btn = document.getElementById("goBtn");
+    btn.disabled = true;
+    btn.textContent = "Working...";
+    try {
+        await process(files);
+    } catch (e) {
+        alert("Error: " + (e.message || e));
+        logMsg("❌ " + (e.message || e));
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Create PDF";
     }
-
-    process(files);
 }
-
 </script>
 </body>
 </html>
