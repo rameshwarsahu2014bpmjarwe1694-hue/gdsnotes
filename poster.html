@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang=\"hi\">
+<html lang="hi">
 <head>
-<meta charset=\"UTF-8\">
+<meta charset="UTF-8">
 <title>RSH GDS Exam Poster Generator (A4 Fit)</title>
-<link href=\"https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Oswald:wght@500;700&family=Anton&display=swap\" rel=\"stylesheet\">
-<script src=\"https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js\"></script>
-<script src=\"https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js\"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Oswald:wght@500;700&family=Anton&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   * { box-sizing: border-box; }
   body { font-family: 'Noto Sans Devanagari', Arial, sans-serif; background: #eef0f3; margin: 0; padding: 20px; color: #222; }
@@ -110,26 +110,26 @@
 <body>
 <h1>📘 RSH GDS Exam Poster Generator — A4 Fit</h1>
 
-<div class=\"controls\">
-  <div class=\"row\">
-    <div><label>Main Title</label><input id=\"mainTitle\" value=\"POSTAL MANUAL\"></div>
-    <div><label>Volume Text</label><input id=\"volume\" value=\"VOLUME 5\"></div>
-    <div><label>Chapter Text</label><input id=\"chapter\" value=\"CHAPTER 1\"></div>
+<div class="controls">
+  <div class="row">
+    <div><label>Main Title</label><input id="mainTitle" value="POSTAL MANUAL"></div>
+    <div><label>Volume Text</label><input id="volume" value="VOLUME 5"></div>
+    <div><label>Chapter Text</label><input id="chapter" value="CHAPTER 1"></div>
   </div>
-  <div class=\"row\">
-    <div style=\"flex:2 1 400px;\"><label>Red Banner / Sub-title</label><input id=\"subtitle\" value=\"अध्याय 1 की विषय-सूची (नियम सूची)\"></div>
-    <div><label>Layout Mode</label><select id=\"mode\"><option value=\"list\">List (S.No | Item | Page)</option><option value=\"qa\">Question / Answer</option></select></div>
-    <div><label>Highlight Row #</label><input id=\"highlight\" placeholder=\"e.g. 30\" value=\"30\"></div>
+  <div class="row">
+    <div style="flex:2 1 400px;"><label>Red Banner / Sub-title</label><input id="subtitle" value="अध्याय 1 की विषय-सूची (नियम सूची)"></div>
+    <div><label>Layout Mode</label><select id="mode"><option value="list">List (S.No | Item | Page)</option><option value="qa">Question / Answer</option></select></div>
+    <div><label>Highlight Row #</label><input id="highlight" placeholder="e.g. 30" value="30"></div>
   </div>
 
   <!-- NEW: Page Number Controls -->
-  <div class=\"row\">
-    <div style=\"flex:0 1 220px;\">
+  <div class="row">
+    <div style="flex:0 1 220px;">
       <label>Page Number (only digits)</label>
-      <input id=\"pageNumber\" type=\"text\" inputmode=\"numeric\" placeholder=\"e.g. 1\" value=\"1\">
-      <div class=\"hint\">Blank rakho to chhup jayega.</div>
+      <input id="pageNumber" type="text" inputmode="numeric" placeholder="e.g. 1" value="1">
+      <div class="hint">Blank rakho to chhup jayega.</div>
     </div>
-    <div style=\"flex:1 1 200px;\">
+    <div style="flex:1 1 200px;">
       <label>Page Label (optional)</label>
       <input id=\"pageNumberLabel\" value=\"PAGE\">
       <div class=\"hint\">Khaali rakho to sirf number dikhega.</div>
