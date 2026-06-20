@@ -61,20 +61,7 @@
   }
 
   /* Top brand strip */
-  .brand-strip {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 10px;
-  }
-  .brand-text {
-    flex: 1;
-    text-align: center;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: 28px;
-    letter-spacing: 1px;
-    color: #5a1b1b;
-    text-transform: uppercase;
-  }
+  .
 
   /* RSH GDS NOTES logo block (CSS drawn) */
   .logo {
@@ -102,10 +89,33 @@
     font-size: 30px;
     font-weight: 800;
     letter-spacing: 4px;
-    padding: 2px 4px;
-    margin: 4px 0 2px;
-    line-height: 1;
-  }
+    .brand-strip{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:8px;
+}
+
+.brand-strip{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:8px;
+}
+
+.brand-text{
+    flex:1;
+    text-align:center;
+    font-family:'Oswald',sans-serif;
+    font-size:30px;
+    font-weight:700;
+    color:#6b2b16;
+    line-height:1.2;
+    letter-spacing:1px;
+    text-transform:uppercase;
+}
   .logo .notes {
     color: #143b73;
     font-family: 'Oswald', sans-serif;
@@ -133,41 +143,42 @@
   }
 
   /* Title block */
-  .title-main {
-    text-align: center;
-    font-family: 'Anton', 'Oswald', sans-serif;
-    color: #b00020;
-    font-size: 78px;
-    line-height: 1;
-    letter-spacing: 2px;
-    margin: 8px 0 6px;
-    text-shadow: 2px 2px 0 #f1deb0;
-  }
-  .volume-badge {
-    display: inline-block;
-    background: linear-gradient(180deg, #c89a4a, #8a6322);
-    color: #fff;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: 22px;
-    letter-spacing: 4px;
-    padding: 4px 26px;
-    border-radius: 20px;
-    margin: 2px 0;
-  }
-  .center { text-align: center; }
-  .chapter-badge {
-    display: inline-block;
-    background: #143b73;
-    color: #fff;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: 28px;
-    letter-spacing: 4px;
-    padding: 4px 32px;
-    border-radius: 22px;
-    margin: 6px 0 4px;
-  }
+ .title-main{
+    text-align:center;
+    font-family:'Anton','Oswald',sans-serif;
+    font-size:84px;
+    color:#b10000;
+    letter-spacing:3px;
+    line-height:1;
+    margin:12px 0 6px;
+    text-shadow:3px 3px 0 #ead39d;
+}
+
+.volume-badge{
+    display:inline-block;
+    background:linear-gradient(#c89d47,#8b6424);
+    color:#fff;
+    font-family:'Oswald',sans-serif;
+    font-size:24px;
+    font-weight:700;
+    letter-spacing:4px;
+    padding:6px 34px;
+    border-radius:30px;
+    margin:6px 0;
+}
+
+.chapter-badge{
+    display:inline-block;
+    background:#143b73;
+    color:#fff;
+    font-family:'Oswald',sans-serif;
+    font-size:30px;
+    font-weight:700;
+    letter-spacing:5px;
+    padding:6px 38px;
+    border-radius:30px;
+    margin:8px 0;
+}
   .subtitle-banner {
     background: #b00020;
     color: #fff;
@@ -182,42 +193,52 @@
   }
 
   /* Two column table */
-  .table-wrap {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 14px;
-    border: 1px solid #d2bb86;
-    background: #fffdf3;
-    padding: 0;
-  }
-  .col {
-    display: grid;
-    grid-template-columns: 60px 1fr 50px;
-  }
-  .col .cell {
-    border-bottom: 1px solid #e7d4a7;
-    padding: 4px 8px;
-    font-size: 15px;
-    color: #1a1a1a;
-    display: flex; align-items: center;
-  }
-  .col .sn {
-    justify-content: center;
-    border-right: 1px solid #e7d4a7;
-    font-weight: 600;
-    color: #333;
-  }
-  .col .name {
-    font-weight: 600;
-    color: #1a1a1a;
-  }
-  .col .pg {
-    justify-content: center;
-    border-left: 1px solid #e7d4a7;
-    font-weight: 600;
-    color: #333;
-  }
-  .col .highlight { background: #fde2c4; }
+ .table-wrap{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0;
+    border:2px solid #c7b48a;
+    background:#fffdf6;
+    margin-top:10px;
+}
+
+.col{
+    display:grid;
+    grid-template-columns:65px 1fr 55px;
+}
+
+.col:first-child{
+    border-right:2px solid #c7b48a;
+}
+
+.col .cell{
+    min-height:36px;
+    display:flex;
+    align-items:center;
+    padding:6px 8px;
+    font-size:16px;
+    border-bottom:1px solid #e6d7b8;
+}
+
+.col .sn{
+    justify-content:center;
+    font-weight:700;
+    border-right:1px solid #e6d7b8;
+}
+
+.col .name{
+    font-weight:600;
+}
+
+.col .pg{
+    justify-content:center;
+    font-weight:700;
+    border-left:1px solid #e6d7b8;
+}
+
+.col .highlight{
+    background:#ffe0b2;
+}
 
   /* Q&A style */
   .qa-wrap { padding: 6px 4px; }
@@ -229,26 +250,32 @@
   .qa .a { color:#0d7a3a; font-weight:600; margin-top:4px; font-size: 16px; }
 
   /* Footer note */
-  .footer-note {
-    margin-top: 10px;
-    background: #b00020;
-    color: #fff;
-    border: 2px solid #7a0014;
-    border-radius: 4px;
-    padding: 8px 14px 8px 50px;
-    font-size: 15px;
-    font-weight: 600;
-    position: relative;
-    line-height: 1.4;
-  }
-  .footer-note .tag {
-    position: absolute; left: 8px; top: 50%;
-    transform: translateY(-50%);
-    background: #fff8e7; color: #b00020;
-    padding: 3px 8px; border-radius: 4px;
-    font-weight: 800; font-size: 14px;
-    border: 1px solid #7a0014;
-  }
+  .footer-note{
+    margin-top:16px;
+    background:#b00020;
+    color:#fff;
+    border:3px solid #7a0014;
+    border-radius:8px;
+    padding:12px 16px 12px 65px;
+    font-size:16px;
+    font-weight:600;
+    line-height:1.6;
+    position:relative;
+}
+
+.footer-note .tag{
+    position:absolute;
+    left:12px;
+    top:50%;
+    transform:translateY(-50%);
+    background:#fff;
+    color:#b00020;
+    font-size:15px;
+    font-weight:800;
+    padding:5px 10px;
+    border-radius:6px;
+    border:2px solid #7a0014;
+}
   .corner-books {
     position: absolute; bottom: 10px; width: 32px; height: 32px;
   }
@@ -501,11 +528,18 @@ function renderPoster() {
 }
 
 function captureCanvas() {
-  return html2canvas(document.getElementById('poster'), {
-    scale: 2,
-    backgroundColor: '#fff8e7',
-    useCORS: true
-  });
+  const poster = document.getElementById("poster");
+
+  return html2canvas(poster, {
+    scale: 3,
+    backgroundColor: "#f8f3e7",
+    useCORS: true,
+    allowTaint: true,
+    scrollX: 0,
+    scrollY: 0,
+    windowWidth: poster.scrollWidth,
+    windowHeight: poster.scrollHeight
+  });
 }
 
 function downloadPNG() {
