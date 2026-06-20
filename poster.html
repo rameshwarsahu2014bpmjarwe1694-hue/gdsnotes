@@ -13,6 +13,7 @@
   .controls { max-width: 1100px; margin: 0 auto 25px; background: #fff; padding: 18px 22px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
   .row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
   .row > div { flex: 1 1 200px; }
+ <div class="row"> <div style="flex:0 1 220px;"> <label>Page Number (only digits)</label> <input id="pageNumber" type="text" inputmode="numeric" placeholder="e.g. 1" value="1"> </div> <div style="flex:1 1 200px;"> <label>Page Label (blank = sirf number)</label> <input id="pageNumberLabel" value="PAGE"> </div></div>
   label { display:block; font-size: 13px; font-weight:600; margin-bottom: 4px; color:#444; }
   input, select, textarea { width:100%; padding: 8px 10px; border:1px solid #ccc; border-radius:6px; font-family: inherit; font-size: 14px; }
   textarea { min-height: 130px; resize: vertical; font-family: 'Noto Sans Devanagari', monospace; }
@@ -20,6 +21,7 @@
   .btn-red { background:#b00020; } .btn-blue { background:#143b73; } .btn-green { background:#0d7a3a; }
   .btn:hover { opacity: 0.9; }
   .hint { font-size: 12px; color:#666; margin-top: 4px; }
+ .page-number-row { text-align: center; flex-shrink: 0; margin: 8px 0 4px;}.page-number-badge { display: inline-block; background: linear-gradient(180deg,#143b73 0%,#0a2a55 100%); color: #fff; font-family: 'Anton','Oswald',sans-serif; font-size: 28px; font-weight: 800; letter-spacing: 2px; padding: 6px 22px; border-radius: 8px; border: 3px solid #c89d47; box-shadow: 0 2px 6px rgba(0,0,0,0.2);}.page-number-row .label-text { font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 700; color: #6b2b16; letter-spacing: 2px; margin-right: 8px; vertical-align: middle;}
 
   /* ===== A4 POSTER FRAME ===== */
   #posterWrap { display:flex; justify-content:center; }
@@ -184,6 +186,7 @@
     </div>
     <div class="subtitle-banner" id="subtitleBanner">अध्याय 1 की विषय-सूची (नियम सूची)</div>
     <div id="bodyArea"><div id="bodyInner"></div></div>
+   <div class="page-number-row" id="pageNumBottom" style="display:none;"> <span class="label-text" id="pageNumLabelBottom">PAGE</span> <span class="page-number-badge" id="pageNumBadgeBottom">1</span></div>
     <div class="footer-note"><span class="tag">नोट :</span><span id="footerText"></span></div>
   </div>
 </div>
@@ -253,6 +256,7 @@ function renderPoster() {
   document.getElementById('subtitleBanner').textContent = document.getElementById('subtitle').value || '';
   document.getElementById('footerText').textContent  = document.getElementById('footer').value || '';
   setLogos();
+  updatePageNumber();
   const mode = document.getElementById('mode').value;
   const rows = parseLines(document.getElementById('content').value);
   const highlight = document.getElementById('highlight').value.trim();
@@ -260,7 +264,7 @@ function renderPoster() {
   requestAnimationFrame(fitToFrame);
 }
 ['mainTitle','volume','chapter','subtitle','footer','content','highlight'].forEach(id=>document.getElementById(id).addEventListener('input',renderPoster));
-
+function updatePageNumber() { const inp = document.getElementById('pageNumber'); const num = inp.value.replace(/[^0-9]/g,''); inp.value = num; const label = document.getElementById('pageNumberLabel').value.trim(); const row = document.getElementById('pageNumBottom'); if (num === '') { row.style.display = 'none'; return; } row.style.display = 'block'; const labelEl = row.querySelector('.label-text'); if (label) { labelEl.style.display = 'inline'; labelEl.textContent = label; } else { labelEl.style.display = 'none'; } row.querySelector('.page-number-badge').textContent = num;}
 function captureCanvas() {
   const poster = document.getElementById("poster");
   return html2canvas(poster, { scale:3, backgroundColor:"#fff8e7", useCORS:true, allowTaint:true, windowWidth:poster.scrollWidth, windowHeight:poster.scrollHeight });
