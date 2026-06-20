@@ -258,6 +258,7 @@ function buildListLayout(rows, highlight) {
   for (let c = 0; c < colCount; c++) {
     const arr = rows.slice(c*per, (c+1)*per);
     let html = '<div class="col">';
+   html += '<div class="cell sn head">क्र.</div><div class="cell name head">नियम</div><div class="cell pg head">पृष्ठ</div>';
     arr.forEach(line => {
       const p = line.split('|').map(s=>s.trim());
       const sn=p[0]||'', name=p[1]||'', pg=p[2]||'';
