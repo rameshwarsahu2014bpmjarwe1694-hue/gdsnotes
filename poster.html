@@ -59,24 +59,7 @@
     font-family: 'Noto Sans Devanagari', Arial, sans-serif;
     position: relative;
   }
-
-  .logo .notes {
-    color: #143b73;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 2px;
-  }
-  .logo .deptbar {
-    background: #143b73;
-    color: #fff;
-    font-size: 9px;
-    font-weight: 700;
-    padding: 3px;
-    margin-top: 4px;
-    letter-spacing: 1px;
-    display: flex; align-items: center; justify-content: center; gap: 4px;
-  }
+  
     /* RSH GDS NOTES logo block (CSS drawn) */
 .logo{
     width:150px;
@@ -114,7 +97,23 @@
     margin:4px 0 2px;
     line-height:1;
 }
-
+.logo .notes {
+  color: #143b73;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+  }
+  .logo .deptbar {
+    background: #143b73;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 3px;
+    margin-top: 4px;
+    letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
 .brand-strip{
     display:flex;
     align-items:center;
@@ -282,7 +281,11 @@
   }
   .corner-books.left { left: 12px; }
   .corner-books.right { right: 12px; }
-
+.center{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
   @media (max-width: 1120px){
     .poster { transform: scale(0.92); transform-origin: top center; }
   }
