@@ -319,4 +319,3 @@ document.fonts && document.fonts.ready.then(renderPoster);
 </script>
 </body>
 </html>
-Paste karne ke baad pehli line check karo: `<!DOCTYPE html>` aur `<html lang="hi">` me **straight `"`** dikhna chahiye, curly `"` nahi.
