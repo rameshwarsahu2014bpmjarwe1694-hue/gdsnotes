@@ -1,73 +1,209 @@
+Water.html
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>PDF Watermark</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RAMESHWAR SAHU EXAM APP — PDF Watermark</title>
+<style>
+  :root{--bg:#fff;--surface:#f4f4f5;--border:#e4e4e7;--text:#09090b;--muted:#52525b;--accent:#002fa7;--accent2:#00227a}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:32px 20px 64px}
+  header{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding-bottom:18px;margin-bottom:28px}
+  .badge{width:40px;height:40px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:900;font-size:18px}
+  h1{font-size:22px;margin:0;letter-spacing:-.02em}
+  h1 small{display:block;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:4px;font-weight:500}
+  h2{font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:28px 0 10px;font-weight:600;border-top:1px solid var(--border);padding-top:18px}
+  label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;font-weight:600}
+  input[type=text]{width:100%;border:1px solid var(--border);border-radius:6px;padding:9px 11px;font-size:14px;background:#fff}
+  input[type=text]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,47,167,.12)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .dropzone{border:2px dashed var(--border);border-radius:10px;padding:36px 20px;text-align:center;background:#fff;cursor:pointer;transition:.15s;color:var(--muted)}
+  .dropzone:hover,.dropzone.drag{border-color:var(--accent);background:#fafafe;color:var(--text)}
+  .dropzone strong{display:block;color:var(--text);font-size:15px;margin-top:6px}
+  .meta{margin-top:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13px;display:flex;justify-content:space-between}
+  .controls{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .slider-row{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;color:var(--muted)}
+  input[type=range]{width:100%}
+  input[type=color]{width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:#fff}
+  .switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px}
+  .switch input{appearance:none;width:38px;height:22px;background:#d4d4d8;border-radius:999px;position:relative;transition:.15s;cursor:pointer}
+  .switch input:checked{background:var(--accent)}
+  .switch input::after{content:"";position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:2px;left:2px;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+  .switch input:checked::after{left:18px}
+  button.primary{background:var(--accent);color:#fff;border:0;padding:14px 22px;border-radius:8px;font-weight:600;font-size:15px;cursor:pointer}
+  button.primary:hover{background:var(--accent2)}
+  button.primary:disabled{opacity:.55;cursor:not-allowed}
+  button.ghost{background:transparent;border:1px solid var(--border);padding:14px 16px;border-radius:8px;font-weight:500;cursor:pointer}
+  .actions{display:flex;gap:10px;margin-top:20px}
+  .status{font-size:12px;color:var(--muted);margin-top:10px;font-family:ui-monospace,monospace}
+  .preset{display:flex;gap:8px;margin-top:6px}
+  .preset button{flex:1;padding:8px 10px;border:1px solid var(--border);background:#fff;border-radius:6px;cursor:pointer;font-size:12px}
+  .preset button:hover{border-color:var(--accent);color:var(--accent)}
+  .stripe{height:6px;background:repeating-linear-gradient(-45deg,rgba(0,47,167,.18) 0 2px,transparent 2px 14px);margin-bottom:24px;border-radius:3px}
+</style>
 </head>
 <body>
+<div class="wrap">
+  <div class="stripe"></div>
+  <header>
+    <div class="badge">R</div>
+    <h1>RAMESHWAR SAHU EXAM APP<small>PDF Watermark · 5 Layers · 100% Offline</small></h1>
+  </header>
 
-<h2>Upload PDF</h2>
+  <h2>01 · Upload PDF</h2>
+  <div id="dropzone" class="dropzone">
+    <div>📄</div>
+    <strong>Drop your PDF here, or click to browse</strong>
+    <div style="font-size:12px;margin-top:4px">Auto-watermark fires on file select.</div>
+    <input id="file" type="file" accept="application/pdf" hidden />
+  </div>
+  <div id="meta" class="meta" style="display:none"><b id="fname"></b><code id="fsize"></code></div>
 
-<input type="file" id="file" accept="application/pdf"/>
-<button onclick="addWatermark()">Add Watermark</button>
+  <h2>02 · Watermark Settings</h2>
+  <div class="grid">
+    <div><label>Watermark Text</label><input id="text" type="text" value="RAMESHWAR SAHU EXAM APP"/></div>
+    <div><label>Footer Tag (optional)</label><input id="subText" type="text" placeholder="Candidate ID / Batch"/></div>
+  </div>
 
-<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <div style="margin-top:14px"><label>Quick Preset</label>
+    <div class="preset">
+      <button data-preset="light">Light</button>
+      <button data-preset="medium">Standard</button>
+      <button data-preset="heavy">Maximum</button>
+    </div>
+  </div>
 
+  <div class="controls" style="margin-top:18px">
+    <div><div class="slider-row"><label style="margin:0">Opacity</label><span id="opVal">22%</span></div>
+      <input id="opacity" type="range" min="5" max="50" step="1" value="22"/></div>
+    <div><div class="slider-row"><label style="margin:0">Density</label><span id="dnVal">1.10×</span></div>
+      <input id="density" type="range" min="60" max="180" step="5" value="110"/></div>
+  </div>
+
+  <div style="margin-top:18px;display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <label style="margin:0">Color</label>
+      <input id="color" type="color" value="#002FA7"/>
+    </div>
+    <label class="switch">Auto-Download <input id="autoDl" type="checkbox" checked/></label>
+  </div>
+
+  <div class="actions">
+    <button id="process" class="primary" disabled>⬇ Process &amp; Download</button>
+    <button id="reset" class="ghost">Reset</button>
+  </div>
+  <div id="status" class="status">Awaiting PDF.</div>
+</div>
+
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script>
-async function addWatermark() {
-    const fileInput = document.getElementById("file");
-    const file = fileInput.files[0];
+(function(){
+  const $=(id)=>document.getElementById(id);
+  const fileInput=$("file"),dropzone=$("dropzone"),meta=$("meta"),fname=$("fname"),fsize=$("fsize");
+  const textEl=$("text"),subEl=$("subText"),opEl=$("opacity"),opVal=$("opVal");
+  const dnEl=$("density"),dnVal=$("dnVal"),colorEl=$("color"),autoDl=$("autoDl");
+  const btn=$("process"),resetBtn=$("reset"),statusEl=$("status");
+  let selected=null;
+  const fmt=b=>b<1024?b+" B":b<1048576?(b/1024).toFixed(1)+" KB":(b/1048576).toFixed(2)+" MB";
 
-    if (!file) {
-        alert("Please select a PDF");
-        return;
-    }
+  function setFile(f){
+    if(!f) return;
+    if(!/\.pdf$/i.test(f.name)&&f.type!=="application/pdf"){statusEl.textContent="Only PDF files supported.";return}
+    selected=f; meta.style.display="flex";
+    fname.textContent=f.name; fsize.textContent=fmt(f.size);
+    btn.disabled=false; statusEl.textContent="Ready to stamp.";
+    if(autoDl.checked) process();
+  }
+  dropzone.addEventListener("click",()=>fileInput.click());
+  dropzone.addEventListener("dragover",e=>{e.preventDefault();dropzone.classList.add("drag")});
+  dropzone.addEventListener("dragleave",()=>dropzone.classList.remove("drag"));
+  dropzone.addEventListener("drop",e=>{e.preventDefault();dropzone.classList.remove("drag");setFile(e.dataTransfer.files[0])});
+  fileInput.addEventListener("change",e=>setFile(e.target.files[0]));
+  opEl.addEventListener("input",()=>opVal.textContent=opEl.value+"%");
+  dnEl.addEventListener("input",()=>dnVal.textContent=(dnEl.value/100).toFixed(2)+"×");
+  document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
+    const p=b.dataset.preset;
+    if(p==="light"){opEl.value=12;dnEl.value=75}
+    if(p==="medium"){opEl.value=22;dnEl.value=110}
+    if(p==="heavy"){opEl.value=32;dnEl.value=160}
+    opEl.dispatchEvent(new Event("input")); dnEl.dispatchEvent(new Event("input"));
+  }));
+  resetBtn.addEventListener("click",()=>{
+    textEl.value="RAMESHWAR SAHU EXAM APP"; subEl.value="";
+    opEl.value=22; dnEl.value=110; colorEl.value="#002FA7"; autoDl.checked=true;
+    selected=null; fileInput.value=""; meta.style.display="none"; btn.disabled=true;
+    opEl.dispatchEvent(new Event("input")); dnEl.dispatchEvent(new Event("input"));
+    statusEl.textContent="Awaiting PDF.";
+  });
+  btn.addEventListener("click",process);
 
-    const arrayBuffer = await file.arrayBuffer();
-    const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+  function hexToRgb01(hex){
+    const m=hex.replace("#",""),v=m.length===3?m.split("").map(x=>x+x).join(""):m;
+    return{r:parseInt(v.slice(0,2),16)/255,g:parseInt(v.slice(2,4),16)/255,b:parseInt(v.slice(4,6),16)/255}
+  }
 
-    const pages = pdfDoc.getPages();
-
-    pages.forEach(page => {
-    const { width, height } = page.getSize();
-
-    const text = "RAMESHWAR SAHU EXAM APP";
-
-    // 🔥 Repeating watermark (full page protection)
-    for (let i = 0; i < width; i += 200) {
-        for (let j = 0; j < height; j += 150) {
-
-            page.drawText(text, {
-                x: i,
-                y: j,
-                size: 28,
-                opacity: 0.12,
-                rotate: PDFLib.degrees(-30),
-            });
-
-        }
-    }
-
-    // 🔥 Big center watermark
-    page.drawText(text, {
-        x: width / 2 - 250,
-        y: height / 2,
-        size: 60,
-        opacity: 0.08,
-        rotate: PDFLib.degrees(-45),
-    });
-});
-
-    const pdfBytes = await pdfDoc.save();
-
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "watermarked.pdf";
-    a.click();
-}
+  async function process(){
+    if(!selected){statusEl.textContent="Select a PDF first.";return}
+    const text=(textEl.value||"RAMESHWAR SAHU EXAM APP").trim();
+    const subText=(subEl.value||"").trim();
+    const opacity=Math.max(0.05,Math.min(0.5,parseInt(opEl.value,10)/100));
+    const density=Math.max(0.6,Math.min(1.8,parseInt(dnEl.value,10)/100));
+    const color=hexToRgb01(colorEl.value);
+    btn.disabled=true; statusEl.textContent="Embedding 5 layers across all pages…";
+    try{
+      const {PDFDocument,StandardFonts,degrees,rgb}=PDFLib;
+      const buf=await selected.arrayBuffer();
+      const pdf=await PDFDocument.load(buf,{ignoreEncryption:true});
+      const helvBold=await pdf.embedFont(StandardFonts.HelveticaBold);
+      const helv=await pdf.embedFont(StandardFonts.Helvetica);
+      const pages=pdf.getPages();
+      const stamp=new Date().toISOString().slice(0,19).replace("T"," ");
+      pages.forEach((page,idx)=>{
+        const {width,height}=page.getSize();
+        const stepX=Math.max(120,240/density), stepY=Math.max(90,150/density);
+        const tile=Math.max(14,Math.min(width,height)*0.028);
+        // Layer 1: diagonal -30, brick-staggered
+        let row=0;
+        for(let j=-stepY;j<height+stepY;j+=stepY,row++){
+          const off=(row%2===0)?0:stepX/2;
+          for(let i=-stepX+off;i<width+stepX;i+=stepX){
+            page.drawText(text,{x:i,y:j,size:tile,font:helvBold,color:rgb(color.r,color.g,color.b),opacity,rotate:degrees(-30)});
+          }
+        }
+        // Layer 2: cross-hatch +30, lighter
+        const co=Math.max(0.04,opacity*0.35);
+        for(let j=-stepY;j<height+stepY;j+=stepY*1.4){
+          for(let i=-stepX;i<width+stepX;i+=stepX*1.2){
+            page.drawText(text,{x:i,y:j,size:tile*0.85,font:helv,color:rgb(color.r,color.g,color.b),opacity:co,rotate:degrees(30)});
+          }
+        }
+        // Layer 3: center big
+        const cs=Math.min(width,height)*0.085;
+        const cw=helvBold.widthOfTextAtSize(text,cs);
+        page.drawText(text,{x:width/2-cw/2*0.7,y:height/2-cs*0.4,size:cs,font:helvBold,
+          color:rgb(color.r,color.g,color.b),opacity:Math.max(0.08,opacity*0.55),rotate:degrees(-30)});
+        // Layer 4: footer
+        const fs=Math.max(7,Math.min(width,height)*0.012);
+        const footer=`${text}  •  Page ${idx+1}/${pages.length}  •  ${stamp}${subText?"  •  "+subText:""}`;
+        page.drawText(footer,{x:14,y:10,size:fs,font:helv,color:rgb(color.r,color.g,color.b),opacity:0.55});
+        // Layer 5: header
+        page.drawText(text,{x:14,y:height-fs-8,size:fs,font:helvBold,color:rgb(color.r,color.g,color.b),opacity:0.55});
+      });
+      const bytes=await pdf.save({useObjectStreams:false});
+      const outName=selected.name.replace(/\.pdf$/i,"")+"_watermarked.pdf";
+      const blob=new Blob([bytes],{type:"application/pdf"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a"); a.href=url; a.download=outName;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},1000);
+      statusEl.textContent="✓ Downloaded "+outName+" ("+fmt(bytes.length)+")";
+    }catch(e){console.error(e); statusEl.textContent="✗ Failed: "+(e.message||e)}
+    finally{btn.disabled=false}
+  }
+})();
 </script>
-
 </body>
 </html>
