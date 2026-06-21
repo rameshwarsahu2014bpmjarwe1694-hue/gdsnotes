@@ -88,8 +88,6 @@ window.pendingTxn = null;
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        console.log("User logged in:", user.email);
-        alert("Step 2: User mil gaya: " + user.email);
         window.currentUserEmail = user.email;
         loadNotes();
         // ऑटोमैटिक स्टेटस चेक करने के लिए इंटरवल (हर 10 सेकंड में)
@@ -102,11 +100,9 @@ onAuthStateChanged(auth, (user) => {
 
 async function loadNotes(){
     const box = document.getElementById("notesList");
-    alert("Step 3: loadNotes chala");
     try {
         const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
         const snap = await getDocs(q);
-console.log("Snapshot received, total docs:", snap.size); // इससे पता चलेगा डेटा मिला या नहीं
         window.allNotes = [];
         snap.forEach((doc) => { window.allNotes.push({ id: doc.id, ...doc.data() }); });
         renderNotes(window.allNotes);
