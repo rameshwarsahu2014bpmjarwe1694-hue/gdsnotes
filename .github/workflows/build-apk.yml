@@ -145,17 +145,27 @@ jobs:
           cat twa-manifest.json | head -40
           
           - name: Debug Bubblewrap config
-                run: |
-                cd twa-build
+          run:|
+           cd twa-build
 
-                echo "===== config.json ====="
-          cat $HOME/.bubblewrap/config.json || true
+           echo "===== config.json ====="
+           cat "$HOME/.bubblewrap/config.json" || true
+            echo "===== twa-manifest.json ====="
+            cat twa-manifest.json
 
-           echo "===== twa-manifest.json ====="
-           cat twa-manifest.json
+            echo "===== doctor ====="
+            bubblewrap doctor || true
+                
+                
 
-           echo "===== doctor ====="
-          bubblewrap doctor || true
+                
+          
+
+           
+           
+
+
+
 
       - name: Bubblewrap build (signed APK + AAB)
         env:
