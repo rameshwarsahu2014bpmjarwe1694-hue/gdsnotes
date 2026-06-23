@@ -85,16 +85,19 @@ jobs:
             --directory=. || true
           ls -la
 
-      - name: Bubblewrap build (signed APK + AAB)
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          cd twa-build
-          printf "%s\n%s\n" "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" | bubblewrap build --skipPwaValidation
-          echo "---- Build artifacts ----"
-          find . -maxdepth 4 \( -name "*.apk" -o -name "*.aab" \) | sort
-
+     - name: Bubblewrap build (signed APK + AAB)
+  env:
+    ANDROID_HOME: /usr/local/lib/android/sdk
+    ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+    KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+  run: |
+    cd twa-build
+    export ANDROID_HOME=/usr/local/lib/android/sdk
+    export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
+    printf "%s\n%s\n" "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" | bubblewrap build --skipPwaValidation
+    echo "---- Build artifacts ----"
+    find . -maxdepth 4 \( -name "*.apk" -o -name "*.aab" \) | sort
       - name: Locate output artifacts
         id: artifacts
         run: |
