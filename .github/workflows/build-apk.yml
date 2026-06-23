@@ -49,17 +49,46 @@ jobs:
 
       - name: Pre-configure Bubblewrap (skip interactive prompts)
         run: |
+          set -e
+          echo "----- Env -----"
+          echo "JAVA_HOME=$JAVA_HOME"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+
+          # Resolve SDK path: prefer ANDROID_HOME, fallback to ANDROID_SDK_ROOT
+          SDK_PATH="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          echo "Resolved SDK_PATH=$SDK_PATH"
+
+          if [ -z "$SDK_PATH" ] || [ ! -d "$SDK_PATH" ]; then
+            echo "::error::Android SDK path not found"
+            exit 1
+          fi
+
+          echo "----- SDK root contents -----"
+          ls -la "$SDK_PATH"
+
+          # Bubblewrap validates by checking for platform-tools/
+          if [ ! -d "$SDK_PATH/platform-tools" ]; then
+            echo "::error::platform-tools dir missing in SDK"
+            exit 1
+          fi
+
+          # Export the resolved path for later steps
+          echo "ANDROID_HOME=$SDK_PATH" >> "$GITHUB_ENV"
+
           mkdir -p "$HOME/.bubblewrap"
           cat > "$HOME/.bubblewrap/config.json" <<EOF
           {
-            "jdkPath": "${JAVA_HOME}",
-            "androidSdkPath": "${ANDROID_HOME}"
+            "jdkPath": "$JAVA_HOME",
+            "androidSdkPath": "$SDK_PATH"
           }
           EOF
-          echo "----- Bubblewrap config -----"
+
+          echo "----- ~/.bubblewrap/config.json -----"
           cat "$HOME/.bubblewrap/config.json"
-          echo "JAVA_HOME=$JAVA_HOME"
-          echo "ANDROID_HOME=$ANDROID_HOME"
+
+          echo "----- bubblewrap doctor -----"
+          bubblewrap doctor || true
 
       - name: Decode keystore from secret
         env:
@@ -175,3 +204,4 @@ jobs:
             ${{ steps.artifacts.outputs.apk_path }}
             ${{ steps.artifacts.outputs.aab_path }}
           generate_release_notes: true
+          
