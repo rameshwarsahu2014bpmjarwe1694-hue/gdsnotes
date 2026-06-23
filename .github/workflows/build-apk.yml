@@ -86,10 +86,16 @@ jobs:
       - name: Bubblewrap init Android project
         run: |
           cd twa-build
-          bubblewrap init \
+          # Pipe `yes ""` to auto-accept every interactive prompt (Domain, URL path,
+          # App name, icon URL, theme color, etc.) using the defaults that bubblewrap
+          # derives from the supplied web manifest.
+          yes "" | bubblewrap init \
             --manifest="https://rameshwarsahu2014bpmjarwe1694-hue.github.io/gdsnotes/manifest.json" \
             --directory=.
+          echo "---- Files after init ----"
           ls -la
+          echo "---- twa-manifest.json (post-init) ----"
+          cat twa-manifest.json | head -60 || true
 
       - name: Patch signingKey in twa-manifest.json
         env:
