@@ -143,6 +143,19 @@ jobs:
             console.log('Patched signingKey ->', m.signingKey);
           "
           cat twa-manifest.json | head -40
+          
+          - name: Debug Bubblewrap config
+                run: |
+                cd twa-build
+
+                echo "===== config.json ====="
+          cat $HOME/.bubblewrap/config.json || true
+
+           echo "===== twa-manifest.json ====="
+           cat twa-manifest.json
+
+           echo "===== doctor ====="
+          bubblewrap doctor || true
 
       - name: Bubblewrap build (signed APK + AAB)
         env:
