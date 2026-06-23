@@ -55,7 +55,6 @@ jobs:
             echo "::error::KEYSTORE_BASE64 secret is missing."
             exit 1
           fi
-
           echo "$KEYSTORE_BASE64" | base64 -d > android.keystore
           ls -la android.keystore
 
@@ -65,10 +64,8 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           mkdir -p twa-build
-
           cp android.keystore twa-build/android.keystore
           cp twa-manifest.json twa-build/twa-manifest.json
-
           node -e "
             const fs = require('fs');
             const path = 'twa-build/twa-manifest.json';
@@ -83,11 +80,9 @@ jobs:
       - name: Bubblewrap init Android project
         run: |
           cd twa-build
-
           yes "" | bubblewrap init \
             --manifest="https://rameshwarsahu2014bpmjarwe1694-hue.github.io/gdsnotes/manifest.json" \
             --directory=. || true
-
           ls -la
 
       - name: Bubblewrap build (signed APK + AAB)
@@ -96,28 +91,21 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           cd twa-build
-
           printf "%s\n%s\n" "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" | bubblewrap build --skipPwaValidation
-
           echo "---- Build artifacts ----"
-
           find . -maxdepth 4 \( -name "*.apk" -o -name "*.aab" \) | sort
-          - name: Locate output artifacts
+
+      - name: Locate output artifacts
         id: artifacts
         run: |
           cd twa-build
-
           APK_PATH=$(find . -maxdepth 4 -name "app-release-signed.apk" | head -n1)
-
           if [ -z "$APK_PATH" ]; then
             APK_PATH=$(find . -maxdepth 4 -name "*.apk" | head -n1)
           fi
-
           AAB_PATH=$(find . -maxdepth 4 -name "*.aab" | head -n1)
-
           echo "apk_path=twa-build/${APK_PATH#./}" >> $GITHUB_OUTPUT
           echo "aab_path=twa-build/${AAB_PATH#./}" >> $GITHUB_OUTPUT
-
           echo "Found APK: $APK_PATH"
           echo "Found AAB: $AAB_PATH"
 
@@ -157,3 +145,4 @@ jobs:
             ${{ steps.artifacts.outputs.apk_path }}
             ${{ steps.artifacts.outputs.aab_path }}
           generate_release_notes: true
+          
