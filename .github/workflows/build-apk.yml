@@ -58,8 +58,6 @@ jobs:
           ls -la android.keystore
 
       - name: Prepare Bubblewrap workspace
-        env:
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           mkdir -p twa-build
           cp android.keystore twa-build/android.keystore
