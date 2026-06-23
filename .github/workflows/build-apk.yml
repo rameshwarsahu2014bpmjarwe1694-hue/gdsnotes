@@ -126,6 +126,24 @@ jobs:
           echo "---- twa-manifest.json (post-init) ----"
           cat twa-manifest.json | head -60 || true
 
+          - name: Re-assert Bubblewrap config
+            run: |
+            SDK_PATH="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+
+            mkdir -p "$HOME/.bubblewrap"
+
+            cat > "$HOME/.bubblewrap/config.json" <<EOF
+            {
+           "jdkPath": "$JAVA_HOME",
+           "androidSdkPath": "$SDK_PATH"
+            }
+             EOF
+
+             echo "===== Bubblewrap Config ====="
+             cat "$HOME/.bubblewrap/config.json"
+
+              bubblewrap doctor || true
+
       - name: Patch signingKey in twa-manifest.json
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
