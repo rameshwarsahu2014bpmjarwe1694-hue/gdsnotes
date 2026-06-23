@@ -47,6 +47,20 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli@latest
 
+      - name: Pre-configure Bubblewrap (skip interactive prompts)
+        run: |
+          mkdir -p "$HOME/.bubblewrap"
+          cat > "$HOME/.bubblewrap/config.json" <<EOF
+          {
+            "jdkPath": "${JAVA_HOME}",
+            "androidSdkPath": "${ANDROID_HOME}"
+          }
+          EOF
+          echo "----- Bubblewrap config -----"
+          cat "$HOME/.bubblewrap/config.json"
+          echo "JAVA_HOME=$JAVA_HOME"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+
       - name: Decode keystore from secret
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -65,25 +79,35 @@ jobs:
         run: |
           mkdir -p twa-build
           cp android.keystore twa-build/android.keystore
-          cp twa-manifest.json twa-build/twa-manifest.json
+          if [ -f twa-manifest.json ]; then
+            cp twa-manifest.json twa-build/twa-manifest.json
+          fi
+
+      - name: Bubblewrap init Android project
+        run: |
+          cd twa-build
+          bubblewrap init \
+            --manifest="https://rameshwarsahu2014bpmjarwe1694-hue.github.io/gdsnotes/manifest.json" \
+            --directory=.
+          ls -la
+
+      - name: Patch signingKey in twa-manifest.json
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          cd twa-build
           node -e "
             const fs = require('fs');
-            const path = 'twa-build/twa-manifest.json';
-            const m = JSON.parse(fs.readFileSync(path,'utf8'));
+            const path = 'twa-manifest.json';
+            const m = JSON.parse(fs.readFileSync(path, 'utf8'));
             m.signingKey = m.signingKey || {};
             m.signingKey.path = process.env.KEYSTORE_PATH;
             m.signingKey.alias = process.env.KEY_ALIAS || 'my-key-alias';
             fs.writeFileSync(path, JSON.stringify(m, null, 2));
             console.log('Patched signingKey ->', m.signingKey);
           "
-
-      - name: Bubblewrap init Android project
-        run: |
-          cd twa-build
-          yes "" | bubblewrap init \
-            --manifest="https://rameshwarsahu2014bpmjarwe1694-hue.github.io/gdsnotes/manifest.json" \
-            --directory=. || true
-          ls -la
+          cat twa-manifest.json | head -40
 
       - name: Bubblewrap build (signed APK + AAB)
         env:
@@ -145,4 +169,3 @@ jobs:
             ${{ steps.artifacts.outputs.apk_path }}
             ${{ steps.artifacts.outputs.aab_path }}
           generate_release_notes: true
-          
