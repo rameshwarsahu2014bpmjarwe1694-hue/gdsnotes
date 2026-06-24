@@ -258,4 +258,4 @@ jobs:
           echo "Build completed successfully."
           echo "APK : ${{ steps.artifacts.outputs.apk }}"
           echo "AAB : ${{ steps.artifacts.outputs.aab }}"
-          echo "=================================" 
+          echo "================================="
