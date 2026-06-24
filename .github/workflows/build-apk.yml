@@ -82,8 +82,8 @@ jobs:
 
           echo "===== Bubblewrap Doctor ====="
           bubblewrap updateConfig \
-           --jdkPath "$JAVA_HOME" \
-           --androidSdkPath "$ANDROID_SDK_ROOT"
+          --jdkPath "$JAVA_HOME" \
+          --androidSdkPath "$ANDROID_HOME"
           bubblewrap doctor || true
 
       - name: Decode Keystore
@@ -181,7 +181,6 @@ jobs:
 
           echo "===== Build folders ====="
           find "$ANDROID_SDK_ROOT" -maxdepth 2 -type d | sort
-          bubblewrap doctor
 
           printf "%s\n%s\n" \
           "$KEYSTORE_PASSWORD" \
