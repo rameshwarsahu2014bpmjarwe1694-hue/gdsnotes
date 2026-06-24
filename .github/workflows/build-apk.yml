@@ -50,10 +50,11 @@ jobs:
           
       - name: Install Bubblewrap CLI
         run: |
-         npm uninstall -g @bubblewrap/cli || true
-         npm install -g @bubblewrap/cli@1.22.3
-         yes n | bubblewrap --version
-          
+          npm uninstall -g @bubblewrap/cli || true
+          npm install -g @bubblewrap/cli@1.22.3
+          bubblewrap updateConfig \
+           --jdkPath "$JAVA_HOME" \
+           --androidSdkPath "${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
 
       - name: Configure Bubblewrap
         run: |
