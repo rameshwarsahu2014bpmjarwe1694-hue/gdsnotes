@@ -169,12 +169,13 @@ jobs:
           {
           "jdkPath":"$JAVA_HOME",
           "androidSdkPath":"$ANDROID_HOME"
-          }
+           }
            EOF
-          printf "%s\n%s\n" \
-          "$KEYSTORE_PASSWORD" \
-          "$KEY_PASSWORD" \
-          | bubblewrap build --skipPwaValidation
+
+            printf "%s\n%s\n" \
+            "$KEYSTORE_PASSWORD" \
+            "$KEY_PASSWORD" \
+            | bubblewrap build --skipPwaValidation
 
           echo "===== Build Output ====="
 
