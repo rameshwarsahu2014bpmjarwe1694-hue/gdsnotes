@@ -164,19 +164,20 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           cd twa-build
+
           export ANDROID_HOME="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
           export ANDROID_SDK_ROOT="$ANDROID_HOME"
 
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-
-          bubblewrap doctor
           mkdir -p "$HOME/.bubblewrap"
 
           printf '{\n  "jdkPath":"%s",\n  "androidSdkPath":"%s"\n}\n' \
           "$JAVA_HOME" \
           "$ANDROID_SDK_ROOT" \
           > "$HOME/.bubblewrap/config.json"
+
+          cat "$HOME/.bubblewrap/config.json"
+
+          bubblewrap doctor
 
           printf "%s\n%s\n" \
           "$KEYSTORE_PASSWORD" \
