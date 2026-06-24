@@ -52,7 +52,7 @@ jobs:
         run: |
           npm uninstall -g @bubblewrap/cli || true
           npm install -g @bubblewrap/cli@latest
-          bubblewrap --version
+          
 
       - name: Configure Bubblewrap
         run: |
