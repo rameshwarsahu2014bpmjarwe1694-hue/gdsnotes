@@ -46,7 +46,10 @@ jobs:
             platform-tools
             platforms;android-34
             build-tools;34.0.0
-
+      - name: Accept Android SDK licenses
+        run: |
+          yes | sdkmanager --licenses
+          
       - name: Install Bubblewrap CLI
         run: |
           npm uninstall -g @bubblewrap/cli || true
