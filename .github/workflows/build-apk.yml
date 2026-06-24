@@ -176,7 +176,11 @@ jobs:
           > "$HOME/.bubblewrap/config.json"
 
           cat "$HOME/.bubblewrap/config.json"
+          echo "===== SDK Contents ====="
+          ls -la "$ANDROID_SDK_ROOT"
 
+          echo "===== Build folders ====="
+          find "$ANDROID_SDK_ROOT" -maxdepth 2 -type d | sort
           bubblewrap doctor
 
           printf "%s\n%s\n" \
