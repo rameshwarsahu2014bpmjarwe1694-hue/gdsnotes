@@ -165,17 +165,15 @@ jobs:
 
           mkdir -p "$HOME/.bubblewrap"
 
-          cat > "$HOME/.bubblewrap/config.json" <<EOF
-          {
-          "jdkPath":"$JAVA_HOME",
-          "androidSdkPath":"$ANDROID_HOME"
-           }
-           EOF
+          printf '{\n  "jdkPath":"%s",\n  "androidSdkPath":"%s"\n}\n' \
+          "$JAVA_HOME" \
+          "$ANDROID_HOME" \
+          > "$HOME/.bubblewrap/config.json"
 
-            printf "%s\n%s\n" \
-            "$KEYSTORE_PASSWORD" \
-            "$KEY_PASSWORD" \
-            | bubblewrap build --skipPwaValidation
+          printf "%s\n%s\n" \
+          "$KEYSTORE_PASSWORD" \
+          "$KEY_PASSWORD" \
+          | bubblewrap build --skipPwaValidation
 
           echo "===== Build Output ====="
 
