@@ -109,9 +109,9 @@ jobs:
         run: |
           cd twa-build
 
-          bubblewrap init \
-            --manifest="https://rameshwarsahu2014bpmjarwe1694-hue.github.io/gdsnotes/manifest.json" \
-            --directory=.
+          yes "" | bubblewrap init \
+          --manifest="https://rameshwarsahu2014bpmjarwe1694-hue.github.io/gdsnotes/manifest.json" \
+           --directory=.
 
           echo "===== Files ====="
           ls -la
