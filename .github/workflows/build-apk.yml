@@ -52,6 +52,12 @@ jobs:
         run: |
          npm uninstall -g @bubblewrap/cli || true
          npm install -g @bubblewrap/cli@1.22.3
+
+      - name: Debug Bubblewrap
+        run: |
+         which bubblewrap
+         bubblewrap --help
+         npm list -g @bubblewrap/cli
           
 
       - name: Configure Bubblewrap
