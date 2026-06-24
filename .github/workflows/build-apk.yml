@@ -81,6 +81,9 @@ jobs:
           cat "$HOME/.bubblewrap/config.json"
 
           echo "===== Bubblewrap Doctor ====="
+          bubblewrap updateConfig \
+           --jdkPath "$JAVA_HOME" \
+           --androidSdkPath "$ANDROID_SDK_ROOT"
           bubblewrap doctor || true
 
       - name: Decode Keystore
