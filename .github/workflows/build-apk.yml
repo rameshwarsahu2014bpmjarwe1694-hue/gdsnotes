@@ -82,33 +82,34 @@ jobs:
           fs.writeFileSync(path, JSON.stringify(m, null, 2));
           console.log('Patched signingKey ->', m.signingKey);
           "
-          
-          
-          
-      - name: Bubblewrap init Android project
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          - name: Bubblewrap init Android project
         run: |
-         cd twa-build
+          cd twa-build
 
-         printf "n\n%s\n" "$ANDROID_SDK_ROOT" | 
-       bubblewrap init \
-         --manifest="twa-manifest.json" \
-         --directory=.
-        ls -la
+          yes "" | bubblewrap init \
+            --manifest="**" \
+            --directory=. || true
+
+          ls -la
 
       - name: Bubblewrap build (signed APK + AAB)
-  env:
-    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-    KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-  run: |
-    cd twa-build
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          cd twa-build
 
-    printf "n\n%s\n%s\n%s\n" \
-      "$ANDROID_SDK_ROOT" \
-      "$KEYSTORE_PASSWORD" \
-      "$KEY_PASSWORD" | bubblewrap build --skipPwaValidation
+          printf "%s\n%s\n" \
+            "$KEYSTORE_PASSWORD" \
+            "$KEY_PASSWORD" \
+            | bubblewrap build --skipPwaValidation
 
-    echo "---- Build artifacts ----"
-    find . -maxdepth 4 \( -name "*.apk" -o -name "*.aab" \) | sort
+          echo "---- Build artifacts ----"
+
+          find . -maxdepth 4 \( -name "*.apk" -o -name "*.aab" \) | sort
 
       - name: Locate output artifacts
         id: artifacts
@@ -128,7 +129,7 @@ jobs:
 
           echo "Found APK: $APK_PATH"
           echo "Found AAB: $AAB_PATH"
-      - name: Upload APK artifact
+          - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: gdsnotes-signed-apk
