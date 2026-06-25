@@ -136,10 +136,10 @@ if: github.event_name == 'workflow_dispatch' &&
 github.event.inputs.release == 'true'
 uses: softprops/action-gh-release@v2 
 with: 
-tag_name: apk-${{ github.run_number }}
-name: GDS Notes APK build $
+       tag_name: apk-${{ github.run_number }}
+       name: GDS Notes APK build $
 {{ github.run_number }} 
-files:
-| ${{ steps.artifacts.outputs.apk_path }} 
-${{ steps.artifacts.outputs.aab_path }} 
-generate_release_notes: true
+     files:| 
+          ${{ steps.artifacts.outputs.apk_path }} 
+          ${{ steps.artifacts.outputs.aab_path }} 
+         generate_release_notes: true
