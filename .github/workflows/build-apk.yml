@@ -84,7 +84,8 @@ jobs:
           console.log('Patched signingKey ->',m.signingKey);
           "
       
-        
+      - name: Show Bubblewrap version
+        run: bubblewrap --version
       - name: Bubblewrap init Android project
         run: |
          cd twa-build
