@@ -85,18 +85,41 @@ jobs:
           "
       
         
-      - name: Bubblewrap init Android project 
+      - name: Bubblewrap init Android project
         run: |
-          cd twa-build
+         cd twa-build
 
-          printf "n\n%s\nn\n%s\n" \
-          "$JAVA_HOME" \
-          "$ANDROID_SDK_ROOT" | bubblewrap init \
-            --manifest="twa-manifest.json" \
-            --directory=.
+         mkdir -p "$HOME/.bubblewrap"
 
-          echo "===== Project Files ====="
-          ls -la
+         cat > "$HOME/.bubblewrap/config.json" <<EOF
+         {
+         "jdkPath":"$JAVA_HOME",
+         "androidSdkPath":"$ANDROID_SDK_ROOT"
+         }
+         EOF
+
+         cat "$HOME/.bubblewrap/config.json"
+
+         bubblewrap updateConfig \
+         --jdkPath "$JAVA_HOME" \
+         --androidSdkPath "$ANDROID_SDK_ROOT"
+
+         bubblewrap init \
+         --manifest="twa-manifest.json" \
+         --directory=.
+
+         ls -la
+        
+          
+
+          
+          
+          
+            
+            
+
+          
+          
 
       - name: Bubblewrap build (signed APK + AAB)
         env:
