@@ -62,13 +62,14 @@ jobs:
 
       - name: Prepare Bubblewrap workspace
         env:
+          KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           mkdir -p twa-build
           cp android.keystore twa-build/android.keystore
           cp twa-manifest.json twa-build/twa-manifest.json
 
-          KEYSTORE_PATH="$(pwd)/twa-build/android.keystore"
+          
 
           node -e "
           const fs = require('fs');
@@ -82,18 +83,26 @@ jobs:
           fs.writeFileSync(path, JSON.stringify(m, null, 2));
           console.log('Patched signingKey ->', m.signingKey);
           "
-        env:
-          KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          - name: Bubblewrap init Android project
+       
+      - name: Bubblewrap init Android project
         run: |
-          cd twa-build
+         cd twa-build
 
-          yes "" | bubblewrap init \
-            --manifest="**" \
-            --directory=. || true
+         printf "n\n%s\n" "$ANDROID_SDK_ROOT" | bubblewrap init \
+         --manifest="twa-manifest.json" \
+         --directory=.
 
-          ls -la
+         ls -la   
+         
+      
+        
+          
+
+           
+            
+            
+
+          
 
       - name: Bubblewrap build (signed APK + AAB)
         env:
