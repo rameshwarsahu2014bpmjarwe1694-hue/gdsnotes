@@ -82,9 +82,9 @@ jobs:
           fs.writeFileSync(path, JSON.stringify(m, null, 2));
           console.log('Patched signingKey ->', m.signingKey);
           "
-          env:
-          KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          
+          
+          
       - name: Bubblewrap init Android project
         run: |
           cd twa-build
