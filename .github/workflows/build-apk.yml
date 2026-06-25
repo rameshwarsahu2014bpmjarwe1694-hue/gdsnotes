@@ -83,13 +83,15 @@ jobs:
           fs.writeFileSync(path,JSON.stringify(m,null,2));
           console.log('Patched signingKey ->',m.signingKey);
           "
-      - name: Bubblewrap init Android project
-        env:
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+      
+        
+      - name: Bubblewrap init Android project 
         run: |
           cd twa-build
 
-          printf "n\n%s\n" "$ANDROID_SDK_ROOT" | bubblewrap init \
+          printf "n\n%s\nn\n%s\n" \
+          "$JAVA_HOME" \
+          "$ANDROID_SDK_ROOT" | bubblewrap init \
             --manifest="twa-manifest.json" \
             --directory=.
 
