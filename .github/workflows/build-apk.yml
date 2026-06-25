@@ -89,11 +89,10 @@ jobs:
         run: |
          cd twa-build
 
-         printf "n\n%s\n" "$ANDROID_SDK_ROOT" |
+         printf "n\n%s\n" "$ANDROID_SDK_ROOT" | 
        bubblewrap init \
          --manifest="twa-manifest.json" \
          --directory=.
-      
         ls -la
 
       - name: Bubblewrap build (signed APK + AAB)
