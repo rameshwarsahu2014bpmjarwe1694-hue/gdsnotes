@@ -87,29 +87,29 @@ jobs:
           
       - name: Bubblewrap init Android project
         run: |
-          cd twa-build
+         cd twa-build
 
-          yes "" | bubblewrap init \
-            --manifest="**" \
-            --directory=. || true
-
-          ls -la
+         printf "n\n%s\n" "$ANDROID_SDK_ROOT" |
+       bubblewrap init \
+         --manifest="twa-manifest.json" \
+         --directory=.
+      
+        ls -la
 
       - name: Bubblewrap build (signed APK + AAB)
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          cd twa-build
+  env:
+    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+    KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+  run: |
+    cd twa-build
 
-          printf "%s\n%s\n" \
-            "$KEYSTORE_PASSWORD" \
-            "$KEY_PASSWORD" \
-            | bubblewrap build --skipPwaValidation
+    printf "n\n%s\n%s\n%s\n" \
+      "$ANDROID_SDK_ROOT" \
+      "$KEYSTORE_PASSWORD" \
+      "$KEY_PASSWORD" | bubblewrap build --skipPwaValidation
 
-          echo "---- Build artifacts ----"
-
-          find . -maxdepth 4 \( -name "*.apk" -o -name "*.aab" \) | sort
+    echo "---- Build artifacts ----"
+    find . -maxdepth 4 \( -name "*.apk" -o -name "*.aab" \) | sort
 
       - name: Locate output artifacts
         id: artifacts
