@@ -124,7 +124,8 @@ jobs:
           yes "" | bubblewrap update --skipVersionUpgrade || yes "" | bubblewrap update || true
 
           ls -la
-
+          echo "===== app/build.gradle (35-50) ====="
+          sed -n '35,50p' app/build.gradle
       - name: Bubblewrap build (signed APK + AAB)
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
