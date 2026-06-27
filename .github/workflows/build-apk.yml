@@ -91,8 +91,8 @@ jobs:
           m.signingKey=m.signingKey||{};
           m.signingKey.path=process.env.KEYSTORE_PATH;
           m.signingKey.alias=process.env.KEY_ALIAS;
-          storePassword: process.env.KEYSTORE_PASSWORD,
-          keyPassword: process.env.KEY_PASSWORD
+          m.signingKey.storePassword=process.env.KEYSTORE_PASSWORD;
+          m.signingKey.keyPassword=process.env.KEY_PASSWORD;
           fs.writeFileSync(path,JSON.stringify(m,null,2));
           console.log('Patched signingKey ->',m.signingKey);
           "
