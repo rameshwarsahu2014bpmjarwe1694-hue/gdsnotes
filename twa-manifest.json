@@ -3,7 +3,7 @@
   "host": "rameshwarsahu2014bpmjarwe1694-hue.github.io",
   "name": "GDS Notes",
   "launcherName": "GDS Notes",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "default",
   "themeColor": "#0b66c2",
   "themeColorDark": "#0b1220",
@@ -33,8 +33,9 @@
   "minSdkVersion": 21,
   "orientationLock": false,
   "appVersionName": "1.0.0",
-  "appVersionCode": 1,
-  "signingKey": {
+"appVersionCode": 1,
+"splashScreenFadeOutDuration": 300,
+"signingKey": {
     "path": "./android.keystore",
     "alias": "my-key-alias"
   }
