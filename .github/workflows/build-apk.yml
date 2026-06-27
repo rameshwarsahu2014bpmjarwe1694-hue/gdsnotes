@@ -84,31 +84,42 @@ jobs:
           console.log('Patched signingKey ->',m.signingKey);
           "
       
-      
       - name: Bubblewrap init Android project
         run: |
-         cd twa-build
+          cd twa-build
 
-         mkdir -p "$HOME/.bubblewrap"
+          # 1) Tell Bubblewrap where JDK + Android SDK live (skips its interactive setup)
+          mkdir -p "$HOME/.bubblewrap"
+          cat > "$HOME/.bubblewrap/config.json" <<EOF
+          {
+            "jdkPath": "$JAVA_HOME",
+            "androidSdkPath": "$ANDROID_SDK_ROOT"
+          }
+          EOF
+          cat "$HOME/.bubblewrap/config.json"
 
-         cat > "$HOME/.bubblewrap/config.json" <<EOF
-         {
-         "jdkPath":"$JAVA_HOME",
-         "androidSdkPath":"$ANDROID_SDK_ROOT"
-         }
-         EOF
+          # 2) Back up our CUSTOM twa-manifest.json (signingKey, packageId, theme colors, etc.)
+          cp twa-manifest.json ../twa-manifest-custom.json
 
-         cat "$HOME/.bubblewrap/config.json"
+          # 3) Extract the Web App Manifest URL from our twa-manifest.json
+          #    (this is what `bubblewrap init --manifest=...` actually expects)
+          WEB_MANIFEST_URL=$(node -e "console.log(require('./twa-manifest.json').webManifestUrl)")
+          echo "Web manifest URL: $WEB_MANIFEST_URL"
 
-         bubblewrap updateConfig \
-         --jdkPath "$JAVA_HOME" \
-         --androidSdkPath "$ANDROID_SDK_ROOT"
+          # 4) Scaffold the Android project from the web manifest URL.
+          #    Bubblewrap init is interactive — feed blank answers so it accepts defaults.
+          yes "" | bubblewrap init \
+            --manifest="$WEB_MANIFEST_URL" \
+            --directory=.
 
-         bubblewrap init \
-         --manifest="twa-manifest.json" \
-         --directory=.
+          # 5) Restore OUR customized twa-manifest.json (overwrites the freshly-generated one)
+          cp ../twa-manifest-custom.json twa-manifest.json
 
-         ls -la
+          # 6) Re-generate the Android project from our customized manifest
+          #    (applies our packageId, signingKey path, colors, version, etc.)
+          yes "" | bubblewrap update --skipVersionUpgrade || yes "" | bubblewrap update
+
+          ls -la
         
           
 
