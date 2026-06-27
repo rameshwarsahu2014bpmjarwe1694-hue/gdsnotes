@@ -77,6 +77,8 @@ jobs:
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           mkdir -p twa-build
           cp android.keystore twa-build/android.keystore
@@ -89,6 +91,8 @@ jobs:
           m.signingKey=m.signingKey||{};
           m.signingKey.path=process.env.KEYSTORE_PATH;
           m.signingKey.alias=process.env.KEY_ALIAS;
+          storePassword: process.env.KEYSTORE_PASSWORD,
+          keyPassword: process.env.KEY_PASSWORD
           fs.writeFileSync(path,JSON.stringify(m,null,2));
           console.log('Patched signingKey ->',m.signingKey);
           "
