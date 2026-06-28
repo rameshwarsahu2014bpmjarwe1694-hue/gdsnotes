@@ -126,9 +126,11 @@ jobs:
           ls -la
           echo "===== app/build.gradle (35-50) ====="
           sed -n '35,50p' app/build.gradle
-          - name: Show generated twa-manifest.json
-            run: |
-             cat twa-build/twa-manifest.json
+          
+      - name: Show generated twa-manifest.json
+        run: |
+         cat twa-build/twa-manifest.json
+         
       - name: Find launchUrl
         run: |
           grep -R "launchUrl" -n twa-build || true
