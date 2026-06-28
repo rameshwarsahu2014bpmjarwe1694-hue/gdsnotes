@@ -1,0 +1,38 @@
+name: Auto Deploy to GitHub Pages Repo
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repo
+        uses: actions/checkout@v4
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Clone target repo
+        run: |
+          # Yahan GH_PAT use ho raha hai
+          git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ secrets.TARGET_REPO }} target
+
+      - name: Sync files
+        run: |
+          rsync -av --delete \
+            --exclude ".git" \
+            --exclude ".github" \
+            ./ target/
+
+      - name: Commit and Push
+        run: |
+          cd target
+          git add .
+          git commit -m "Auto update from gdsnotes" || echo "No changes to commit"
+          git push
+          
