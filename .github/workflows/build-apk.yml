@@ -126,9 +126,19 @@ jobs:
           ls -la
           echo "===== app/build.gradle (35-50) ====="
           sed -n '35,50p' app/build.gradle
+          
       - name: Show generated build.gradle
         run: |
           sed -n '1,120p' twa-build/app/build.gradle
+
+      - name: Show AndroidManifest.xml
+        run: |
+         sed -n '1,200p' twa-build/app/src/main/AndroidManifest.xml
+
+      - name: Show strings.xml
+        run: |
+         sed -n '1,200p' twa-build/app/src/main/res/values/strings.xml
+    
       - name: Bubblewrap build (signed APK + AAB)
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
