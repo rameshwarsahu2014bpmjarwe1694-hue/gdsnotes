@@ -29,7 +29,11 @@ jobs:
          --exclude ".github" \
          --exclude "target" \
          ./ target/
-
+         
+      - name: Restore CNAME
+        run: |
+          echo "rsh.gdsnotes.in" > target/CNAME
+          
       - name: Commit and Push
         run: |
           cd target
