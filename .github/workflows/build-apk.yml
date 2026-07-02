@@ -128,28 +128,36 @@ jobs:
           sed -n '35,50p' app/build.gradle
       - name: Patch LauncherActivity (Enable FLAG_SECURE)
         run: |
-          FILE="twa-build/app/src/main/java/io/gdsnote/rshtwa/LauncherActivity.java"
+          FILE=$(find twa-build -name LauncherActivity.java | head -n 1)
 
-          if [ -f "$FILE" ]; then
-            echo "Patching LauncherActivity..."
-
-            if ! grep -q "android.view.WindowManager" "$FILE"; then
-              sed -i '1,/import android.os.Bundle;/a import android.view.WindowManager;' "$FILE"
-            fi
-
-            if ! grep -q "FLAG_SECURE" "$FILE"; then
-              awk '
-              /onCreate\(.*\)/ { inMethod=1 }
-              inMethod && /\{/ { print; print "        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);"; inMethod=0; next }
-              { print }
-              ' "$FILE" > tmp && mv tmp "$FILE"
-            fi
-
-            echo "Patch applied successfully."
-          else
-            echo "LauncherActivity not found!"
-            exit 1
+          if [ -z "$FILE" ]; then
+          echo "LauncherActivity not found!"
+          exit 1
           fi
+
+          echo "Found: $FILE"
+          echo "Patching LauncherActivity..."
+
+          # import add (safe check)
+          if ! grep -q "WindowManager" "$FILE"; then
+          sed -i '1,/import android.os.Bundle;/a import android.view.WindowManager;' "$FILE"
+          fi
+
+          # FLAG_SECURE inject (only once)
+          if ! grep -q "FLAG_SECURE" "$FILE"; then
+          awk '
+          /onCreate\(.*\)/ { inMethod=1 }
+          inMethod && /\{/ {
+          print
+          print "        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);"
+          inMethod=0
+          next
+          }
+          { print }
+          ' "$FILE" > tmp && mv tmp "$FILE"
+          fi
+
+          echo "Patch applied successfully."
       - name: Find LauncherActivity
         run: |
          find twa-build -name LauncherActivity.java
