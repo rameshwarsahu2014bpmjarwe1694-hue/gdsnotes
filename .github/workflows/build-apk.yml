@@ -126,6 +126,30 @@ jobs:
           ls -la
           echo "===== app/build.gradle (35-50) ====="
           sed -n '35,50p' app/build.gradle
+      - name: Patch LauncherActivity (Enable FLAG_SECURE)
+        run: |
+          FILE="twa-build/app/src/main/java/io/gdsnote/rshtwa/LauncherActivity.java"
+
+          if [ -f "$FILE" ]; then
+            echo "Patching LauncherActivity..."
+
+            if ! grep -q "android.view.WindowManager" "$FILE"; then
+              sed -i '1,/import android.os.Bundle;/a import android.view.WindowManager;' "$FILE"
+            fi
+
+            if ! grep -q "FLAG_SECURE" "$FILE"; then
+              awk '
+              /onCreate\(.*\)/ { inMethod=1 }
+              inMethod && /\{/ { print; print "        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);"; inMethod=0; next }
+              { print }
+              ' "$FILE" > tmp && mv tmp "$FILE"
+            fi
+
+            echo "Patch applied successfully."
+          else
+            echo "LauncherActivity not found!"
+            exit 1
+          fi
       - name: Find LauncherActivity
         run: |
          find twa-build -name LauncherActivity.java
