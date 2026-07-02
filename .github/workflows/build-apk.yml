@@ -139,6 +139,9 @@ jobs:
         run: |
           sed -n '1,120p' twa-build/app/build.gradle
 
+      - name: Show LauncherActivity.java
+        run: |
+         sed -n '1,200p' twa-build/app/src/main/java/io/gdsnote/rshtwa/LauncherActivity.java
       - name: Show AndroidManifest.xml
         run: |
          sed -n '1,200p' twa-build/app/src/main/AndroidManifest.xml
