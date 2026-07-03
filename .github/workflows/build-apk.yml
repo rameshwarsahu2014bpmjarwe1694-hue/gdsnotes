@@ -140,7 +140,7 @@ jobs:
 
           # import add (safe check)
           if ! grep -q "WindowManager" "$FILE"; then
-          sed -i '1,/import android.os.Bundle;/a import android.view.WindowManager;' "$FILE"
+          sed -i '/^import android.os.Bundle;$/a import android.view.WindowManager;' "$FILE"
           fi
 
           # FLAG_SECURE inject (only once)
