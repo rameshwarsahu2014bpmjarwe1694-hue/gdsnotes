@@ -183,7 +183,10 @@ jobs:
       - name: Show strings.xml
         run: |
          sed -n '1,200p' twa-build/app/src/main/res/values/strings.xml
-    
+      - name: Verify LauncherActivity
+        run: |
+         FILE=$(find twa-build -name LauncherActivity.java | head -n1)
+         nl -ba "$FILE" | sed -n '1,40p'
       - name: Bubblewrap build (signed APK + AAB)
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
