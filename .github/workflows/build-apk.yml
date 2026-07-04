@@ -219,6 +219,29 @@ jobs:
 
           echo "===== AndroidManifest.xml ====="
           cat webview-build/app/src/main/AndroidManifest.xml
+      - name: Generate MainActivity.java
+        run: |
+          mkdir -p webview-build/app/src/main/java/in/gdsnotes/rsh
+
+          cat > webview-build/app/src/main/java/in/gdsnotes/rsh/MainActivity.java <<'EOF'
+          package in.gdsnotes.rsh;
+
+          import android.os.Bundle;
+
+          import androidx.appcompat.app.AppCompatActivity;
+
+          public class MainActivity extends AppCompatActivity {
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_main);
+              }
+          }
+          EOF
+
+          echo "===== MainActivity.java ====="
+          cat webview-build/app/src/main/java/in/gdsnotes/rsh/MainActivity.java
       - name: Prepare Bubblewrap workspace
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
