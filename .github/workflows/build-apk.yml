@@ -160,6 +160,7 @@ jobs:
               implementation 'androidx.activity:activity:1.9.1'
               implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
               implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+              implementation 'androidx.core:core-splashscreen:1.0.1'
           }
           EOF
 
@@ -230,6 +231,7 @@ jobs:
           import android.widget.ProgressBar;
 
           import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+          import androidx.core.splashscreen.SplashScreen;
           import androidx.activity.OnBackPressedCallback;
           import androidx.appcompat.app.AppCompatActivity;
           import androidx.appcompat.app.AlertDialog;
