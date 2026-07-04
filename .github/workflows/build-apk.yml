@@ -197,7 +197,7 @@ jobs:
                   android:label="GDS Notes"
                   android:roundIcon="@mipmap/ic_launcher_round"
                   android:supportsRtl="true"
-                  android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+                  android:theme="@style/Theme.GDSNotes"
 
                   <activity
                       android:name=".MainActivity"
@@ -298,7 +298,7 @@ jobs:
                       }
                   });
 
-                  webView.loadUrl("https://YOUR-WEBSITE-URL");
+                  webView.loadUrl("https://rsh.gdsnotes.in");
                   
                   getOnBackPressedDispatcher().addCallback(this,
                           new OnBackPressedCallback(true) {
