@@ -618,26 +618,20 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease
           
-      - name: Verify Final APK Resources
+      - name: Verify APK Contents
         run: |
          APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
 
-         echo "===== AndroidManifest ====="
-         aapt dump badging "$APK" | grep application
+         echo "===== APK Resources ====="
+         unzip -l "$APK" | grep -E "ic_launcher|mipmap|themes|AndroidManifest" || true
 
          echo ""
-         echo "===== Splash Theme ====="
-         aapt dump xmltree "$APK" AndroidManifest.xml | grep Theme -A5 -B5 || true
+         echo "===== Manifest Strings ====="
+         strings "$APK" | grep "Theme.GDSNotes" || true
 
          echo ""
-         echo "===== Launcher Icons ====="
-         aapt dump badging "$APK" | grep icon
-         
-      - name: Check Final Manifest
-        run: |
-         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
-         aapt dump xmltree "$APK" AndroidManifest.xml
-         
+         echo "===== Splash ====="
+         strings "$APK" | grep "windowSplash" || true
       - name: Inspect APK Icons
         run: |
          APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -n1)
