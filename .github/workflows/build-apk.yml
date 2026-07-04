@@ -236,20 +236,30 @@ jobs:
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
+          import android.view.View;
+          import android.widget.Button;
+          import android.widget.ProgressBar;
 
+          import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
           import androidx.activity.OnBackPressedCallback;
           import androidx.appcompat.app.AppCompatActivity;
 
           public class MainActivity extends AppCompatActivity {
 
               private WebView webView;
-
+              private SwipeRefreshLayout swipeRefresh;
+              private ProgressBar progressBar;
+              private View offlineLayout;
+              private Button btnRetry;
               @SuppressLint("SetJavaScriptEnabled")
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   setContentView(R.layout.activity_main);
-
+                  swipeRefresh = findViewById(R.id.swipeRefresh);
+                  progressBar = findViewById(R.id.progressBar);
+                  offlineLayout = findViewById(R.id.offlineLayout);
+                  btnRetry = findViewById(R.id.btnRetry);
                   webView = findViewById(R.id.webView);
 
                   WebSettings settings = webView.getSettings();
@@ -299,7 +309,12 @@ jobs:
                   });
 
                   webView.loadUrl("https://rsh.gdsnotes.in");
-                  
+                  swipeRefresh.setOnRefreshListener(() -> webView.reload());
+
+                  btnRetry.setOnClickListener(v -> {
+                  offlineLayout.setVisibility(View.GONE);
+                  webView.reload();
+                  });
                   getOnBackPressedDispatcher().addCallback(this,
                           new OnBackPressedCallback(true) {
                               @Override
