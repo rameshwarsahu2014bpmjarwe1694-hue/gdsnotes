@@ -72,7 +72,20 @@ jobs:
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > android.keystore
           ls -lh android.keystore
+      - name: Create Native WebView workspace
+        run: |
+          mkdir -p webview-build
 
+          mkdir -p webview-build/app/src/main/java
+          mkdir -p webview-build/app/src/main/res/layout
+          mkdir -p webview-build/app/src/main/res/values
+          mkdir -p webview-build/app/src/main/res/xml
+          mkdir -p webview-build/gradle/wrapper
+
+          echo "===================================="
+          echo "Native WebView workspace created."
+          find webview-build -type d | sort
+          echo "===================================="
       - name: Prepare Bubblewrap workspace
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
