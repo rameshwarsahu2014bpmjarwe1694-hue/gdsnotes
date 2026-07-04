@@ -566,6 +566,26 @@ jobs:
           EOF
           echo "===== Resources ====="
           find webview-build/app/src/main/res -type f | sort
+      - name: Debug Launcher Icons
+        run: |
+         echo "========== Mipmap Files =========="
+         find webview-build/app/src/main/res -type f | grep mipmap | sort
+
+         echo ""
+         echo "========== File Sizes =========="
+         ls -lh webview-build/app/src/main/res/mipmap-*/ic_launcher*
+    
+         echo ""
+         echo "========== Adaptive Icon XML =========="
+         cat webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+
+         echo ""
+         echo "========== Round Icon XML =========="
+         cat webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+
+         echo ""
+         echo "========== PNG Info =========="
+         file webview-build/app/src/main/res/mipmap-*/ic_launcher.png || true
       - name: Download Gradle Wrapper
         run: |
           cd webview-build
@@ -596,6 +616,13 @@ jobs:
           cd webview-build
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease
+      - name: Inspect APK Icons
+        run: |
+         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -n1)
+
+         echo "APK = $APK"
+
+         unzip -l "$APK" | grep -E "mipmap|ic_launcher|round|splash" || true
       - name: Locate output artifacts
         id: artifacts
         run: |
