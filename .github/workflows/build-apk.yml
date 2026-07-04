@@ -129,6 +129,57 @@ jobs:
 
           echo "===== gradle.properties ====="
           cat webview-build/gradle.properties
+      - name: Generate app build.gradle
+        run: |
+          cat > webview-build/app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'in.gdsnotes.rsh'
+              compileSdk 34
+
+              defaultConfig {
+                  applicationId "in.gdsnotes.rsh"
+                  minSdk 21
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+
+                  testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+                  }
+              }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+
+              buildFeatures {
+                  viewBinding true
+              }
+          }
+
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.7.0'
+              implementation 'androidx.webkit:webkit:1.11.0'
+              implementation 'com.google.android.material:material:1.12.0'
+              implementation 'androidx.activity:activity:1.9.1'
+              implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
+          }
+          EOF
+
+          touch webview-build/app/proguard-rules.pro
+
+          echo "===== app/build.gradle ====="
+          cat webview-build/app/build.gradle
       - name: Prepare Bubblewrap workspace
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
