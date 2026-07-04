@@ -491,14 +491,14 @@ jobs:
       - name: Locate output artifacts
         id: artifacts
         run: |
-          cd twa-build
+          cd webview-build
           APK_PATH=$(find . -maxdepth 4 -name "app-release-signed.apk" | head -n1)
           if [ -z "$APK_PATH" ]; then
             APK_PATH=$(find . -maxdepth 4 -name "*.apk" | head -n1)
           fi
           AAB_PATH=$(find . -maxdepth 4 -name "*.aab" | head -n1)
-          echo "apk_path=twa-build/${APK_PATH#./}" >> "$GITHUB_OUTPUT"
-          echo "aab_path=twa-build/${AAB_PATH#./}" >> "$GITHUB_OUTPUT"
+          echo "apk_path=webview-build/${APK_PATH#./}" >> "$GITHUB_OUTPUT"
+          echo "aab_path=webview-build/${AAB_PATH#./}" >> "$GITHUB_OUTPUT"
           echo "Found APK: $APK_PATH"
           echo "Found AAB: $AAB_PATH"
 
