@@ -487,7 +487,36 @@ jobs:
 
           echo "===== Resources ====="
           find webview-build/app/src/main/res -type f | sort
-          
+      - name: Download Gradle Wrapper
+        run: |
+          cd webview-build
+          gradle wrapper --gradle-version 8.10
+      - name: Configure Release Signing
+        run: |
+          cat >> webview-build/app/build.gradle <<EOF
+
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file("../../android.keystore")
+                      storePassword "${{ secrets.KEYSTORE_PASSWORD }}"
+                      keyAlias "${{ secrets.KEY_ALIAS }}"
+                      keyPassword "${{ secrets.KEY_PASSWORD }}"
+                  }
+              }
+
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          EOF
+      - name: Build Native APK & AAB
+        run: |
+          cd webview-build
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease
       - name: Locate output artifacts
         id: artifacts
         run: |
