@@ -86,8 +86,8 @@ jobs:
           echo "Native WebView workspace created."
           find webview-build -type d | sort
           echo "===================================="
-          - name: Generate Gradle project files
-            run: |
+      - name: Generate Gradle project files
+        run: |
           cat > webview-build/settings.gradle <<'EOF'
           pluginManagement {
               repositories {
