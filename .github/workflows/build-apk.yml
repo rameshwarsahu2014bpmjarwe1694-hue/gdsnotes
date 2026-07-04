@@ -57,11 +57,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Bubblewrap CLI
-        run: |
-          npm uninstall -g @bubblewrap/cli || true
-          npm install -g @bubblewrap/cli@1.22.3
-
       - name: Decode keystore from secret
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
