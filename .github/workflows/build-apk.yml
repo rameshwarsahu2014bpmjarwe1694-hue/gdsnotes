@@ -438,6 +438,21 @@ jobs:
 
           cp icon-192.png webview-build/app/src/main/res/mipmap-mdpi/ic_launcher.png
           cp icon-192.png webview-build/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+          cat > webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@android:color/white"/>
+              <foreground android:drawable="@mipmap/ic_launcher"/>
+          </adaptive-icon>
+          EOF
+
+          cat > webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@android:color/white"/>
+              <foreground android:drawable="@mipmap/ic_launcher_round"/>
+          </adaptive-icon>
+          EOF
           cat > webview-build/app/src/main/res/layout/activity_main.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
 
