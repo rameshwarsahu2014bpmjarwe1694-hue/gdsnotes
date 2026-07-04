@@ -417,7 +417,27 @@ jobs:
         run: |
           mkdir -p webview-build/app/src/main/res/layout
           mkdir -p webview-build/app/src/main/res/values
+          mkdir -p webview-build/app/src/main/res/mipmap-anydpi-v26
+          mkdir -p webview-build/app/src/main/res/mipmap-hdpi
+          mkdir -p webview-build/app/src/main/res/mipmap-mdpi
+          mkdir -p webview-build/app/src/main/res/mipmap-xhdpi
+          mkdir -p webview-build/app/src/main/res/mipmap-xxhdpi
+          mkdir -p webview-build/app/src/main/res/mipmap-xxxhdpi
 
+          cp icon-512.png webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          cp icon-512.png webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+
+          cp icon-192.png webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          cp icon-192.png webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+
+          cp icon-192.png webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          cp icon-192.png webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+
+          cp icon-192.png webview-build/app/src/main/res/mipmap-hdpi/ic_launcher.png
+          cp icon-192.png webview-build/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+
+          cp icon-192.png webview-build/app/src/main/res/mipmap-mdpi/ic_launcher.png
+          cp icon-192.png webview-build/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
           cat > webview-build/app/src/main/res/layout/activity_main.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
 
