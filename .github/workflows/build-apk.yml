@@ -312,7 +312,13 @@ jobs:
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                       settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
                   }
-
+                  @Override
+                     protected void onDestroy() {
+                       if (webView != null) {
+                           webView.destroy();
+                       }
+                       super.onDestroy();
+                     }
                 webView.setWebChromeClient(new WebChromeClient() {
 
                  @Override
@@ -370,13 +376,7 @@ jobs:
                      }
                  });
                     
-                     @Override
-                     protected void onDestroy() {
-                       if (webView != null) {
-                           webView.destroy();
-                       }
-                       super.onDestroy();
-                     }
+                     
                   
                   webView.loadUrl("https://rsh.gdsnotes.in");
                   swipeRefresh.setOnRefreshListener(() -> webView.reload());
