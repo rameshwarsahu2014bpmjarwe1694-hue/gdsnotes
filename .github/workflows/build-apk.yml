@@ -1,4 +1,4 @@
-name: Build Signed APK (Bubblewrap TWA)
+name: Build Signed Native APK
 
 on:
   push:
