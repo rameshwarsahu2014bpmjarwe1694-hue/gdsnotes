@@ -611,11 +611,33 @@ jobs:
               }
           }
           EOF
+          
       - name: Build Native APK & AAB
         run: |
           cd webview-build
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease
+          
+      - name: Verify Final APK Resources
+        run: |
+         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
+
+         echo "===== AndroidManifest ====="
+         aapt dump badging "$APK" | grep application
+
+         echo ""
+         echo "===== Splash Theme ====="
+         aapt dump xmltree "$APK" AndroidManifest.xml | grep Theme -A5 -B5 || true
+
+         echo ""
+         echo "===== Launcher Icons ====="
+         aapt dump badging "$APK" | grep icon
+         
+      - name: Check Final Manifest
+        run: |
+         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
+         aapt dump xmltree "$APK" AndroidManifest.xml
+         
       - name: Inspect APK Icons
         run: |
          APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -n1)
