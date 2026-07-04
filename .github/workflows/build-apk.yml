@@ -261,6 +261,29 @@ jobs:
               private View offlineLayout;
               private ValueCallback<Uri[]> filePathCallback;
               private Button btnRetry;
+              private final ActivityResultLauncher<Intent> fileChooserLauncher =
+              registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+
+                    if (filePathCallback == null)
+                        return;
+
+                    Uri[] results = null;
+
+                    if (result.getResultCode() == Activity.RESULT_OK &&
+                            result.getData() != null) {
+
+                        Uri uri = result.getData().getData();
+
+                        if (uri != null) {
+                            results = new Uri[]{uri};
+                        }
+                    }
+
+                    filePathCallback.onReceiveValue(results);
+                    filePathCallback = null;
+                });
               @SuppressLint("SetJavaScriptEnabled")
               @Override
               protected void onCreate(Bundle savedInstanceState) {
@@ -290,7 +313,21 @@ jobs:
                       settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
                   }
 
-                  webView.setWebChromeClient(new WebChromeClient());
+                webView.setWebChromeClient(new WebChromeClient() {
+
+                 @Override
+                 public boolean onShowFileChooser(WebView webView,
+                                     ValueCallback<Uri[]> filePathCallback,
+                                     FileChooserParams fileChooserParams) {
+
+                  MainActivity.this.filePathCallback = filePathCallback;
+
+                 Intent intent = fileChooserParams.createIntent();
+                 fileChooserLauncher.launch(intent);
+
+                 return true;
+                 }
+              });
 
                   webView.setWebViewClient(new WebViewClient() {
 
@@ -331,6 +368,8 @@ jobs:
                         webView.setVisibility(View.GONE);
                         offlineLayout.setVisibility(View.VISIBLE);
                      }
+                 });
+                    
                      @Override
                      protected void onDestroy() {
                        if (webView != null) {
@@ -338,7 +377,7 @@ jobs:
                        }
                        super.onDestroy();
                      }
-                  }); 
+                  
                   webView.loadUrl("https://rsh.gdsnotes.in");
                   swipeRefresh.setOnRefreshListener(() -> webView.reload());
 
