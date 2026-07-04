@@ -245,13 +245,21 @@ jobs:
           import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
           import androidx.activity.OnBackPressedCallback;
           import androidx.appcompat.app.AppCompatActivity;
+          import android.app.Activity;
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.webkit.ValueCallback;
+          import android.webkit.WebChromeClient.FileChooserParams;
 
+          import androidx.activity.result.ActivityResultLauncher;
+          import androidx.activity.result.contract.ActivityResultContracts;
           public class MainActivity extends AppCompatActivity {
 
               private WebView webView;
               private SwipeRefreshLayout swipeRefresh;
               private ProgressBar progressBar;
               private View offlineLayout;
+              private ValueCallback<Uri[]> filePathCallback;
               private Button btnRetry;
               @SuppressLint("SetJavaScriptEnabled")
               @Override
