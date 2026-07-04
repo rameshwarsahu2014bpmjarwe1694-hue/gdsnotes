@@ -242,6 +242,50 @@ jobs:
 
           echo "===== MainActivity.java ====="
           cat webview-build/app/src/main/java/in/gdsnotes/rsh/MainActivity.java
+      - name: Generate Android Resources
+        run: |
+          mkdir -p webview-build/app/src/main/res/layout
+          mkdir -p webview-build/app/src/main/res/values
+
+          cat > webview-build/app/src/main/res/layout/activity_main.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+              <WebView
+                  android:id="@+id/webView"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent" />
+
+          </FrameLayout>
+          EOF
+
+          cat > webview-build/app/src/main/res/values/strings.xml <<'EOF'
+          <resources>
+              <string name="app_name">GDS Notes</string>
+          </resources>
+          EOF
+
+          cat > webview-build/app/src/main/res/values/colors.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="black">#FF000000</color>
+              <color name="white">#FFFFFFFF</color>
+          </resources>
+          EOF
+
+          cat > webview-build/app/src/main/res/values/themes.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources xmlns:tools="http://schemas.android.com/tools">
+              <style name="Theme.GDSNotes"
+                  parent="Theme.Material3.DayNight.NoActionBar">
+              </style>
+          </resources>
+          EOF
+
+          echo "===== Resources ====="
+          find webview-build/app/src/main/res -type f | sort
       - name: Prepare Bubblewrap workspace
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
