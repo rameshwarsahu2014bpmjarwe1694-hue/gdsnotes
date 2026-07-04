@@ -628,36 +628,6 @@ jobs:
           fs.writeFileSync(path,JSON.stringify(m,null,2));
           console.log('Patched signingKey ->',m.signingKey);
           "
-
-      - name: Bubblewrap init Android project
-        run: |
-          cd twa-build
-
-          mkdir -p "$HOME/.bubblewrap"
-          cat > "$HOME/.bubblewrap/config.json" <<EOF
-          {
-            "jdkPath": "$JAVA_HOME",
-            "androidSdkPath": "$ANDROID_SDK_ROOT"
-          }
-          EOF
-          cat "$HOME/.bubblewrap/config.json"
-
-          cp twa-manifest.json ../twa-manifest-custom.json
-
-          WEB_MANIFEST_URL=$(node -e "console.log(require('./twa-manifest.json').webManifestUrl)")
-          echo "Web manifest URL: $WEB_MANIFEST_URL"
-
-          yes "" | bubblewrap init \
-            --manifest="$WEB_MANIFEST_URL" \
-            --directory=. || true
-
-          cp ../twa-manifest-custom.json twa-manifest.json
-
-          yes "" | bubblewrap update --skipVersionUpgrade || yes "" | bubblewrap update || true
-
-          ls -la
-          echo "===== app/build.gradle (35-50) ====="
-          sed -n '35,50p' app/build.gradle
       - name: Patch LauncherActivity (Enable FLAG_SECURE)
         run: |
           FILE=$(find twa-build -name LauncherActivity.java | head -n 1)
