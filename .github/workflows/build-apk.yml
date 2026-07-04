@@ -331,73 +331,166 @@ jobs:
                   if (webView != null) {
                       webView.destroy();
                   }
-                  super.onDestroy();
-              }
-}
-              webView.setWebChromeClient(new WebChromeClient() {
+      - name: Generate MainActivity.java
+        run: |
+          mkdir -p webview-build/app/src/main/java/in/gdsnotes/rsh
 
+          cat > webview-build/app/src/main/java/in/gdsnotes/rsh/MainActivity.java <<'EOF'
+          package in.gdsnotes.rsh;
+
+          import android.annotation.SuppressLint;
+          import android.graphics.Bitmap;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebResourceRequest;
+          import android.webkit.WebResourceError;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.view.View;
+          import android.widget.Button;
+          import android.widget.ProgressBar;
+
+          import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+          import androidx.activity.OnBackPressedCallback;
+          import androidx.appcompat.app.AppCompatActivity;
+          import android.app.Activity;
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.webkit.ValueCallback;
+          import android.webkit.WebChromeClient.FileChooserParams;
+
+          import androidx.activity.result.ActivityResultLauncher;
+          import androidx.activity.result.contract.ActivityResultContracts;
+
+          public class MainActivity extends AppCompatActivity {
+
+              private WebView webView;
+              private SwipeRefreshLayout swipeRefresh;
+              private ProgressBar progressBar;
+              private View offlineLayout;
+              private ValueCallback<Uri[]> filePathCallback;
+              private Button btnRetry;
+
+              private final ActivityResultLauncher<Intent> fileChooserLauncher =
+                      registerForActivityResult(
+                              new ActivityResultContracts.StartActivityForResult(),
+                              result -> {
+
+                                  if (filePathCallback == null)
+                                      return;
+
+                                  Uri[] results = null;
+
+                                  if (result.getResultCode() == Activity.RESULT_OK &&
+                                          result.getData() != null) {
+
+                                      Uri uri = result.getData().getData();
+
+                                      if (uri != null) {
+                                          results = new Uri[]{uri};
+                                      }
+                                  }
+
+                                  filePathCallback.onReceiveValue(results);
+                                  filePathCallback = null;
+                              });
+
+              @SuppressLint("SetJavaScriptEnabled")
               @Override
-              public boolean onShowFileChooser(WebView webView,
-                                              ValueCallback<Uri[]> filePathCallback,
-                                               FileChooserParams fileChooserParams) {
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_main);
 
-                  MainActivity.this.filePathCallback = filePathCallback;
+                  swipeRefresh = findViewById(R.id.swipeRefresh);
+                  progressBar = findViewById(R.id.progressBar);
+                  offlineLayout = findViewById(R.id.offlineLayout);
+                  btnRetry = findViewById(R.id.btnRetry);
+                  webView = findViewById(R.id.webView);
 
-                  Intent intent = fileChooserParams.createIntent();
-                  fileChooserLauncher.launch(intent);
+                  WebSettings settings = webView.getSettings();
+                  settings.setJavaScriptEnabled(true);
+                  settings.setDomStorageEnabled(true);
+                  settings.setDatabaseEnabled(true);
+                  settings.setAllowFileAccess(true);
+                  settings.setAllowContentAccess(true);
+                  settings.setLoadsImagesAutomatically(true);
+                  settings.setJavaScriptCanOpenWindowsAutomatically(true);
+                  settings.setSupportZoom(false);
+                  settings.setBuiltInZoomControls(false);
+                  settings.setDisplayZoomControls(false);
+                  settings.setUseWideViewPort(true);
+                  settings.setLoadWithOverviewMode(true);
 
-                  return true;
-              }
-          });
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                      settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+                  }
 
-              webView.setWebViewClient(new WebViewClient() {
+                  webView.setWebChromeClient(new WebChromeClient() {
 
-              @Override
-              public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                  super.onPageStarted(view, url, favicon);
+                      @Override
+                      public boolean onShowFileChooser(WebView webView,
+                                                       ValueCallback<Uri[]> filePathCallback,
+                                                       FileChooserParams fileChooserParams) {
 
-                  progressBar.setVisibility(View.VISIBLE);
-                  webView.setVisibility(View.VISIBLE);
-                  offlineLayout.setVisibility(View.GONE);
-              }
+                          MainActivity.this.filePathCallback = filePathCallback;
 
-              @Override
-              public void onPageFinished(WebView view, String url) {
-                  super.onPageFinished(view, url);
+                          Intent intent = fileChooserParams.createIntent();
+                          fileChooserLauncher.launch(intent);
 
-                  progressBar.setVisibility(View.GONE);
-                  swipeRefresh.setRefreshing(false);
-              }
+                          return true;
+                      }
+                  });
 
-              @Override
-              public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                  view.loadUrl(request.getUrl().toString());
-                  return true;
-              }
+                  webView.setWebViewClient(new WebViewClient() {
 
-              @Override
-              public void onReceivedError(WebView view,
-                                           WebResourceRequest request,
-                                           WebResourceError error) {
-                  super.onReceivedError(view, request, error);
+                      @Override
+                      public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                          super.onPageStarted(view, url, favicon);
 
-                  progressBar.setVisibility(View.GONE);
-                  swipeRefresh.setRefreshing(false);
+                          progressBar.setVisibility(View.VISIBLE);
+                          webView.setVisibility(View.VISIBLE);
+                          offlineLayout.setVisibility(View.GONE);
+                      }
 
-                  webView.setVisibility(View.GONE);
-                  offlineLayout.setVisibility(View.VISIBLE);
-              }
-          });
-                    
-                     
-                  
+                      @Override
+                      public void onPageFinished(WebView view, String url) {
+                          super.onPageFinished(view, url);
+
+                          progressBar.setVisibility(View.GONE);
+                          swipeRefresh.setRefreshing(false);
+                      }
+
+                      @Override
+                      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                          view.loadUrl(request.getUrl().toString());
+                          return true;
+                      }
+
+                      @Override
+                      public void onReceivedError(WebView view,
+                                                   WebResourceRequest request,
+                                                   WebResourceError error) {
+                          super.onReceivedError(view, request, error);
+
+                          progressBar.setVisibility(View.GONE);
+                          swipeRefresh.setRefreshing(false);
+
+                          webView.setVisibility(View.GONE);
+                          offlineLayout.setVisibility(View.VISIBLE);
+                      }
+                  });
+
                   webView.loadUrl("https://rsh.gdsnotes.in");
+
                   swipeRefresh.setOnRefreshListener(() -> webView.reload());
 
                   btnRetry.setOnClickListener(v -> {
-                  offlineLayout.setVisibility(View.GONE);
-                  webView.reload();
+                      offlineLayout.setVisibility(View.GONE);
+                      webView.reload();
                   });
+
                   getOnBackPressedDispatcher().addCallback(this,
                           new OnBackPressedCallback(true) {
                               @Override
