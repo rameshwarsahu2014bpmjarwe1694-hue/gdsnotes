@@ -496,67 +496,8 @@ jobs:
 
           echo "===== Resources ====="
           find webview-build/app/src/main/res -type f | sort
-      - name: Prepare Bubblewrap workspace
-        env:
-          KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          mkdir -p twa-build
-          cp android.keystore twa-build/android.keystore
-          cp twa-manifest.json twa-build/twa-manifest.json
-
-          node -e "
-          const fs=require('fs');
-          const path='twa-build/twa-manifest.json';
-          const m=JSON.parse(fs.readFileSync(path,'utf8'));
-          m.signingKey=m.signingKey||{};
-          m.signingKey.path=process.env.KEYSTORE_PATH;
-          m.signingKey.alias=process.env.KEY_ALIAS;
-          m.signingKey.storePassword=process.env.KEYSTORE_PASSWORD;
-          m.signingKey.keyPassword=process.env.KEY_PASSWORD;
-          fs.writeFileSync(path,JSON.stringify(m,null,2));
-          console.log('Patched signingKey ->',m.signingKey);
-          "
-      - name: Patch LauncherActivity (Enable FLAG_SECURE)
-        run: |
-          FILE=$(find twa-build -name LauncherActivity.java | head -n 1)
-
-          if [ -z "$FILE" ]; then
-          echo "LauncherActivity not found!"
-          exit 1
-          fi
-
-          echo "Found: $FILE"
-          echo "Patching LauncherActivity..."
-
-          # import add (safe check)
-          if ! grep -q "WindowManager" "$FILE"; then
-          sed -i '/^import android.os.Bundle;$/a import android.view.WindowManager;' "$FILE"
-          fi
-
-          # FLAG_SECURE inject (only once)
-          if ! grep -q "FLAG_SECURE" "$FILE"; then
-          awk '
-          /onCreate\(.*\)/ { inMethod=1 }
-          inMethod && /\{/ {
-          print
-          print "        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);"
-          inMethod=0
-          next
-          }
-          { print }
-          ' "$FILE" > tmp && mv tmp "$FILE"
-          fi
-
-          echo "Patch applied successfully."
-      - name: Find LauncherActivity
-        run: |
-         find twa-build -name LauncherActivity.java
-      - name: Show generated twa-manifest.json
-        run: |
-         cat twa-build/twa-manifest.json
+      
+      
          
       - name: Find launchUrl
         run: |
