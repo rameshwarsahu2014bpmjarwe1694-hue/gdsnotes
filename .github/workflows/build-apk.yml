@@ -86,6 +86,49 @@ jobs:
           echo "Native WebView workspace created."
           find webview-build -type d | sort
           echo "===================================="
+          - name: Generate Gradle project files
+            run: |
+          cat > webview-build/settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "GDSNotes"
+          include ':app'
+          EOF
+
+          cat > webview-build/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.7.3' apply false
+          }
+          EOF
+
+          cat > webview-build/gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          android.enableJetifier=true
+          EOF
+
+          echo "===== settings.gradle ====="
+          cat webview-build/settings.gradle
+
+          echo "===== build.gradle ====="
+          cat webview-build/build.gradle
+
+          echo "===== gradle.properties ====="
+          cat webview-build/gradle.properties
       - name: Prepare Bubblewrap workspace
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/twa-build/android.keystore
