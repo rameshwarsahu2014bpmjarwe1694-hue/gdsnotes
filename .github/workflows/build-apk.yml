@@ -280,8 +280,11 @@ jobs:
               @SuppressLint("SetJavaScriptEnabled")
               @Override
               protected void onCreate(Bundle savedInstanceState) {
-                  super.onCreate(savedInstanceState);
-                  setContentView(R.layout.activity_main);
+
+             SplashScreen.installSplashScreen(this);
+
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
 
                   swipeRefresh = findViewById(R.id.swipeRefresh);
                   progressBar = findViewById(R.id.progressBar);
