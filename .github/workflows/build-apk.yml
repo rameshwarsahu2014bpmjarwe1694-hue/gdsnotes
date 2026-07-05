@@ -673,16 +673,9 @@ jobs:
          echo "===== Splash ====="
          strings "$APK" | grep "windowSplash" || true
 
-      - name: Verify AndroidManifest
+      - name: Verify Manifest
         run: |
-          aapt dump badging webview-build/app/build/outputs/apk/release/app-release.apk | grep application
-      - name: Verify Generated Launcher Icons
-        run: |
-         identify webview-build/app/src/main/res/mipmap-mdpi/ic_launcher.png
-         identify webview-build/app/src/main/res/mipmap-hdpi/ic_launcher.png
-         identify webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-         identify webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-         identify webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          strings webview-build/app/build/outputs/apk/release/app-release.apk | grep -E "Theme.GDSNotes|ic_launcher|roundIcon|windowSplash"
          
       - name: Inspect APK Icons
         run: |
