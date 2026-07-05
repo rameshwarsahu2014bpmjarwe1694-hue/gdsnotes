@@ -189,6 +189,7 @@ jobs:
 
               <uses-permission android:name="android.permission.INTERNET"/>
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
               <application
                   android:allowBackup="true"
@@ -255,7 +256,11 @@ jobs:
 
           import androidx.activity.result.ActivityResultLauncher;
           import androidx.activity.result.contract.ActivityResultContracts;
-
+          import android.app.DownloadManager;
+          import android.os.Environment;
+          import android.webkit.URLUtil;
+          import android.widget.Toast;
+          import android.content.Context;
           public class MainActivity extends AppCompatActivity {
 
               private WebView webView;
@@ -404,7 +409,45 @@ jobs:
                       }
                   });
 
-                  webView.loadUrl("https://rsh.gdsnotes.in");
+                  
+                  webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
+
+                  DownloadManager.Request request =
+                     new DownloadManager.Request(Uri.parse(url));
+
+                  request.setMimeType(mimeType);
+                  request.addRequestHeader("User-Agent", userAgent);
+
+                  String fileName = URLUtil.guessFileName(
+                       url,
+                       contentDisposition,
+                       mimeType
+                 );
+
+                 request.setTitle(fileName);
+                 request.setDescription("Downloading...");
+                 request.setNotificationVisibility(
+            DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+                );
+
+                request.setDestinationInExternalPublicDir(
+                    Environment.DIRECTORY_DOWNLOADS,
+                    fileName
+               );
+
+           DownloadManager dm =
+               (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+
+           if (dm != null) {
+           dm.enqueue(request);
+           Toast.makeText(
+                MainActivity.this,
+                "Download started",
+                Toast.LENGTH_SHORT
+          ).show();
+          }
+          });
+          webView.loadUrl("https://rsh.gdsnotes.in");
 
                   swipeRefresh.setOnRefreshListener(() -> webView.reload());
                   swipeRefresh.setOnChildScrollUpCallback(
