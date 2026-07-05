@@ -448,6 +448,7 @@ jobs:
         run: |
           mkdir -p webview-build/app/src/main/res/layout
           mkdir -p webview-build/app/src/main/res/values
+          mkdir -p webview-build/app/src/main/res/drawable
           mkdir -p webview-build/app/src/main/res/mipmap-anydpi-v26
           mkdir -p webview-build/app/src/main/res/mipmap-hdpi
           mkdir -p webview-build/app/src/main/res/mipmap-mdpi
@@ -487,16 +488,16 @@ jobs:
           cat > webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-              <background android:drawable="@android:color/white"/>
-              <foreground android:drawable="@mipmap/ic_launcher"/>
+          <background android:drawable="@android:color/white"/>
+          <foreground android:drawable="@drawable/ic_launcher_foreground"/>
           </adaptive-icon>
           EOF
 
           cat > webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-              <background android:drawable="@android:color/white"/>
-              <foreground android:drawable="@mipmap/ic_launcher_round"/>
+          <background android:drawable="@android:color/white"/>
+          <foreground android:drawable="@drawable/ic_launcher_foreground"/>
           </adaptive-icon>
           EOF
           cat > webview-build/app/src/main/res/layout/activity_main.xml <<'EOF'
