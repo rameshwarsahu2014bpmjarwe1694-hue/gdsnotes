@@ -673,6 +673,9 @@ jobs:
          echo "===== Splash ====="
          strings "$APK" | grep "windowSplash" || true
 
+      - name: Verify AndroidManifest
+        run: |
+          aapt dump badging webview-build/app/build/outputs/apk/release/app-release.apk | grep application
       - name: Verify Generated Launcher Icons
         run: |
          identify webview-build/app/src/main/res/mipmap-mdpi/ic_launcher.png
