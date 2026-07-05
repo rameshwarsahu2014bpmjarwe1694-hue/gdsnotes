@@ -672,6 +672,15 @@ jobs:
          echo ""
          echo "===== Splash ====="
          strings "$APK" | grep "windowSplash" || true
+
+      - name: Verify Generated Launcher Icons
+        run: |
+         identify webview-build/app/src/main/res/mipmap-mdpi/ic_launcher.png
+         identify webview-build/app/src/main/res/mipmap-hdpi/ic_launcher.png
+         identify webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+         identify webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+         identify webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+         
       - name: Inspect APK Icons
         run: |
          APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -n1)
