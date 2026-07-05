@@ -447,21 +447,35 @@ jobs:
           mkdir -p webview-build/app/src/main/res/mipmap-xhdpi
           mkdir -p webview-build/app/src/main/res/mipmap-xxhdpi
           mkdir -p webview-build/app/src/main/res/mipmap-xxxhdpi
+          convert icon-512.png -resize 48x48 \
+          webview-build/app/src/main/res/mipmap-mdpi/ic_launcher.png
 
-          cp icon-512.png webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-          cp icon-512.png webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+          convert icon-512.png -resize 48x48 \
+          webview-build/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
 
-          cp icon-192.png webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-          cp icon-192.png webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+          convert icon-512.png -resize 72x72 \
+          webview-build/app/src/main/res/mipmap-hdpi/ic_launcher.png
 
-          cp icon-192.png webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-          cp icon-192.png webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+          convert icon-512.png -resize 72x72 \
+          webview-build/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
 
-          cp icon-192.png webview-build/app/src/main/res/mipmap-hdpi/ic_launcher.png
-          cp icon-192.png webview-build/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+          convert icon-512.png -resize 96x96 \
+          webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher.png
 
-          cp icon-192.png webview-build/app/src/main/res/mipmap-mdpi/ic_launcher.png
-          cp icon-192.png webview-build/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+          convert icon-512.png -resize 96x96 \
+          webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+
+          convert icon-512.png -resize 144x144 \
+          webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+
+          convert icon-512.png -resize 144x144 \
+          webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+
+          convert icon-512.png -resize 192x192 \
+          webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+
+          convert icon-512.png -resize 192x192 \
+          webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
           cat > webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
