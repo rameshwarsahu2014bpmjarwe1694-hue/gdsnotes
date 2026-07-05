@@ -168,6 +168,10 @@ jobs:
 
           echo "===== app/build.gradle ====="
           cat webview-build/app/build.gradle
+          
+      - name: Verify Gradle Dependencies
+        run: |
+         grep "core-splashscreen" webview-build/app/build.gradle
       - name: Generate AndroidManifest.xml
         run: |
           mkdir -p webview-build/app/src/main
@@ -419,6 +423,20 @@ jobs:
 
           echo "===== MainActivity.java ====="
           cat webview-build/app/src/main/java/in/gdsnotes/rsh/MainActivity.java
+          
+      - name: Verify Generated MainActivity
+        run: |
+         echo "===== Package ====="
+         grep "^package " webview-build/app/src/main/java/in/gdsnotes/rsh/MainActivity.java
+
+         echo ""
+         echo "===== Splash API ====="
+         grep -n "SplashScreen.installSplashScreen" webview-build/app/src/main/java/in/gdsnotes/rsh/MainActivity.java
+
+         echo ""
+         echo "===== onCreate ====="
+         grep -n "protected void onCreate" webview-build/app/src/main/java/in/gdsnotes/rsh/MainActivity.java
+         
       - name: Generate Android Resources
         run: |
           mkdir -p webview-build/app/src/main/res/layout
