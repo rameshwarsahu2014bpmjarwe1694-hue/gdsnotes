@@ -39,7 +39,14 @@ jobs:
         with:
           packages: 'platforms;android-34 build-tools;34.0.0 platform-tools'
           cmdline-tools-version: 'latest'
+          
+      - name: Install ImageMagick
+        run: |
+         sudo apt-get update
+         sudo apt-get install -y imagemagick
 
+         convert -version
+         
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses >/dev/null || true
 
