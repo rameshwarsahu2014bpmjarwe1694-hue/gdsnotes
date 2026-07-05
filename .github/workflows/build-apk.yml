@@ -486,7 +486,7 @@ jobs:
 
           convert icon-512.png -resize 192x192 \
           webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
-          convert icon-512.png -resize 324x324 \
+          convert icon-512.png -resize 192x192 \
           webview-build/app/src/main/res/drawable/ic_launcher_foreground.png
           file webview-build/app/src/main/res/mipmap-*/ic_launcher.png
           cat > webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'EOF'
