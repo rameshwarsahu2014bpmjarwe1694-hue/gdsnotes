@@ -597,7 +597,7 @@ jobs:
 
           <!-- Android 12+ Splash -->
           <item name="android:windowSplashScreenBackground">@android:color/white</item>
-          <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+          <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
           <item name="android:windowSplashScreenAnimationDuration">300</item>
 
           <!-- Normal Background -->
