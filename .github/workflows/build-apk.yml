@@ -476,6 +476,7 @@ jobs:
 
           convert icon-512.png -resize 192x192 \
           webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+          file webview-build/app/src/main/res/mipmap-*/ic_launcher.png
           cat > webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
