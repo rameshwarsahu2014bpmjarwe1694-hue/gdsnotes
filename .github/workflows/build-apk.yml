@@ -194,7 +194,7 @@ jobs:
                   android:allowBackup="true"
                   android:icon="@mipmap/ic_launcher"
                   android:roundIcon="@mipmap/ic_launcher_round"
-                  android:label="GDS Notes"
+                  android:label="@string/app_name"
                   android:supportsRtl="true"
                   android:usesCleartextTraffic="true"
                   android:theme="@style/Theme.GDSNotes">
@@ -407,7 +407,9 @@ jobs:
                   webView.loadUrl("https://rsh.gdsnotes.in");
 
                   swipeRefresh.setOnRefreshListener(() -> webView.reload());
-
+                  swipeRefresh.setOnChildScrollUpCallback(
+                  (parent, child) -> webView.getScrollY() > 0
+                  );
                   btnRetry.setOnClickListener(v -> {
                       offlineLayout.setVisibility(View.GONE);
                       webView.reload();
@@ -576,7 +578,7 @@ jobs:
           EOF
           cat > webview-build/app/src/main/res/values/strings.xml <<'EOF'
           <resources>
-              <string name="app_name">GDS Notes</string>
+              <string name="app_name"> RSH GDS Notes</string>
           </resources>
           EOF
 
