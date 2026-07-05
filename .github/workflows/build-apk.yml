@@ -692,7 +692,17 @@ jobs:
           echo "aab_path=webview-build/${AAB_PATH#./}" >> "$GITHUB_OUTPUT"
           echo "Found APK: $APK_PATH"
           echo "Found AAB: $AAB_PATH"
+      - name: Verify Final APK Icons
+        run: |
+         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
 
+         echo "===== Launcher Resources in APK ====="
+         unzip -l "$APK" | grep ic_launcher || true
+
+         echo ""
+         echo "===== PNG Resources ====="
+         unzip -l "$APK" | grep png || true
+         
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
