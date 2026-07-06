@@ -638,11 +638,10 @@ jobs:
                      Toast.LENGTH_SHORT
                 ).show();
 
-               downloadFile(url, fileName, token);
-
-          });
-          }
-          }
+                downloadFile(url, fileName, token);
+               });
+             }
+           }
           }
           EOF
 
