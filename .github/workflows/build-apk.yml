@@ -461,6 +461,7 @@ jobs:
           downloadFile(url, fileName);
 
           });
+          }
           /* ================= DOWNLOAD HELPER ================= */
 
           private void downloadFile(String fileUrl, String fileName) {
