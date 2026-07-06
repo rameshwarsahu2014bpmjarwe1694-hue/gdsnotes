@@ -532,7 +532,22 @@ jobs:
 
           }).start();
           }
+          private class AndroidBridge {
 
+           @JavascriptInterface
+           public void download(String url, String fileName) {
+
+            runOnUiThread(() -> {
+               Toast.makeText(
+                    MainActivity.this,
+                    "Downloading...",
+                    Toast.LENGTH_SHORT
+               ).show();
+
+               downloadFile(url, fileName);
+             });
+            }
+           }
           }
           EOF
 
