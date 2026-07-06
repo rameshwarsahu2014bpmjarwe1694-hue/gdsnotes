@@ -738,3 +738,150 @@ jobs:
           EOF
           echo "===== Resources ====="
           find webview-build/app/src/main/res -type f | sort
+      - name: Debug Launcher Icons
+        run: |
+         echo "========== Mipmap Files =========="
+         find webview-build/app/src/main/res -type f | grep mipmap | sort
+
+         echo ""
+         echo "========== File Sizes =========="
+         ls -lh webview-build/app/src/main/res/mipmap-*/ic_launcher*
+    
+         echo ""
+         echo "========== Adaptive Icon XML =========="
+         cat webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+
+         echo ""
+         echo "========== Round Icon XML =========="
+         cat webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+
+         echo ""
+         echo "========== PNG Info =========="
+         file webview-build/app/src/main/res/mipmap-*/ic_launcher.png || true
+      - name: Download Gradle Wrapper
+        run: |
+          cd webview-build
+          gradle wrapper --gradle-version 8.10
+      - name: Configure Release Signing
+        run: |
+          cat >> webview-build/app/build.gradle <<EOF
+
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file("../../android.keystore")
+                      storePassword "${{ secrets.KEYSTORE_PASSWORD }}"
+                      keyAlias "${{ secrets.KEY_ALIAS }}"
+                      keyPassword "${{ secrets.KEY_PASSWORD }}"
+                  }
+              }
+
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          EOF
+          
+      - name: Build Native APK & AAB
+        run: |
+          cd webview-build
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease
+          
+      - name: Verify APK Contents
+        run: |
+         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
+
+         echo "===== APK Resources ====="
+         unzip -l "$APK" | grep -E "ic_launcher|mipmap|themes|AndroidManifest" || true
+
+         echo ""
+         echo "===== Manifest Strings ====="
+         strings "$APK" | grep "Theme.GDSNotes" || true
+
+         echo ""
+         echo "===== Splash ====="
+         strings "$APK" | grep "windowSplash" || true
+
+      - name: Verify Manifest
+        run: |
+          strings webview-build/app/build/outputs/apk/release/app-release.apk | grep -E "Theme.GDSNotes|ic_launcher|roundIcon|windowSplash"
+         
+      - name: Inspect APK Icons
+        run: |
+         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -n1)
+
+         echo "APK = $APK"
+
+         unzip -l "$APK" | grep -E "mipmap|ic_launcher|round|splash" || true
+      - name: Locate output artifacts
+        id: artifacts
+        run: |
+          cd webview-build
+          APK_PATH=$(find . -maxdepth 4 -name "app-release-signed.apk" | head -n1)
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find . -maxdepth 4 -name "*.apk" | head -n1)
+          fi
+          AAB_PATH=$(find . -maxdepth 4 -name "*.aab" | head -n1)
+          echo "apk_path=webview-build/${APK_PATH#./}" >> "$GITHUB_OUTPUT"
+          echo "aab_path=webview-build/${AAB_PATH#./}" >> "$GITHUB_OUTPUT"
+          echo "Found APK: $APK_PATH"
+          echo "Found AAB: $AAB_PATH"
+      - name: Verify Final APK Icons
+        run: |
+         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
+
+         echo "===== Launcher Resources in APK ====="
+         unzip -l "$APK" | grep ic_launcher || true
+
+         echo ""
+         echo "===== PNG Resources ====="
+         unzip -l "$APK" | grep png || true
+         
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gdsnotes-signed-apk
+          path: ${{ steps.artifacts.outputs.apk_path }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gdsnotes-signed-aab
+          path: ${{ steps.artifacts.outputs.aab_path }}
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Show SHA256 fingerprint (for assetlinks.json)
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          keytool -list -v \
+            -keystore android.keystore \
+            -alias "$KEY_ALIAS" \
+            -storepass "$KEYSTORE_PASSWORD" \
+            | grep -E "SHA256|SHA1" || true
+
+      - name: Create GitHub Release (optional)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: GDS Notes APK build ${{ github.run_number }}
+          files: |
+            ${{ steps.artifacts.outputs.apk_path }}
+            ${{ steps.artifacts.outputs.aab_path }}
+          generate_release_notes: true
+
+      - name: Build Summary
+        run: |
+          echo "================================="
+          echo "Build completed successfully."
+          echo "APK : ${{ steps.artifacts.outputs.apk_path }}"
+          echo "AAB : ${{ steps.artifacts.outputs.aab_path }}"
+          echo "================================="
