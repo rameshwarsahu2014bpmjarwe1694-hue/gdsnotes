@@ -397,17 +397,21 @@ jobs:
 
                       @Override
                       public void onReceivedError(WebView view,
-                                                   WebResourceRequest request,
-                                                   WebResourceError error) {
-                          super.onReceivedError(view, request, error);
+                            WebResourceRequest request,
+                            WebResourceError error) {
 
-                          progressBar.setVisibility(View.GONE);
-                          swipeRefresh.setRefreshing(false);
+                        super.onReceivedError(view, request, error);
 
-                          webView.setVisibility(View.GONE);
-                          offlineLayout.setVisibility(View.VISIBLE);
-                      }
-                  });
+                    // Sirf main page fail hone par offline screen dikhao
+                    if (request.isForMainFrame()) {
+
+                       progressBar.setVisibility(View.GONE);
+                       swipeRefresh.setRefreshing(false);
+
+                       webView.setVisibility(View.GONE);
+                       offlineLayout.setVisibility(View.VISIBLE);
+                   }
+                 }
 
                   
                   webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
