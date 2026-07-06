@@ -421,7 +421,7 @@ jobs:
                  }
               });
                   
-          webView.addJavascriptInterface(new AndroidBridge(), "Android");        
+          webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");        
           webView.loadUrl("https://rsh.gdsnotes.in");
 
                   swipeRefresh.setOnRefreshListener(() -> webView.reload());
