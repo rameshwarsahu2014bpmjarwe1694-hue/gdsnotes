@@ -569,4 +569,172 @@ jobs:
          echo "===== Splash API ====="
          grep -n "SplashScreen.installSplashScreen" webview-build/app/src/main/java/in/gdsnotes/rsh/MainActivity.java
 
-    
+         echo ""
+         echo "===== onCreate ====="
+         grep -n "protected void onCreate" webview-build/app/src/main/java/in/gdsnotes/rsh/MainActivity.java
+         
+      - name: Generate Android Resources
+        run: |
+          mkdir -p webview-build/app/src/main/res/layout
+          mkdir -p webview-build/app/src/main/res/values
+          mkdir -p webview-build/app/src/main/res/drawable
+          mkdir -p webview-build/app/src/main/res/mipmap-anydpi-v26
+          mkdir -p webview-build/app/src/main/res/mipmap-hdpi
+          mkdir -p webview-build/app/src/main/res/mipmap-mdpi
+          mkdir -p webview-build/app/src/main/res/mipmap-xhdpi
+          mkdir -p webview-build/app/src/main/res/mipmap-xxhdpi
+          mkdir -p webview-build/app/src/main/res/mipmap-xxxhdpi
+          convert icon-512.png -resize 48x48 \
+          webview-build/app/src/main/res/mipmap-mdpi/ic_launcher.png
+
+          convert icon-512.png -resize 48x48 \
+          webview-build/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+
+          convert icon-512.png -resize 72x72 \
+          webview-build/app/src/main/res/mipmap-hdpi/ic_launcher.png
+
+          convert icon-512.png -resize 72x72 \
+          webview-build/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+
+          convert icon-512.png -resize 96x96 \
+          webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+
+          convert icon-512.png -resize 96x96 \
+          webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+
+          convert icon-512.png -resize 144x144 \
+          webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+
+          convert icon-512.png -resize 144x144 \
+          webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+
+          convert icon-512.png -resize 192x192 \
+          webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+
+          convert icon-512.png -resize 192x192 \
+          webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+          convert icon-512.png -resize 432x432 \
+          webview-build/app/src/main/res/drawable/ic_launcher_foreground.png
+          file webview-build/app/src/main/res/mipmap-*/ic_launcher.png
+          cat > webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+          <background android:drawable="@android:color/white"/>
+          <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+          </adaptive-icon>
+          EOF
+
+          cat > webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+          <background android:drawable="@android:color/white"/>
+          <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+          </adaptive-icon>
+          EOF
+          cat > webview-build/app/src/main/res/layout/activity_main.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+
+          <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/swipeRefresh"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+              <FrameLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent">
+
+                  <WebView
+                      android:id="@+id/webView"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent"/>
+
+                  <ProgressBar
+                      android:id="@+id/progressBar"
+                      style="?android:attr/progressBarStyleLarge"
+                      android:layout_width="48dp"
+                      android:layout_height="48dp"
+                      android:layout_gravity="center"
+                      android:visibility="gone"/>
+
+                  <include
+                      android:id="@+id/offlineLayout"
+                      layout="@layout/network_error"
+                      android:visibility="gone"/>
+
+              </FrameLayout>
+
+          </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+          EOF
+          cat > webview-build/app/src/main/res/layout/network_error.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:gravity="center"
+              android:padding="24dp"
+              android:background="#FFFFFF">
+
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="No Internet Connection"
+                  android:textSize="22sp"
+                  android:textStyle="bold"
+                  android:textColor="#000000"/>
+
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="12dp"
+                  android:text="Please check your internet connection and try again."
+                  android:textSize="16sp"
+                  android:gravity="center"
+                  android:textColor="#666666"/>
+
+              <Button
+                  android:id="@+id/btnRetry"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="24dp"
+                  android:text="Retry"/>
+
+          </LinearLayout>
+          EOF
+          cat > webview-build/app/src/main/res/values/strings.xml <<'EOF'
+          <resources>
+              <string name="app_name"> RSH GDS Notes</string>
+          </resources>
+          EOF
+
+          cat > webview-build/app/src/main/res/values/colors.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="black">#FF000000</color>
+              <color name="white">#FFFFFFFF</color>
+          </resources>
+          EOF
+
+          cat > webview-build/app/src/main/res/values/themes.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources xmlns:tools="http://schemas.android.com/tools">
+
+             <style name="Theme.GDSNotes"
+              parent="Theme.Material3.DayNight.NoActionBar">
+
+          <!-- Android 12+ Splash -->
+          <item name="android:windowSplashScreenBackground">@android:color/white</item>
+          <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+          <item name="android:windowSplashScreenAnimationDuration">300</item>
+
+          <!-- Normal Background -->
+          <item name="android:windowBackground">@android:color/white</item>
+
+            </style>
+
+          </resources>
+          EOF
+          echo "===== Resources ====="
+          find webview-build/app/src/main/res -type f | sort
