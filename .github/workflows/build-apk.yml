@@ -647,6 +647,7 @@ jobs:
             });
            }
           }
+          }
           EOF
 
           echo "===== MainActivity.java ====="
