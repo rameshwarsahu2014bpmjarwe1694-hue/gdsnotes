@@ -517,12 +517,12 @@ jobs:
             runOnUiThread(() -> {
 
                Toast.makeText(
-                    MainActivity.this,
-                    fileName + " downloaded successfully",
-                    Toast.LENGTH_LONG
-    
-                    ).show()
-             );
+                   MainActivity.this,
+                   fileName + " downloaded successfully",
+                   Toast.LENGTH_LONG
+              ).show();
+
+           });
 
           } catch (IOException e) {
 
@@ -531,9 +531,8 @@ jobs:
                             MainActivity.this,
                             e.getMessage(),
                             Toast.LENGTH_LONG
-                    ).show()
-              );
-           }
+                    ).show();
+           });
 
           }).start();
           }
