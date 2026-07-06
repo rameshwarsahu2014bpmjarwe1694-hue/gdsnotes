@@ -441,7 +441,10 @@ jobs:
                     webView.goBack();
                 } else {
                     finish();
-            webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
+                  }
+                }
+            });
+            webView.setDownloadListener((url, userAgent,contentDisposition, mimeType, contentLength) -> {
 
               String fileName = URLUtil.guessFileName(
             url,
