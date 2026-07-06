@@ -514,11 +514,13 @@ jobs:
             output.close();
             input.close();
 
-            runOnUiThread(() ->
-                    Toast.makeText(
-                            MainActivity.this,
-                            "Download Complete",
-                            Toast.LENGTH_LONG
+            runOnUiThread(() -> {
+
+               Toast.makeText(
+                    MainActivity.this,
+                    fileName + " downloaded successfully",
+                    Toast.LENGTH_LONG
+    
                     ).show()
              );
 
