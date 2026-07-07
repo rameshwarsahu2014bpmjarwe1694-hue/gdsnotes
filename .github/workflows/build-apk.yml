@@ -462,7 +462,7 @@ jobs:
                  Toast.LENGTH_SHORT
            ).show();
 
-               downloadFile(url, fileName);
+               downloadFile(url, fileName, "");
 
           });
 
@@ -490,7 +490,7 @@ jobs:
                       }
 
                         connection.connect();
-                      
+                      }
                       int status = connection.getResponseCode();
                       if (status == java.net.HttpURLConnection.HTTP_MOVED_TEMP || status == java.net.HttpURLConnection.HTTP_MOVED_PERM) {
                           String newUrl = connection.getHeaderField("Location");
