@@ -508,7 +508,7 @@ jobs:
 
                         connection.connect();
 
-                      java.io.InputStream input = connection.getInputStream();
+                   java.io.InputStream input = connection.getInputStream();
                       
                       android.content.ContentValues values = new android.content.ContentValues();
                       values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
