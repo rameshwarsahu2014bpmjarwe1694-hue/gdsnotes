@@ -483,10 +483,10 @@ jobs:
                       
                       connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
 
-                                            if (token != null && !token.isEmpty() && !token.equals("null")) {
-                          connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
-                          connection.setRequestProperty("Authorization", "Bearer " + token);
-                      }
+                      if (token != null && !token.isEmpty() && !token.equals("null")) {
+                           connection.setRequestProperty("Authorization", "Bearer " + token);
+                       }
+
 
                       connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
                       if (cookies != null && !cookies.isEmpty()) {
@@ -505,10 +505,10 @@ jobs:
 
                       connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
 
-                                            if (token != null && !token.isEmpty() && !token.equals("null")) {
-                          connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
-                          connection.setRequestProperty("Authorization", "Bearer " + token);
-                      }
+                      if (token != null && !token.isEmpty() && !token.equals("null")) {
+                            connection.setRequestProperty("Authorization", "Bearer " + token);
+                       }
+
 
 
                        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
