@@ -507,7 +507,8 @@ jobs:
                        }
 
                         connection.connect();
-
+                       }
+                       
                    java.io.InputStream input = connection.getInputStream();
                       
                       android.content.ContentValues values = new android.content.ContentValues();
