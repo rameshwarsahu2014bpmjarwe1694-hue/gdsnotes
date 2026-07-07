@@ -483,8 +483,9 @@ jobs:
                       
                       connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
 
-                      if (token != null && !token.isEmpty()) {
-                           connection.setRequestProperty("Authorization", "Bearer " + token);
+                                            if (token != null && !token.isEmpty() && !token.equals("null")) {
+                          connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
+                          connection.setRequestProperty("Authorization", "Bearer " + token);
                       }
 
                       connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
@@ -504,9 +505,11 @@ jobs:
 
                       connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
 
-                      if (token != null && !token.isEmpty()) {
+                                            if (token != null && !token.isEmpty() && !token.equals("null")) {
+                          connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
                           connection.setRequestProperty("Authorization", "Bearer " + token);
-                       }
+                      }
+
 
                        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
 
