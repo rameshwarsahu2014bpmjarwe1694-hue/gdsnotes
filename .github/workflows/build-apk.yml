@@ -496,7 +496,10 @@ jobs:
                                               connection.connect();
                       
                       int status = connection.getResponseCode();
-                      
+                      if (status != 200) {
+                        runOnUiThread(() -> Toast.makeText(MainActivity.this, "Server Error: " + status, Toast.LENGTH_LONG).show());
+                         return;
+                      }
                       if (status == java.net.HttpURLConnection.HTTP_MOVED_TEMP || status == java.net.HttpURLConnection.HTTP_MOVED_PERM) {
                           String newUrl = connection.getHeaderField("Location");
                           connection = (HttpURLConnection) new URL(newUrl).openConnection();
@@ -518,7 +521,12 @@ jobs:
                        }
 
                         connection.connect();
-                       }
+                        int statusAfterRedirect = connection.getResponseCode();
+                        if (statusAfterRedirect != 200) {
+                            runOnUiThread(() -> Toast.makeText(MainActivity.this, "Redirect Error: " + statusAfterRedirect, Toast.LENGTH_LONG).show());
+                           return;
+                         }
+                       
                        
                    java.io.InputStream input = connection.getInputStream();
                       
