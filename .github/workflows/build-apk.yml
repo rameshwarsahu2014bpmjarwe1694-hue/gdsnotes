@@ -468,8 +468,8 @@ jobs:
 
           }
 
-                                                            /* ================= DOWNLOAD HELPER (FINAL FIXED FOR REDIRECTS & COOKIES) ================= */
-          private void downloadFile(String fileUrl, String fileName) {
+          /* ================= DOWNLOAD HELPER (FINAL FIXED FOR REDIRECTS & COOKIES) ================= */
+          private void downloadFile(String fileUrl, String fileName, String token) {
               runOnUiThread(() -> Toast.makeText(MainActivity.this, "Downloading...", Toast.LENGTH_SHORT).show());
               
               new Thread(() -> {
@@ -481,22 +481,32 @@ jobs:
                       java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
                       connection.setInstanceFollowRedirects(true); 
                       
-                      connection.setRequestProperty("x-source-auth", "RSH-GDS-SECURE-ACCESS");
+                      connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
+                      connection.setRequestProperty("Authorization", "Bearer " + token);
                       connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
+
                       if (cookies != null && !cookies.isEmpty()) {
                           connection.setRequestProperty("Cookie", cookies);
                       }
 
-                      connection.connect();
+                        connection.connect();
                       
                       int status = connection.getResponseCode();
                       if (status == java.net.HttpURLConnection.HTTP_MOVED_TEMP || status == java.net.HttpURLConnection.HTTP_MOVED_PERM) {
                           String newUrl = connection.getHeaderField("Location");
-                          connection = (java.net.HttpURLConnection) new java.net.URL(newUrl).openConnection();
-                          connection.setRequestProperty("x-source-auth", "RSH-GDS-SECURE-ACCESS");
-                          if (cookies != null) connection.setRequestProperty("Cookie", cookies);
-                          connection.connect();
-                      }
+                          connection = (HttpURLConnection) new URL(newUrl).openConnection();
+
+                          connection.setInstanceFollowRedirects(true);
+
+                          connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
+                          connection.setRequestProperty("Authorization", "Bearer " + token);
+                          connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
+
+                          if (cookies != null && !cookies.isEmpty()) {
+                          connection.setRequestProperty("Cookie", cookies);
+                       }
+
+                        connection.connect();
 
                       java.io.InputStream input = connection.getInputStream();
                       
@@ -534,9 +544,9 @@ jobs:
           private class AndroidBridge {
 
              @JavascriptInterface
-             public void download(String url, String fileName) {
+             public void download(String url, String fileName, String token) {
 
-                 runOnUiThread(() -> {
+               runOnUiThread(() -> {
 
                Toast.makeText(
                     MainActivity.this,
@@ -544,11 +554,11 @@ jobs:
                     Toast.LENGTH_SHORT
             ).show();
 
-                    downloadFile(url, fileName);
+            downloadFile(url, fileName, token);
 
-              });
-             }
-           }
+          });
+          }
+          }
           }
           EOF
 
