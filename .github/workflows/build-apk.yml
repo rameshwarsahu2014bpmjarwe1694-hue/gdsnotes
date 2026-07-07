@@ -468,28 +468,34 @@ jobs:
 
           }
 
-                              /* ================= DOWNLOAD HELPER (FIXED BLOCK) ================= */
+                                        /* ================= DOWNLOAD HELPER (FIXED FOR SECURE & NOTES PDF) ================= */
           private void downloadFile(String fileUrl, String fileName) {
               runOnUiThread(() -> {
                   try {
-                      DownloadManager.Request request = new DownloadManager.Request(Uri.parse(fileUrl));
+                      // 1. कुकी मैनेजर को तुरंत रीफ्रेश करें ताकि पेमेंट वेरिफिकेशन की ताज़ा कुकीज़ मिल सकें
+                      CookieManager.getInstance().flush();
+                      String cookies = CookieManager.getInstance().getCookie(fileUrl);
+
+                      // 2. यूआरएल को सुरक्षित करें (स्पेस या हिंदी फॉन्ट होने पर एरर न आए)
+                      String encodedUrl = fileUrl.replace(" ", "%20");
+                      DownloadManager.Request request = new DownloadManager.Request(Uri.parse(encodedUrl));
+                      
+                      // 3. व्यापक माइम टाइप सेट करें ताकि डाउनलोडर भ्रमित न हो
                       request.setMimeType("application/pdf");
                       
-                      // आपके बैकएंड सुरक्षा टोकन को पास करना (addRequestHeader के साथ)
+                      // 4. आपके बैकएंड सुरक्षा टोकन और ताज़ा कुकीज़ पास करना
                       request.addRequestHeader("x-source-auth", "RSH-GDS-SECURE-ACCESS");
-                      
-                      // ऑथेंटिकेशन कुकीज को पास करना (addRequestHeader के साथ)
-                      String cookies = CookieManager.getInstance().getCookie(fileUrl);
-                      if (cookies != null) {
+                      if (cookies != null && !cookies.isEmpty()) {
                           request.addRequestHeader("Cookie", cookies);
                       }
                       
-                      request.setDescription("फाइल डाउनलोड हो रही है...");
+                      // 5. नोटिफिकेशन सेटिंग्स
+                      request.setDescription("नोट्स डाउनलोड हो रहे हैं...");
                       request.setTitle(fileName);
                       request.allowScanningByMediaScanner();
                       request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                       
-                      // Android 10+ स्टोरेज एरर को बाईपास करने के लिए सिस्टम डाउनलोडर का उपयोग
+                      // 6. पब्लिक डाउनलोड डायरेक्टरी में सेव करें
                       request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
                       
                       DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
@@ -497,10 +503,11 @@ jobs:
                           dm.enqueue(request);
                       }
                   } catch (Exception e) {
-                      Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                      Toast.makeText(MainActivity.this, "Download Manager Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                   }
               });
           }
+
 
 
 
