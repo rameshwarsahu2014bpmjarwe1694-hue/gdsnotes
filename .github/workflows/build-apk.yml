@@ -492,9 +492,10 @@ jobs:
                           connection.setRequestProperty("Cookie", cookies);
                       }
 
-                        connection.connect();
-                      }
+                                              connection.connect();
+                      
                       int status = connection.getResponseCode();
+                      
                       if (status == java.net.HttpURLConnection.HTTP_MOVED_TEMP || status == java.net.HttpURLConnection.HTTP_MOVED_PERM) {
                           String newUrl = connection.getHeaderField("Location");
                           connection = (HttpURLConnection) new URL(newUrl).openConnection();
