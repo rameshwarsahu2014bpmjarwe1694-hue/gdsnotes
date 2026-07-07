@@ -468,45 +468,70 @@ jobs:
 
           }
 
-                                        /* ================= DOWNLOAD HELPER (FIXED FOR SECURE & NOTES PDF) ================= */
+                                                  /* ================= DOWNLOAD HELPER (FINAL FIXED FOR REDIRECTS & COOKIES) ================= */
           private void downloadFile(String fileUrl, String fileName) {
-              runOnUiThread(() -> {
+              runOnUiThread(() -> Toast.makeText(MainActivity.this, "Downloading...", Toast.LENGTH_SHORT).show());
+              
+              new Thread(() -> {
                   try {
-                      // 1. कुकी मैनेजर को तुरंत रीफ्रेश करें ताकि पेमेंट वेरिफिकेशन की ताज़ा कुकीज़ मिल सकें
-                      CookieManager.getInstance().flush();
-                      String cookies = CookieManager.getInstance().getCookie(fileUrl);
+                      android.webkit.CookieManager.getInstance().flush();
+                      String cookies = android.webkit.CookieManager.getInstance().getCookie(fileUrl);
 
-                      // 2. यूआरएल को सुरक्षित करें (स्पेस या हिंदी फॉन्ट होने पर एरर न आए)
-                      String encodedUrl = fileUrl.replace(" ", "%20");
-                      DownloadManager.Request request = new DownloadManager.Request(Uri.parse(encodedUrl));
+                      java.net.URL url = new java.net.URL(fileUrl.replace(" ", "%20"));
+                      java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
+                      connection.setInstanceFollowRedirects(true); 
                       
-                      // 3. व्यापक माइम टाइप सेट करें ताकि डाउनलोडर भ्रमित न हो
-                      request.setMimeType("application/pdf");
-                      
-                      // 4. आपके बैकएंड सुरक्षा टोकन और ताज़ा कुकीज़ पास करना
-                      request.addRequestHeader("x-source-auth", "RSH-GDS-SECURE-ACCESS");
+                      // यहाँ 'addRequestHeader' की जगह 'setRequestProperty' का उपयोग हुआ है जो थ्रेड में काम करता है
+                      connection.setRequestProperty("x-source-auth", "RSH-GDS-SECURE-ACCESS");
+                      connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
                       if (cookies != null && !cookies.isEmpty()) {
-                          request.addRequestHeader("Cookie", cookies);
+                          connection.setRequestProperty("Cookie", cookies);
                       }
+
+                      connection.connect();
                       
-                      // 5. नोटिफिकेशन सेटिंग्स
-                      request.setDescription("नोट्स डाउनलोड हो रहे हैं...");
-                      request.setTitle(fileName);
-                      request.allowScanningByMediaScanner();
-                      request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                      int status = connection.getResponseCode();
+                      if (status == java.net.HttpURLConnection.HTTP_MOVED_TEMP || status == java.net.HttpURLConnection.HTTP_MOVED_PERM) {
+                          String newUrl = connection.getHeaderField("Location");
+                          connection = (java.net.HttpURLConnection) new java.net.URL(newUrl).openConnection();
+                          connection.setRequestProperty("x-source-auth", "RSH-GDS-SECURE-ACCESS");
+                          if (cookies != null) connection.setRequestProperty("Cookie", cookies);
+                          connection.connect();
+                      }
+
+                      java.io.InputStream input = connection.getInputStream();
                       
-                      // 6. पब्लिक डाउनलोड डायरेक्टरी में सेव करें
-                      request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
-                      
-                      DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-                      if (dm != null) {
-                          dm.enqueue(request);
+                      android.content.ContentValues values = new android.content.ContentValues();
+                      values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                      values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
+                      values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS);
+
+                      android.net.Uri uri = getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                      if (uri != null) {
+                          java.io.OutputStream output = getContentResolver().openOutputStream(uri);
+                          if (output != null) {
+                              byte[] buffer = new byte[8192]; // यहाँ ब्रैकेट ठीक किया गया है
+                              int len;
+                              while ((len = input.read(buffer)) != -1) {
+                                  output.write(buffer, 0, len);
+                              }
+                              output.flush();
+                              output.close();
+                          }
+                          input.close();
+
+                          android.media.MediaScannerConnection.scanFile(MainActivity.this, new String[]{ 
+                              android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS) + "/" + fileName 
+                          }, null, null);
+
+                          runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download Complete (Saved in Downloads)", Toast.LENGTH_LONG).show());
                       }
                   } catch (Exception e) {
-                      Toast.makeText(MainActivity.this, "Download Manager Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                      runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
                   }
-              });
+              }).start();
           }
+
 
 
 
