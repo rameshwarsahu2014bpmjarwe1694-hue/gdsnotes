@@ -535,10 +535,12 @@ jobs:
                 input.close();
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download Complete", Toast.LENGTH_LONG).show());
             }
-          } catch (Exception e) {
-            // --- DEBUG 3: Crash/Exception Check ---
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    } catch (Exception e) {
+            // --- DEBUG 3: Detailed Exception Check ---
+            String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
+            runOnUiThread(() -> Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show());
           }
+
           }).start();
           }
 
