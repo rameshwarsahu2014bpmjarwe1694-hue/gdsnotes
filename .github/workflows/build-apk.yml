@@ -468,20 +468,20 @@ jobs:
 
           }
 
-                    /* ================= DOWNLOAD HELPER (FIXED BLOCK) ================= */
+                              /* ================= DOWNLOAD HELPER (FIXED BLOCK) ================= */
           private void downloadFile(String fileUrl, String fileName) {
               runOnUiThread(() -> {
                   try {
                       DownloadManager.Request request = new DownloadManager.Request(Uri.parse(fileUrl));
                       request.setMimeType("application/pdf");
                       
-                      // आपके बैकएंड सुरक्षा टोकन को पास करना
-                      request.addHeader("x-source-auth", "RSH-GDS-SECURE-ACCESS");
+                      // आपके बैकएंड सुरक्षा टोकन को पास करना (addRequestHeader के साथ)
+                      request.addRequestHeader("x-source-auth", "RSH-GDS-SECURE-ACCESS");
                       
-                      // ऑथेंटिकेशन कुकीज को पास करना
+                      // ऑथेंटिकेशन कुकीज को पास करना (addRequestHeader के साथ)
                       String cookies = CookieManager.getInstance().getCookie(fileUrl);
                       if (cookies != null) {
-                          request.addHeader("Cookie", cookies);
+                          request.addRequestHeader("Cookie", cookies);
                       }
                       
                       request.setDescription("फाइल डाउनलोड हो रही है...");
@@ -501,6 +501,7 @@ jobs:
                   }
               });
           }
+
 
 
           private class AndroidBridge {
