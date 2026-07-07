@@ -490,6 +490,12 @@ jobs:
             if (cookies != null && !cookies.isEmpty()) {
                 connection.setRequestProperty("Cookie", cookies);
             }
+            // Connection setup ke turant baad
+            connection.setConnectTimeout(15000); // 15 seconds wait
+            connection.setReadTimeout(15000);
+
+            // Ye line add karein, ye batayega ki URL sahi se fetch ho raha hai ya nahi
+                connection.setRequestMethod("GET"); 
 
             connection.connect();
             
