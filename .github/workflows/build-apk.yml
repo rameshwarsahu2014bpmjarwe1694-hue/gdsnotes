@@ -462,7 +462,7 @@ jobs:
                  Toast.LENGTH_SHORT
            ).show();
             runOnUiThread(() -> Toast.makeText(MainActivity.this, "Listener Triggered", Toast.LENGTH_SHORT).show());
-               downloadFile(url, fileName, "");
+               downloadFile(url, fileName, null);
 
           });
 
