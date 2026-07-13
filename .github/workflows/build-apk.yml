@@ -406,50 +406,57 @@ jobs:
 
                       @Override
                       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                             String url = request.getUrl().toString();
 
-                             if (url.startsWith("mailto:")) {
-                                try {
-                     Intent intent = new Intent(Intent.ACTION_SENDTO);
-                             intent.setData(Uri.parse(url));
-                             startActivity(intent);
-                             } catch (ActivityNotFoundException e) {
-                             Toast.makeText(MainActivity.this, "No email app found", Toast.LENGTH_SHORT).show();
-                            }
-                            return true;
+                          String url = request.getUrl().toString();
+
+                          // Email
+                          if (url.startsWith("mailto:")) {
+                              try {
+                                  Intent intent = new Intent(Intent.ACTION_SENDTO);
+                                  intent.setData(Uri.parse(url));
+                                  startActivity(intent);
+                              } catch (ActivityNotFoundException e) {
+                                  Toast.makeText(MainActivity.this, "No email app found", Toast.LENGTH_SHORT).show();
+                              }
+                              return true;
                           }
-                          view.loadUrl(request.getUrl().toString());
+
+                          // Phone
+                          if (url.startsWith("tel:")) {
+                              try {
+                                  Intent intent = new Intent(Intent.ACTION_DIAL);
+                                  intent.setData(Uri.parse(url));
+                                  startActivity(intent);
+                              } catch (Exception e) {
+                                  Toast.makeText(MainActivity.this, "Unable to open dialer", Toast.LENGTH_SHORT).show();
+                              }
+                              return true;
+                          }
+
+                          // WhatsApp
+                          if (url.startsWith("https://wa.me/") ||
+                              url.startsWith("https://api.whatsapp.com/") ||
+                              url.startsWith("whatsapp://")) {
+
+                              try {
+                                  Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                  intent.setPackage("com.whatsapp");
+                                  startActivity(intent);
+                              } catch (Exception e) {
+                                  try {
+                                      Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                      startActivity(browserIntent);
+                                  } catch (Exception ex) {
+                                      Toast.makeText(MainActivity.this, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
+                                  }
+                              }
+                              return true;
+                          }
+
+                          view.loadUrl(url);
                           return true;
                       }
-                          if (url.startsWith("tel:")) {
-                            try {
-                     Intent intent = new Intent(Intent.ACTION_DIAL);
-                          intent.setData(Uri.parse(url));
-                          startActivity(intent);
-                          } catch (Exception e) {
-                          Toast.makeText(MainActivity.this, "Unable to open dialer", Toast.LENGTH_SHORT).show();
-                     }
-                      return true;
-                    }
-                         if (url.startsWith("https://wa.me/") ||
-                         url.startsWith("https://api.whatsapp.com/") ||
-                         url.startsWith("whatsapp://")) {
-
-                           try {
-                  Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                         intent.setPackage("com.whatsapp");
-                           startActivity(intent);
-                         } catch (Exception e) {
-                           try {
-                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                         startActivity(browserIntent);
-                         } catch (Exception ex) {
-                        Toast.makeText(MainActivity.this, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
-                }
-               }
-                 return true;
-             }
-
+                      
                       @Override
                       public void onReceivedError(WebView view,
                             WebResourceRequest request,
