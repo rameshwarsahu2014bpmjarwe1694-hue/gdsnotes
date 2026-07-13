@@ -271,6 +271,7 @@ jobs:
           import android.webkit.URLUtil;
           import android.widget.Toast;
           import android.content.Context;
+          import android.view.WindowManager;
           public class MainActivity extends AppCompatActivity {
 
               private WebView webView;
@@ -311,6 +312,10 @@ jobs:
              SplashScreen.installSplashScreen(this);
 
             super.onCreate(savedInstanceState);
+            getWindow().setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+            );
             setContentView(R.layout.activity_main);
 
                   swipeRefresh = findViewById(R.id.swipeRefresh);
@@ -401,9 +406,31 @@ jobs:
 
                       @Override
                       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                             String url = request.getUrl().toString();
+
+                             if (url.startsWith("mailto:")) {
+                                try {
+                     Intent intent = new Intent(Intent.ACTION_SENDTO);
+                             intent.setData(Uri.parse(url));
+                             startActivity(intent);
+                             } catch (ActivityNotFoundException e) {
+                             Toast.makeText(MainActivity.this, "No email app found", Toast.LENGTH_SHORT).show();
+                            }
+                            return true;
+                          }
                           view.loadUrl(request.getUrl().toString());
                           return true;
                       }
+                          if (url.startsWith("tel:")) {
+                            try {
+                     Intent intent = new Intent(Intent.ACTION_DIAL);
+                          intent.setData(Uri.parse(url));
+                          startActivity(intent);
+                          } catch (Exception e) {
+                          Toast.makeText(MainActivity.this, "Unable to open dialer", Toast.LENGTH_SHORT).show();
+                     }
+                      return true;
+                    }
 
                       @Override
                       public void onReceivedError(WebView view,
