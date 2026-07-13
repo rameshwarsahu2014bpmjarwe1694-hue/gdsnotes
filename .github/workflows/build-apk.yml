@@ -245,6 +245,9 @@ jobs:
           import android.view.View;
           import android.widget.Button;
           import android.widget.ProgressBar;
+          import android.widget.FrameLayout;
+          import android.view.ViewGroup;
+          import android.webkit.PermissionRequest;
 
           import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
           import androidx.core.splashscreen.SplashScreen;
@@ -281,6 +284,9 @@ jobs:
               private View offlineLayout;
               private ValueCallback<Uri[]> filePathCallback;
               private Button btnRetry;
+              private View customView;
+              private WebChromeClient.CustomViewCallback customViewCallback;
+              private FrameLayout fullscreenContainer;
 
               private final ActivityResultLauncher<Intent> fileChooserLauncher =
                       registerForActivityResult(
@@ -318,6 +324,20 @@ jobs:
             WindowManager.LayoutParams.FLAG_SECURE
             );
             setContentView(R.layout.activity_main);
+            fullscreenContainer = new FrameLayout(this);
+            fullscreenContainer.setLayoutParams(
+                new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+           )
+           );
+
+          addContentView(
+                fullscreenContainer,
+                fullscreenContainer.getLayoutParams()
+          );
+
+                fullscreenContainer.setVisibility(View.GONE);
 
                   swipeRefresh = findViewById(R.id.swipeRefresh);
                   progressBar = findViewById(R.id.progressBar);
@@ -333,6 +353,7 @@ jobs:
                   settings.setAllowContentAccess(true);
                   settings.setLoadsImagesAutomatically(true);
                   settings.setJavaScriptCanOpenWindowsAutomatically(true);
+                  settings.setMediaPlaybackRequiresUserGesture(false);
                   settings.setSupportZoom(false);
                   settings.setBuiltInZoomControls(false);
                   settings.setDisplayZoomControls(false);
@@ -383,7 +404,48 @@ jobs:
 
                            return true;
                       }
-                      
+                     @Override
+                     public void onPermissionRequest(PermissionRequest request) {
+
+                           runOnUiThread(() -> request.grant(request.getResources()));
+                     }
+                     @Override
+                     public void onShowCustomView(View view,
+                             CustomViewCallback callback) {
+
+                            if (customView != null) {
+                           callback.onCustomViewHidden();
+                           return;
+                    }
+
+                          customView = view;
+                          customViewCallback = callback;
+
+                         fullscreenContainer.addView(view);
+                         fullscreenContainer.setVisibility(View.VISIBLE);
+
+                         webView.setVisibility(View.GONE);
+                   }
+                   @Override
+                   public void onHideCustomView() {
+
+                        if (customView == null) {
+                        return;
+                  }
+   
+                        fullscreenContainer.removeView(customView);
+
+                        fullscreenContainer.setVisibility(View.GONE);
+
+                        customView = null;
+
+                        webView.setVisibility(View.VISIBLE);
+
+                        if (customViewCallback != null) {
+                        customViewCallback.onCustomViewHidden();
+                        customViewCallback = null;
+                    }
+                   }
                   });
 
                   webView.setWebViewClient(new WebViewClient() {
