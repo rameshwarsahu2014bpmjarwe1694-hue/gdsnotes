@@ -431,6 +431,24 @@ jobs:
                      }
                       return true;
                     }
+                         if (url.startsWith("https://wa.me/") ||
+                         url.startsWith("https://api.whatsapp.com/") ||
+                         url.startsWith("whatsapp://")) {
+
+                           try {
+                  Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                         intent.setPackage("com.whatsapp");
+                           startActivity(intent);
+                         } catch (Exception e) {
+                           try {
+                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                         startActivity(browserIntent);
+                         } catch (Exception ex) {
+                        Toast.makeText(MainActivity.this, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
+                }
+               }
+                 return true;
+             }
 
                       @Override
                       public void onReceivedError(WebView view,
