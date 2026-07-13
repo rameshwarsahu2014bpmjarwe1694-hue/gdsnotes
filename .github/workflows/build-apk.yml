@@ -395,17 +395,50 @@ jobs:
                   webView.setWebChromeClient(new WebChromeClient() {
 
                       @Override
-                      public boolean onShowFileChooser(WebView webView,
-                                                       ValueCallback<Uri[]> filePathCallback,
-                                                       FileChooserParams fileChooserParams) {
+                      public boolean onShowFileChooser(
+                         WebView webView,
+                         ValueCallback<Uri[]> filePathCallback,
+                         FileChooserParams fileChooserParams) {
 
-                          MainActivity.this.filePathCallback = filePathCallback;
+                      MainActivity.this.filePathCallback = filePathCallback;
 
-                          Intent intent = fileChooserParams.createIntent();
-                          fileChooserLauncher.launch(intent);
+                       try {
 
-                          return true;
-                      }
+                      File photoFile = createImageFile();
+
+                     cameraImageUri = FileProvider.getUriForFile(
+                MainActivity.this,
+                BuildConfig.APPLICATION_ID + ".fileprovider",
+                photoFile
+                );
+
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
+                cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+                Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                galleryIntent.setType("*/*");
+                galleryIntent.addCategory(Intent.CATEGORY_OPENABLE);
+
+                Intent chooser = Intent.createChooser(galleryIntent, "Select File");
+                chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
+
+                fileChooserLauncher.launch(chooser);
+
+                } catch (Exception e) {
+
+               Toast.makeText(
+                MainActivity.this,
+                "Unable to open file chooser",
+                Toast.LENGTH_SHORT
+          ).show();
+
+          return false;
+          }
+
+            return true;
+          }
                       @Override
                       public boolean onJsAlert(WebView view, String url, String message,
                          JsResult result) {
@@ -759,6 +792,7 @@ jobs:
           mkdir -p webview-build/app/src/main/res/layout
           mkdir -p webview-build/app/src/main/res/values
           mkdir -p webview-build/app/src/main/res/drawable
+          mkdir -p webview-build/app/src/main/res/xml
           mkdir -p webview-build/app/src/main/res/mipmap-anydpi-v26
           mkdir -p webview-build/app/src/main/res/mipmap-hdpi
           mkdir -p webview-build/app/src/main/res/mipmap-mdpi
@@ -916,6 +950,14 @@ jobs:
             </style>
 
           </resources>
+          EOF
+          cat > webview-build/app/src/main/res/xml/file_paths.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <paths xmlns:android="http://schemas.android.com/apk/res/android">
+          <external-files-path
+          name="camera_images"
+          path="Pictures/" />
+          </paths>
           EOF
           echo "===== Resources ====="
           find webview-build/app/src/main/res -type f | sort
