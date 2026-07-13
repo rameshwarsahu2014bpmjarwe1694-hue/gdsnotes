@@ -188,6 +188,7 @@ jobs:
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
               <uses-permission android:name="android.permission.INTERNET"/>
+              <uses-permission android:name="android.permission.CAMERA"/>
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
               <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
@@ -215,6 +216,17 @@ jobs:
                       </intent-filter>
 
                   </activity>
+                  <provider
+                      android:name="androidx.core.content.FileProvider"
+                      android:authorities="${applicationId}.fileprovider"
+                      android:exported="false"
+                      android:grantUriPermissions="true">
+
+                <meta-data
+                      android:name="android.support.FILE_PROVIDER_PATHS"
+                      android:resource="@xml/file_paths"/>
+
+              </provider>
 
               </application>
 
@@ -276,6 +288,11 @@ jobs:
           import android.widget.Toast;
           import android.content.Context;
           import android.view.WindowManager;
+          import android.provider.MediaStore;
+          import androidx.core.content.FileProvider;
+          import java.text.SimpleDateFormat;
+          import java.util.Date;
+          import java.util.Locale;
           public class MainActivity extends AppCompatActivity {
 
               private WebView webView;
@@ -287,30 +304,41 @@ jobs:
               private View customView;
               private WebChromeClient.CustomViewCallback customViewCallback;
               private FrameLayout fullscreenContainer;
+              private Uri cameraImageUri;
 
               private final ActivityResultLauncher<Intent> fileChooserLauncher =
-                      registerForActivityResult(
-                              new ActivityResultContracts.StartActivityForResult(),
-                              result -> {
+              registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
 
-                                  if (filePathCallback == null)
-                                      return;
+                    if (filePathCallback == null)
+                        return;
 
-                                  Uri[] results = null;
+                    Uri[] results = null;
 
-                                  if (result.getResultCode() == Activity.RESULT_OK &&
-                                          result.getData() != null) {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
 
-                                      Uri uri = result.getData().getData();
+                        // Gallery
+                        if (result.getData() != null &&
+                                result.getData().getData() != null) {
 
-                                      if (uri != null) {
-                                          results = new Uri[]{uri};
-                                      }
-                                  }
+                            results = new Uri[]{
+                                    result.getData().getData()
+                            };
 
-                                  filePathCallback.onReceiveValue(results);
-                                  filePathCallback = null;
-                              });
+                        }
+                        // Camera
+                        else if (cameraImageUri != null) {
+
+                            results = new Uri[]{
+                                    cameraImageUri
+                            };
+                        }
+                    }
+
+                    filePathCallback.onReceiveValue(results);
+                    filePathCallback = null;
+                });
 
               @SuppressLint("SetJavaScriptEnabled")
               @Override
@@ -581,6 +609,23 @@ jobs:
 
           });
 
+          }
+          private File createImageFile() throws IOException {
+
+             String timeStamp = new SimpleDateFormat(
+            "yyyyMMdd_HHmmss",
+             Locale.getDefault()
+             ).format(new Date());
+ 
+            String imageFileName = "IMG_" + timeStamp + "_";
+
+            File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+            return File.createTempFile(
+            imageFileName,
+            ".jpg",
+            storageDir
+          );
           }
 
           private void downloadFile(String fileUrl, String fileName, String token) {
