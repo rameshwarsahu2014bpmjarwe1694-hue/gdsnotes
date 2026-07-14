@@ -293,6 +293,7 @@ jobs:
           import java.text.SimpleDateFormat;
           import java.util.Date;
           import java.util.Locale;
+          import in.gdsnotes.rsh.BuildConfig;
           public class MainActivity extends AppCompatActivity {
 
               private WebView webView;
