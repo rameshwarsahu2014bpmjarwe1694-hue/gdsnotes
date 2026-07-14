@@ -293,7 +293,6 @@ jobs:
           import java.text.SimpleDateFormat;
           import java.util.Date;
           import java.util.Locale;
-          import in.gdsnotes.rsh.BuildConfig;
           public class MainActivity extends AppCompatActivity {
 
               private WebView webView;
@@ -409,7 +408,7 @@ jobs:
 
                      cameraImageUri = FileProvider.getUriForFile(
                 MainActivity.this,
-                BuildConfig.APPLICATION_ID + ".fileprovider",
+                getPackageName() + ".fileprovider",
                 photoFile
                 );
 
