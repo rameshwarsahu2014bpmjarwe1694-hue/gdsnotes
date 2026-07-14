@@ -375,12 +375,24 @@ jobs:
 
                   WebSettings settings = webView.getSettings();
                   settings.setJavaScriptEnabled(true);
+                  webView.setHapticFeedbackEnabled(false);
+                  webView.setLongClickable(false);
                   settings.setDomStorageEnabled(true);
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                  CookieManager.getInstance().setAcceptThirdPartyCookies(webView, false);
+                  }
                   settings.setDatabaseEnabled(true);
                   settings.setAllowFileAccess(true);
                   settings.setAllowContentAccess(true);
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                  settings.setAllowFileAccessFromFileURLs(false);
+                  settings.setAllowUniversalAccessFromFileURLs(false);
+                  }
                   settings.setLoadsImagesAutomatically(true);
+                  settings.setBlockNetworkImage(false);
+                  settings.setBlockNetworkLoads(false);
                   settings.setJavaScriptCanOpenWindowsAutomatically(true);
+                  settings.setSupportMultipleWindows(false);
                   settings.setMediaPlaybackRequiresUserGesture(false);
                   settings.setSupportZoom(false);
                   settings.setBuiltInZoomControls(false);
@@ -391,7 +403,9 @@ jobs:
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                       settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
                   }
-
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                  settings.setSafeBrowsingEnabled(true);
+                  }
                   webView.setWebChromeClient(new WebChromeClient() {
 
                       @Override
@@ -510,6 +524,14 @@ jobs:
                   });
 
                   webView.setWebViewClient(new WebViewClient() {
+                  @Override
+                  public void onReceivedSslError(
+                       WebView view,
+                       android.webkit.SslErrorHandler handler,
+                       android.net.http.SslError error) {
+
+                     handler.cancel();
+                  }
 
                       @Override
                       public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -599,8 +621,11 @@ jobs:
                    }
                  }
               });
-                  
+              webView.setOnLongClickListener(v -> true);
+              webView.setLongClickable(false);
           webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");        
+          webView.clearCache(false);
+          webView.clearHistory();
           webView.loadUrl("https://rsh.gdsnotes.in");
 
                   swipeRefresh.setOnRefreshListener(() -> webView.reload());
@@ -623,7 +648,7 @@ jobs:
                   }
                }
            });
- 
+           CookieManager.getInstance().setAcceptCookie(true);
           webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
 
             String fileName = URLUtil.guessFileName(
