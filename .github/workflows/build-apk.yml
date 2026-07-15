@@ -250,6 +250,16 @@ jobs:
 
           echo "===== AndroidManifest.xml ====="
           cat webview-build/app/src/main/AndroidManifest.xml
+      - name: Verify App Links
+        run: |
+         echo "===== App Links ====="
+         grep -n "autoVerify" webview-build/app/src/main/AndroidManifest.xml
+
+         echo ""
+         grep -n "rsh.gdsnotes.in" webview-build/app/src/main/AndroidManifest.xml
+
+         echo ""
+         grep -n "pathPrefix" webview-build/app/src/main/AndroidManifest.xml
       
       - name: Generate MainActivity.java
         run: |
