@@ -1180,7 +1180,18 @@ jobs:
           path: ${{ steps.artifacts.outputs.aab_path }}
           if-no-files-found: warn
           retention-days: 30
+          
+      - name: Verify Final APK
+        run: |
+         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
 
+         echo "===== APK ====="
+         ls -lh "$APK"
+
+         echo ""
+         echo "===== APK Info ====="
+         aapt dump badging "$APK" | grep -E "package:|launchable-activity:|application-label:"
+     
       - name: Show SHA256 fingerprint (for assetlinks.json)
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -1191,7 +1202,18 @@ jobs:
             -alias "$KEY_ALIAS" \
             -storepass "$KEYSTORE_PASSWORD" \
             | grep -E "SHA256|SHA1" || true
+            
+      - name: Verify assetlinks.json
+        run: |
+         echo "===== assetlinks.json ====="
 
+         if [ -f .well-known/assetlinks.json ]; then
+         cat .well-known/assetlinks.json
+           else
+         echo "assetlinks.json not found"
+         exit 1
+         fi
+      
       - name: Create GitHub Release (optional)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true'
         uses: softprops/action-gh-release@v2
