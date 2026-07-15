@@ -216,6 +216,18 @@ jobs:
 
                           <category android:name="android.intent.category.LAUNCHER"/>
                       </intent-filter>
+                      <intent-filter android:autoVerify="true">
+
+                      <action android:name="android.intent.action.VIEW"/>
+
+                      <category android:name="android.intent.category.DEFAULT"/>
+                      <category android:name="android.intent.category.BROWSABLE"/>
+ 
+                     <data
+                         android:scheme="https"
+                         android:host="rsh.gdsnotes.in"/>
+
+                    </intent-filter>
 
                   </activity>
                   <provider
@@ -354,6 +366,12 @@ jobs:
             WindowManager.LayoutParams.FLAG_SECURE
             );
             setContentView(R.layout.activity_main);
+            Intent intent = getIntent();
+
+            if (intent != null && intent.getData() != null) {
+              webView = findViewById(R.id.webView);
+              webView.loadUrl(intent.getData().toString());
+          }
             fullscreenContainer = new FrameLayout(this);
             fullscreenContainer.setLayoutParams(
                 new FrameLayout.LayoutParams(
@@ -666,7 +684,9 @@ jobs:
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
           cookieManager.setAcceptThirdPartyCookies(webView, false);
           }
-          webView.loadUrl("https://rsh.gdsnotes.in");
+          if (getIntent() == null || getIntent().getData() == null) {
+              webView.loadUrl("https://rsh.gdsnotes.in");
+          }
 
                   swipeRefresh.setOnRefreshListener(() -> webView.reload());
                   swipeRefresh.setOnChildScrollUpCallback(
