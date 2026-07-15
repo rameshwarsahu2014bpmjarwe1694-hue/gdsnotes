@@ -203,9 +203,9 @@ jobs:
                   android:supportsRtl="true"
                   android:usesCleartextTraffic="false"
                   android:requestLegacyExternalStorage="true"
-                  android:theme="@style/Theme.GDSNotes">
                   android:networkSecurityConfig="@xml/network_security_config"
-
+                  android:theme="@style/Theme.GDSNotes">
+                  
                   <activity
                       android:name=".MainActivity"
                       android:exported="true"
@@ -224,9 +224,10 @@ jobs:
                       <category android:name="android.intent.category.BROWSABLE"/>
  
                      <data
-                         android:scheme="https"
-                         android:host="rsh.gdsnotes.in"/>
-
+                       android:scheme="https"
+                       android:host="rsh.gdsnotes.in"
+                       android:pathPrefix="/" />
+ 
                     </intent-filter>
 
                   </activity>
