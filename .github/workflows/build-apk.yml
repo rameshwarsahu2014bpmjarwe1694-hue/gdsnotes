@@ -130,7 +130,7 @@ jobs:
           }
 
           android {
-              namespace 'in.gdsnotes.rsh'
+              namespace 'io.gdsnote.rshtwa'
               compileSdk 34
 
               defaultConfig {
@@ -263,10 +263,10 @@ jobs:
       
       - name: Generate MainActivity.java
         run: |
-          mkdir -p webview-build/app/src/main/java/in/gdsnotes/rsh
+          mkdir -p webview-build/app/src/main/java/io/gdsnote/rshtwa
 
-          cat > webview-build/app/src/main/java/in/gdsnotes/rsh/MainActivity.java <<'EOF'
-          package in.gdsnotes.rsh;
+          cat > webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java <<'EOF'
+          package io.gdsnote.rshtwa;
 
           import android.annotation.SuppressLint;
           import android.graphics.Bitmap;
