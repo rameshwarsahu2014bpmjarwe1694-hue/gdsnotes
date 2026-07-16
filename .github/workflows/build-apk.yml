@@ -134,7 +134,7 @@ jobs:
               compileSdk 34
 
               defaultConfig {
-                  applicationId "in.gdsnotes.rsh"
+                  applicationId "io.gdsnote.rshtwa"
                   minSdk 21
                   targetSdk 34
                   versionCode 1
