@@ -1189,8 +1189,12 @@ jobs:
          ls -lh "$APK"
 
          echo ""
-         echo "===== APK Info ====="
-         aapt dump badging "$APK" | grep -E "package:|launchable-activity:|application-label:"
+         echo "===== SHA256 ====="
+         sha256sum "$APK"
+
+         echo ""
+         echo "===== APK Exists ====="
+         test -f "$APK" && echo "APK OK"
      
       - name: Show SHA256 fingerprint (for assetlinks.json)
         env:
