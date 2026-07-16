@@ -207,7 +207,7 @@ jobs:
                   android:theme="@style/Theme.GDSNotes">
                   
                   <activity
-                      android:name=".MainActivity"
+                      android:name="io.gdsnote.rshtwa.MainActivity"
                       android:exported="true"
                       android:configChanges="orientation|keyboardHidden|screenSize">
 
