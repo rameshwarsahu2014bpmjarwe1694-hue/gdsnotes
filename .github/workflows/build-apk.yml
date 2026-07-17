@@ -1357,7 +1357,14 @@ jobs:
           cd webview-build
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease
-          
+      - name: Find APK Files
+        run: |
+         echo "===== APK ====="
+         find webview-build -name "*.apk"
+
+         echo ""
+         echo "===== AAB ====="
+         find webview-build -name "*.aab"
       - name: Verify APK Contents
         run: |
          APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
