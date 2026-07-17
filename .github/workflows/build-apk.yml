@@ -193,6 +193,7 @@ jobs:
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
               <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
               <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
+              <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
               
               <application
                   android:allowBackup="true"
@@ -782,7 +783,9 @@ jobs:
             String message =
                     object.getString("message");
 
-            if (latestVersionCode > BuildConfig.VERSION_CODE) {
+                    if (latestVersionCode > BuildConfig.VERSION_CODE &&
+                    !isFinishing() &&
+                    !isDestroyed()) {
 
                 new Handler(Looper.getMainLooper()).post(() -> {
 
@@ -801,6 +804,118 @@ jobs:
           }
 
           });
+
+          }
+          private void showUpdateDialog(
+           String versionName,
+           String message,
+           String apkUrl) {
+
+          new AlertDialog.Builder(MainActivity.this)
+            .setTitle("🎉 New Update Available")
+
+            .setMessage(
+                    "Current Version : "
+                            + BuildConfig.VERSION_NAME
+                            + "\n\nLatest Version : "
+                            + versionName
+                            + "\n\n"
+                            + message)
+
+            .setCancelable(false)
+
+            .setPositiveButton("Update Now",
+                    (dialog, which) -> {
+
+                        downloadApk(apkUrl);
+
+                    })
+
+            .setNegativeButton("Later",
+                    (dialog, which) -> {
+
+                        dialog.dismiss();
+
+                    })
+
+            .show();
+          }
+          private void downloadApk(String apkUrl) {
+
+           try {
+
+          DownloadManager.Request request =
+                new DownloadManager.Request(Uri.parse(apkUrl));
+
+           request.setTitle("RSH GDS Notes Update");
+           request.setDescription("Downloading latest version...");
+           request.setNotificationVisibility(
+                DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+           request.setDestinationInExternalPublicDir(
+                Environment.DIRECTORY_DOWNLOADS,
+                "app-release.apk");
+
+          request.setMimeType(
+                "application/vnd.android.package-archive");
+
+                DownloadManager manager =
+                (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+
+          if (manager != null) {
+            manager.enqueue(request);
+
+            Toast.makeText(
+                    MainActivity.this,
+                    "Update download started...",
+                    Toast.LENGTH_LONG
+            ).show();
+          }
+
+          } catch (Exception e) {
+
+            Toast.makeText(
+                MainActivity.this,
+                e.getMessage(),
+                Toast.LENGTH_LONG
+            ).show();
+
+          }
+
+          }
+          private void installApk(File apkFile) {
+
+           try {
+
+          Uri apkUri = FileProvider.getUriForFile(
+                this,
+                getPackageName() + ".fileprovider",
+                apkFile
+          );
+
+          Intent intent = new Intent(Intent.ACTION_VIEW);
+
+          intent.setDataAndType(
+                apkUri,
+                "application/vnd.android.package-archive"
+          );
+
+          intent.setFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+                        | Intent.FLAG_GRANT_READ_URI_PERMISSION
+          );
+
+          startActivity(intent);
+
+          } catch (Exception e) {
+
+          Toast.makeText(
+                this,
+                e.getMessage(),
+                Toast.LENGTH_LONG
+          ).show();
+
+          }
 
           }
           private File createImageFile() throws IOException {
