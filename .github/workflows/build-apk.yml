@@ -268,6 +268,7 @@ jobs:
           cat > webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java <<'EOF'
           package io.gdsnote.rshtwa;
 
+          import io.gdsnote.rshtwa.BuildConfig;
           import android.annotation.SuppressLint;
           import android.graphics.Bitmap;
           import android.os.Build;
