@@ -156,8 +156,10 @@ jobs:
               }
 
               buildFeatures {
-                  viewBinding true
-              }
+              viewBinding true
+              buildConfig true
+           }
+
           }
 
           dependencies {
