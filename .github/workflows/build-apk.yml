@@ -1399,10 +1399,10 @@ jobs:
          APK_PATH=$(find . -name "app-release-signed.apk" | head -n1)
 
          if [ -z "$APK_PATH" ]; then
-         APK_PATH=$(find . -name "*.apk" | head -n1)
+         APK_PATH=$(find . -path "*/outputs/apk/release/*.apk" | head -n1)
          fi
 
-         AAB_PATH=$(find . -name "*.aab" | head -n1)
+         AAB_PATH=$(find . -path "*/outputs/bundle/release/*.aab" | head -n1)
 
          if [ -z "$APK_PATH" ]; then
          echo "APK not found!"
