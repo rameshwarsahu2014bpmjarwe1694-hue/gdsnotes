@@ -318,6 +318,12 @@ jobs:
           import java.text.SimpleDateFormat;
           import java.util.Date;
           import java.util.Locale;
+          import org.json.JSONObject;
+          import java.io.BufferedReader;
+          import java.io.InputStreamReader;
+          import java.util.concurrent.Executors;
+          import android.os.Handler;
+          import android.os.Looper;
           public class MainActivity extends AppCompatActivity {
 
               private WebView webView;
@@ -729,6 +735,69 @@ jobs:
            ).show();
             runOnUiThread(() -> Toast.makeText(MainActivity.this, "Listener Triggered", Toast.LENGTH_SHORT).show());
                downloadFile(url, fileName, null);
+
+          });
+
+          }
+          private void checkForUpdates() {
+
+          Executors.newSingleThreadExecutor().execute(() -> {
+
+          try {
+
+            URL url = new URL("https://rsh.gdsnotes.in/version.json");
+
+            HttpURLConnection conn =
+                    (HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+
+            BufferedReader reader =
+                    new BufferedReader(
+                            new InputStreamReader(conn.getInputStream()));
+
+            StringBuilder json = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                json.append(line);
+            }
+
+            reader.close();
+
+            JSONObject object = new JSONObject(json.toString());
+
+            int latestVersionCode =
+                    object.getInt("versionCode");
+
+            String latestVersionName =
+                    object.getString("versionName");
+
+            String apkUrl =
+                    object.getString("apkUrl");
+
+            String message =
+                    object.getString("message");
+
+            if (latestVersionCode > BuildConfig.VERSION_CODE) {
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+
+                    showUpdateDialog(
+                            latestVersionName,
+                            message,
+                            apkUrl
+                    );
+
+                });
+
+            }
+
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
 
           });
 
