@@ -921,7 +921,7 @@ jobs:
                 (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
           if (manager != null) {
-            manager.enqueue(request);
+            updateDownloadId = manager.enqueue(request);
 
             Toast.makeText(
                     MainActivity.this,
