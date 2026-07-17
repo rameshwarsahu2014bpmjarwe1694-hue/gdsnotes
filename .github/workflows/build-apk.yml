@@ -338,7 +338,8 @@ jobs:
               private WebChromeClient.CustomViewCallback customViewCallback;
               private FrameLayout fullscreenContainer;
               private Uri cameraImageUri;
-
+              private long updateDownloadId = -1;
+              private android.content.BroadcastReceiver updateReceiver;
               private final ActivityResultLauncher<Intent> fileChooserLauncher =
               registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -709,7 +710,64 @@ jobs:
                       offlineLayout.setVisibility(View.GONE);
                       webView.reload();
                   });
+          updateReceiver = new android.content.BroadcastReceiver() {
+          @Override
+          public void onReceive(Context context, Intent intent) {
 
+            long id = intent.getLongExtra(
+                DownloadManager.EXTRA_DOWNLOAD_ID,
+                -1
+           );
+
+          if (id == updateDownloadId) {
+
+            DownloadManager dm =
+                    (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+
+            if (dm == null) return;
+
+            DownloadManager.Query query =
+                    new DownloadManager.Query();
+
+            query.setFilterById(updateDownloadId);
+
+            android.database.Cursor cursor =
+                    dm.query(query);
+
+            if (cursor != null && cursor.moveToFirst()) {
+
+                int uriIndex =
+                        cursor.getColumnIndex(
+                                DownloadManager.COLUMN_LOCAL_URI);
+
+                if (uriIndex >= 0) {
+
+                    String uri =
+                            cursor.getString(uriIndex);
+
+                    if (uri != null) {
+
+                        installApk(new File(Uri.parse(uri).getPath()));
+
+                    }
+
+                }
+
+                cursor.close();
+
+            }
+
+          }
+
+          }
+          };
+
+          registerReceiver(
+           updateReceiver,
+           new android.content.IntentFilter(
+                DownloadManager.ACTION_DOWNLOAD_COMPLETE
+          )
+          );
           getOnBackPressedDispatcher().addCallback(this,
                     new OnBackPressedCallback(true) {
                     @Override
