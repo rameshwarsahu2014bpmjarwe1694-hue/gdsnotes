@@ -377,7 +377,7 @@ jobs:
               @SuppressLint("SetJavaScriptEnabled")
               @Override
               protected void onCreate(Bundle savedInstanceState) {
-
+                try{
              SplashScreen.installSplashScreen(this);
 
             super.onCreate(savedInstanceState);
