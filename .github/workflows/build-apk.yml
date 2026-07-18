@@ -228,6 +228,14 @@ jobs:
  
                      <data
                        android:scheme="https"
+                       android:host="gdsnotes.in"
+                       android:pathPrefix="/" />
+                    <data
+                       android:scheme="https"
+                       android:host="www.gdsnotes.in"
+                       android:pathPrefix="/" />
+                    <data
+                       android:scheme="https"
                        android:host="rsh.gdsnotes.in"
                        android:pathPrefix="/" />
  
