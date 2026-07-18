@@ -314,6 +314,7 @@ jobs:
           import android.webkit.URLUtil;
           import android.widget.Toast;
           import android.content.Context;
+          import android.content.IntentFilter;
           import android.view.WindowManager;
           import android.provider.MediaStore;
           import androidx.core.content.FileProvider;
@@ -762,12 +763,19 @@ jobs:
           }
           };
 
-          registerReceiver(
-           updateReceiver,
-           new android.content.IntentFilter(
-                DownloadManager.ACTION_DOWNLOAD_COMPLETE
-          )
+          IntentFilter filter = new IntentFilter(
+          DownloadManager.ACTION_DOWNLOAD_COMPLETE
           );
+
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+          registerReceiver(
+            updateReceiver,
+            filter,
+            Context.RECEIVER_NOT_EXPORTED
+          );
+          } else {
+          registerReceiver(updateReceiver, filter);
+          }
           getOnBackPressedDispatcher().addCallback(this,
                     new OnBackPressedCallback(true) {
                     @Override
