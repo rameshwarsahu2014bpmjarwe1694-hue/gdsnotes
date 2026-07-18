@@ -1,11 +1,15 @@
 name: Auto Deploy to GitHub Pages Repo
 
 on:
-  push:
-    branches: [ main, master ]
+  workflow_run:
+    workflows:
+      - "Build Signed Native APK"
+    types:
+      - completed
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
