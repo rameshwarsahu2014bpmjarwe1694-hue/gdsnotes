@@ -378,7 +378,6 @@ jobs:
               @SuppressLint("SetJavaScriptEnabled")
               @Override
               protected void onCreate(Bundle savedInstanceState) {
-                try{
              SplashScreen.installSplashScreen(this);
 
             super.onCreate(savedInstanceState);
@@ -805,15 +804,6 @@ jobs:
                downloadFile(url, fileName, null);
 
           });
-          } catch (Throwable e) {
-
-            new AlertDialog.Builder(this)
-            .setTitle("App Crash")
-            .setMessage(android.util.Log.getStackTraceString(e))
-            .setCancelable(false)
-            .setPositiveButton("OK", null)
-            .show();
-          }
           }
           private void checkForUpdates() {
 
