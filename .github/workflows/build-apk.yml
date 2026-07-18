@@ -804,8 +804,6 @@ jobs:
                downloadFile(url, fileName, null);
 
           });
-          Toast.makeText(this, "checkForUpdates called", Toast.LENGTH_LONG).show();
-
           checkForUpdates();
           }
           private void checkForUpdates() {
