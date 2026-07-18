@@ -804,6 +804,7 @@ jobs:
                downloadFile(url, fileName, null);
 
           });
+          checkforupdates();
           }
           private void checkForUpdates() {
 
