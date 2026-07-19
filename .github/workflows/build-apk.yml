@@ -722,6 +722,11 @@ jobs:
           updateReceiver = new android.content.BroadcastReceiver() {
           @Override
           public void onReceive(Context context, Intent intent) {
+          Toast.makeText(
+             MainActivity.this,
+             "DEBUG-1 Receiver Triggered",
+              Toast.LENGTH_LONG
+            ).show();
 
             long id = intent.getLongExtra(
                 DownloadManager.EXTRA_DOWNLOAD_ID,
