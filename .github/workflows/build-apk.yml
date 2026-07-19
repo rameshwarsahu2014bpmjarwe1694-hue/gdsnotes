@@ -826,29 +826,43 @@ jobs:
            if (id == updateDownloadId) {
 
             DownloadManager manager =
-                    (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+           (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
-            DownloadManager.Query query =
-                    new DownloadManager.Query();
+           DownloadManager.Query query =
+           new DownloadManager.Query();
 
-            query.setFilterById(updateDownloadId);
+             query.setFilterById(updateDownloadId);
 
-            android.database.Cursor cursor =
-                    manager.query(query);
+             android.database.Cursor cursor =
+             manager.query(query);
 
             if (cursor.moveToFirst()) {
 
-                String localUri = cursor.getString(
-                        cursor.getColumnIndexOrThrow(
-                                DownloadManager.COLUMN_LOCAL_URI
-                        )
-                );
+            Uri apkUri = manager.getUriForDownloadedFile(updateDownloadId);
 
-                installApk(new File(Uri.parse(localUri).getPath()));
+            if (apkUri != null) {
 
-            }
+            Intent installIntent =
+                new Intent(Intent.ACTION_VIEW);
 
-            cursor.close();
+            installIntent.setDataAndType(
+                  apkUri,
+                  "application/vnd.android.package-archive"
+          );
+
+          installIntent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+          );
+
+          installIntent.addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+          );
+
+          startActivity(installIntent);
+          }
+          }
+
+          cursor.close();
            }
           }
           };
