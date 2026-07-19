@@ -137,8 +137,8 @@ jobs:
                   applicationId "io.gdsnote.rshtwa"
                   minSdk 21
                   targetSdk 34
-                  versionCode 4
-                  versionName "1.3"
+                  versionCode 5
+                  versionName "1.4"
 
                   testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
               }
@@ -813,6 +813,49 @@ jobs:
 
           });
           checkForUpdates();
+          updateReceiver = new BroadcastReceiver() {
+          @Override
+          public void onReceive(Context context, Intent intent) {
+
+             long id = intent.getLongExtra(
+                DownloadManager.EXTRA_DOWNLOAD_ID,
+                -1
+          );
+
+           if (id == updateDownloadId) {
+
+            DownloadManager manager =
+                    (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+
+            DownloadManager.Query query =
+                    new DownloadManager.Query();
+
+            query.setFilterById(updateDownloadId);
+
+            android.database.Cursor cursor =
+                    manager.query(query);
+
+            if (cursor.moveToFirst()) {
+
+                String localUri = cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                                DownloadManager.COLUMN_LOCAL_URI
+                        )
+                );
+
+                installApk(new File(Uri.parse(localUri).getPath()));
+
+            }
+
+            cursor.close();
+           }
+          }
+          };
+
+          registerReceiver(
+          updateReceiver,
+           new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+          );
           }
           private void checkForUpdates() {
 
@@ -1114,6 +1157,14 @@ jobs:
                downloadFile(url, fileName, token);
 
           });
+          }
+          }
+          @Override
+          protected void onDestroy() {
+             super.onDestroy();
+
+             if (updateReceiver != null) {
+             unregisterReceiver(updateReceiver);
           }
           }
           }
