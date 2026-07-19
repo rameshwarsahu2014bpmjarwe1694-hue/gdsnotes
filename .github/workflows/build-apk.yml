@@ -955,10 +955,10 @@ jobs:
             updateDownloadId = manager.enqueue(request);
 
             Toast.makeText(
-                    MainActivity.this,
-                    "Update download started...",
-                    Toast.LENGTH_LONG
-            ).show();
+          this,
+          "ID = " + updateDownloadId,
+          Toast.LENGTH_LONG
+          ).show();
           }
 
           } catch (Exception e) {
