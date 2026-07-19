@@ -387,6 +387,11 @@ jobs:
               @SuppressLint("SetJavaScriptEnabled")
               @Override
               protected void onCreate(Bundle savedInstanceState) {
+              Toast.makeText(
+                 MainActivity.this,
+                 "ONCREATE START",
+                 Toast.LENGTH_LONG
+             ).show();
              SplashScreen.installSplashScreen(this);
 
             super.onCreate(savedInstanceState);
