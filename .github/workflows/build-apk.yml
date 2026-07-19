@@ -1145,7 +1145,9 @@ jobs:
 
           echo "===== MainActivity.java ====="
           cat webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java
-          
+          echo "===== SEARCH DEBUG ====="
+          grep -n "ONCREATE" webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java || true
+          grep -n "DEBUG-0" webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java || true    
       - name: Verify Generated MainActivity
         run: |
          echo "===== Package ====="
