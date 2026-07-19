@@ -789,6 +789,11 @@ jobs:
           } else {
           registerReceiver(updateReceiver, filter);
           }
+          Toast.makeText(
+               MainActivity.this,
+               "DEBUG-0 Receiver Registered",
+                Toast.LENGTH_LONG
+          ).show();
           getOnBackPressedDispatcher().addCallback(this,
                     new OnBackPressedCallback(true) {
                     @Override
