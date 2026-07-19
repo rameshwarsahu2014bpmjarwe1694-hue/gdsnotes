@@ -819,6 +819,7 @@ jobs:
 
           });
           checkForUpdates();
+          }
           private void checkForUpdates() {
 
           Executors.newSingleThreadExecutor().execute(() -> {
