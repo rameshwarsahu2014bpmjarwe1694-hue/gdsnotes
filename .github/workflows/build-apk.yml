@@ -755,22 +755,15 @@ jobs:
 
             if (cursor != null && cursor.moveToFirst()) {
 
-                int uriIndex =
-                        cursor.getColumnIndex(
-                                DownloadManager.COLUMN_LOCAL_URI);
+                Uri apkUri = dm.getUriForDownloadedFile(updateDownloadId);
 
-                if (uriIndex >= 0) {
+           cursor.close();
 
-                    String uri =
-                           cursor.getString(uriIndex);
+           if (apkUri != null) {
 
-                    if (uri != null) {
+              installApk(apkUri);
 
-                        installApk(Uri.parse(uri));
-
-                    }
-
-                    cursor.close();
+            }
 
             }
 
