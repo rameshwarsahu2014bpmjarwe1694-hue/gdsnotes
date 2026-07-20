@@ -1049,17 +1049,18 @@ jobs:
           }
           private void installApk(Uri apkUri) {
 
+              try {
+
           Intent intent = new Intent(Intent.ACTION_VIEW);
           intent.setDataAndType(
-            apkUri,
-            "application/vnd.android.package-archive"
+                apkUri,
+                "application/vnd.android.package-archive"
           );
 
           intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
           intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
           startActivity(intent);
-          }
 
           } catch (Exception e) {
 
@@ -1070,7 +1071,6 @@ jobs:
           ).show();
 
           }
-
           }
           private File createImageFile() throws IOException {
 
