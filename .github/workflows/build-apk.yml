@@ -1409,9 +1409,15 @@ jobs:
           cat > webview-build/app/src/main/res/xml/file_paths.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <paths xmlns:android="http://schemas.android.com/apk/res/android">
+
+           <external-path
+               name="external"
+               path="." />
+
           <external-files-path
-          name="camera_images"
-          path="Pictures/" />
+              name="camera_images"
+              path="Pictures/" />
+
           </paths>
           EOF
           cat > webview-build/app/src/main/res/xml/network_security_config.xml <<'EOF'
