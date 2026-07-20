@@ -762,17 +762,15 @@ jobs:
                 if (uriIndex >= 0) {
 
                     String uri =
-                            cursor.getString(uriIndex);
+                           cursor.getString(uriIndex);
 
                     if (uri != null) {
 
-                        installApk(new File(Uri.parse(uri).getPath()));
+                        installApk(Uri.parse(uri));
 
                     }
 
-                }
-
-                cursor.close();
+                    cursor.close();
 
             }
 
@@ -1010,17 +1008,13 @@ jobs:
                                     DownloadManager.COLUMN_LOCAL_URI);
 
                     String uri =
-                            cursor.getString(uriIndex);
+                           cursor.getString(uriIndex);
 
                     cursor.close();
 
                     if (uri != null) {
 
-                        installApk(
-                                new File(
-                                        Uri.parse(uri).getPath()
-                                )
-                        );
+                        installApk(Uri.parse(uri));
 
                     }
 
@@ -1053,29 +1047,19 @@ jobs:
           handler.post(runnable);
   
           }
-          private void installApk(File apkFile) {
-
-           try {
-
-          Uri apkUri = FileProvider.getUriForFile(
-                this,
-                getPackageName() + ".fileprovider",
-                apkFile
-          );
+          private void installApk(Uri apkUri) {
 
           Intent intent = new Intent(Intent.ACTION_VIEW);
-
           intent.setDataAndType(
-                apkUri,
-                "application/vnd.android.package-archive"
+            apkUri,
+            "application/vnd.android.package-archive"
           );
 
-          intent.setFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK
-                        | Intent.FLAG_GRANT_READ_URI_PERMISSION
-          );
+          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+          intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
           startActivity(intent);
+          }
 
           } catch (Exception e) {
 
