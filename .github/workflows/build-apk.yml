@@ -755,22 +755,25 @@ jobs:
 
             if (cursor != null && cursor.moveToFirst()) {
 
-                Uri apkUri = dm.getUriForDownloadedFile(updateDownloadId);
+            Uri apkUri = dm.getUriForDownloadedFile(updateDownloadId);
 
-           cursor.close();
+                cursor.close();
 
-           if (apkUri != null) {
+            if (apkUri != null) {
 
-              installApk(apkUri);
+                installApk(apkUri);
 
-            }
+            } else {
 
-            }
+            Toast.makeText(
+                MainActivity.this,
+                "APK URI not found",
+                Toast.LENGTH_LONG
+           ).show();
 
-          }
+           }
 
-          }
-          };
+           }
 
           IntentFilter filter = new IntentFilter(
           DownloadManager.ACTION_DOWNLOAD_COMPLETE
@@ -996,22 +999,25 @@ jobs:
 
                 if (status == DownloadManager.STATUS_SUCCESSFUL) {
 
-                    int uriIndex =
-                            cursor.getColumnIndex(
-                                    DownloadManager.COLUMN_LOCAL_URI);
-
-                    String uri =
-                           cursor.getString(uriIndex);
-
                     cursor.close();
 
-                    if (uri != null) {
+                Uri apkUri = manager.getUriForDownloadedFile(updateDownloadId);
 
-                        installApk(Uri.parse(uri));
+                if (apkUri != null) {
 
-                    }
+                   installApk(apkUri);
 
-                    return;
+                } else {
+
+                Toast.makeText(
+                    MainActivity.this,
+                    "APK URI not found",
+                    Toast.LENGTH_LONG
+               ).show();
+
+               }
+
+               return;
 
                 } else if (status == DownloadManager.STATUS_FAILED) {
 
