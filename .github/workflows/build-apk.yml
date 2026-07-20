@@ -773,6 +773,7 @@ jobs:
            }
 
            }
+           };
 
           IntentFilter filter = new IntentFilter(
           DownloadManager.ACTION_DOWNLOAD_COMPLETE
