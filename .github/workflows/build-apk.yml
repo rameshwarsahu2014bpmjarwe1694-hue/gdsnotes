@@ -705,7 +705,6 @@ jobs:
               webView.setLongClickable(false);
           webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");        
           webView.clearCache(false);
-          webView.clearHistory();
           CookieManager cookieManager = CookieManager.getInstance();
           cookieManager.setAcceptCookie(true);
 
