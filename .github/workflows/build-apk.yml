@@ -953,7 +953,7 @@ jobs:
 
           if (manager != null) {
             updateDownloadId = manager.enqueue(request);
-
+          checkDownloadStatus();
             Toast.makeText(
           this,
           "ID = " + updateDownloadId,
@@ -971,6 +971,87 @@ jobs:
 
           }
 
+          }
+          private void checkDownloadStatus() {
+
+          Handler handler = new Handler(Looper.getMainLooper());
+
+          Runnable runnable = new Runnable() {
+
+          @Override
+          public void run() {
+
+            DownloadManager manager =
+                    (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+
+            if (manager == null) return;
+
+            DownloadManager.Query query =
+                    new DownloadManager.Query();
+
+            query.setFilterById(updateDownloadId);
+
+            android.database.Cursor cursor =
+                    manager.query(query);
+
+            if (cursor != null && cursor.moveToFirst()) {
+
+                int statusIndex =
+                        cursor.getColumnIndex(
+                                DownloadManager.COLUMN_STATUS);
+
+                int status =
+                        cursor.getInt(statusIndex);
+
+                if (status == DownloadManager.STATUS_SUCCESSFUL) {
+
+                    int uriIndex =
+                            cursor.getColumnIndex(
+                                    DownloadManager.COLUMN_LOCAL_URI);
+
+                    String uri =
+                            cursor.getString(uriIndex);
+
+                    cursor.close();
+
+                    if (uri != null) {
+
+                        installApk(
+                                new File(
+                                        Uri.parse(uri).getPath()
+                                )
+                        );
+
+                    }
+
+                    return;
+
+                } else if (status == DownloadManager.STATUS_FAILED) {
+
+                    cursor.close();
+
+                    Toast.makeText(
+                            MainActivity.this,
+                            "Download Failed",
+                            Toast.LENGTH_LONG
+                    ).show();
+
+                    return;
+
+                }
+
+                cursor.close();
+
+            }
+
+            handler.postDelayed(this, 1000);
+
+          }
+
+          };
+
+          handler.post(runnable);
+  
           }
           private void installApk(File apkFile) {
 
