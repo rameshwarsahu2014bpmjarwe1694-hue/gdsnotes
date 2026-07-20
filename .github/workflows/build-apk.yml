@@ -936,9 +936,11 @@ jobs:
            request.setNotificationVisibility(
                 DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
-           request.setDestinationInExternalPublicDir(
-                Environment.DIRECTORY_DOWNLOADS,
-                "app-release.apk");
+           request.setDestinationInExternalFilesDir(
+               this,
+           Environment.DIRECTORY_DOWNLOADS,
+           "app-release.apk"
+           );
 
           request.setMimeType(
                 "application/vnd.android.package-archive");
