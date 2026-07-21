@@ -999,6 +999,11 @@ jobs:
 
                 int status =
                         cursor.getInt(statusIndex);
+                        Toast.makeText(
+                             MainActivity.this,
+                             "Status = " + status,
+                             Toast.LENGTH_LONG
+                ).show();
 
                 if (status == DownloadManager.STATUS_SUCCESSFUL) {
                     Toast.makeText(
