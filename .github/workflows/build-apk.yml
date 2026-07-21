@@ -348,8 +348,8 @@ jobs:
               private WebChromeClient.CustomViewCallback customViewCallback;
               private FrameLayout fullscreenContainer;
               private Uri cameraImageUri;
-              private long updateDownloadId = -1;
-              private android.content.BroadcastReceiver updateReceiver;
+              /* private long updateDownloadId = -1; */
+               /*private android.content.BroadcastReceiver updateReceiver; */
               private final ActivityResultLauncher<Intent> fileChooserLauncher =
               registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
