@@ -925,6 +925,9 @@ jobs:
             .show();
           }
           private void downloadApk(String apkUrl) {
+          downloadFile(apkUrl, "app-release.apk", null);
+          }
+          private void downloadApk(String apkUrl) {
 
            try {
 
@@ -1186,7 +1189,17 @@ jobs:
                     output.close();
                 }
                 input.close();
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download Complete", Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> {
+                  Toast.makeText(
+                       MainActivity.this,
+                       "Download Complete",
+                       Toast.LENGTH_LONG
+               ).show();
+
+                     if (fileName.toLowerCase().endsWith(".apk")) {
+                         installApk(uri);
+               }
+               });
             }
                     } catch (Exception e) {
             // --- DEBUG 3: Detailed Exception Check ---
