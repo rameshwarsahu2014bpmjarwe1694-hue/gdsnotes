@@ -1239,8 +1239,8 @@ jobs:
           protected void onDestroy() {
              super.onDestroy();
 
-             if (updateReceiver != null) {
-             unregisterReceiver(updateReceiver);
+            /* if (updateReceiver != null) {
+             unregisterReceiver(updateReceiver); */
           }
           }
           }
