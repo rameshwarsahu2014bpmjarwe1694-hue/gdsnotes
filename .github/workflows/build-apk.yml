@@ -723,77 +723,6 @@ jobs:
                       offlineLayout.setVisibility(View.GONE);
                       webView.reload();
                   });
-          /* updateReceiver = new android.content.BroadcastReceiver() {
-          @Override
-          public void onReceive(Context context, Intent intent) {
-          Toast.makeText(
-             MainActivity.this,
-             "DEBUG-1 Receiver Triggered",
-              Toast.LENGTH_LONG
-            ).show();
-
-            long id = intent.getLongExtra(
-                DownloadManager.EXTRA_DOWNLOAD_ID,
-                -1
-           );
-
-          if (id == updateDownloadId) {
-
-            DownloadManager dm =
-                    (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-
-            if (dm == null) return;
-
-            DownloadManager.Query query =
-                    new DownloadManager.Query();
-
-            query.setFilterById(updateDownloadId);
-
-            android.database.Cursor cursor =
-                    dm.query(query);
-
-            if (cursor != null && cursor.moveToFirst()) {
-
-            Uri apkUri = dm.getUriForDownloadedFile(updateDownloadId);
-
-                cursor.close();
-
-            if (apkUri != null) {
-
-                installApk(apkUri);
-
-            } else {
-
-            Toast.makeText(
-                MainActivity.this,
-                "APK URI not found",
-                Toast.LENGTH_LONG
-           ).show();
-
-           }
-           }
-           }
-           }
-           };
-
-          IntentFilter filter = new IntentFilter(
-          DownloadManager.ACTION_DOWNLOAD_COMPLETE
-          );
-
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-          registerReceiver(
-            updateReceiver,
-            filter,
-            Context.RECEIVER_NOT_EXPORTED
-          );
-          } else {
-          registerReceiver(updateReceiver, filter);
-          }
-          Toast.makeText(
-               MainActivity.this,
-               "DEBUG-0 Receiver Registered",
-                Toast.LENGTH_LONG
-          ).show(); */
           getOnBackPressedDispatcher().addCallback(this,
                     new OnBackPressedCallback(true) {
                     @Override
@@ -933,148 +862,9 @@ jobs:
 
            downloadFile(apkUrl, "app-release.apk", null);
           }
-          
-          /* private void downloadApk(String apkUrl) {
 
-           try {
-
-          DownloadManager.Request request =
-                new DownloadManager.Request(Uri.parse(apkUrl));
-
-           request.setTitle("RSH GDS Notes Update");
-           request.setDescription("Downloading latest version...");
-           request.setNotificationVisibility(
-                DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-
-           request.setDestinationInExternalFilesDir(
-               this,
-           Environment.DIRECTORY_DOWNLOADS,
-           "app-release.apk"
-           );
-
-          request.setMimeType(
-                "application/vnd.android.package-archive");
-
-                DownloadManager manager =
-                (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-
-          if (manager != null) {
-            updateDownloadId = manager.enqueue(request);
-          checkDownloadStatus();
-            Toast.makeText(
-          this,
-          "ID = " + updateDownloadId,
-          Toast.LENGTH_LONG
-          ).show();
-          }
-
-          } catch (Exception e) {
-
-            Toast.makeText(
-                MainActivity.this,
-                e.getMessage(),
-                Toast.LENGTH_LONG
-            ).show();
-
-          }
-
-          } */
-          /* private void checkDownloadStatus() {
-
-          Handler handler = new Handler(Looper.getMainLooper());
-
-          Runnable runnable = new Runnable() {
-
-          @Override
-          public void run() {
-          runOnUiThread(() ->
-            Toast.makeText(
-                MainActivity.this,
-               "checkDownloadStatus running",
-                Toast.LENGTH_LONG
-          ).show()
-          );
-
-            DownloadManager manager =
-                    (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-
-            if (manager == null) return;
-
-            DownloadManager.Query query =
-                    new DownloadManager.Query();
-
-            query.setFilterById(updateDownloadId);
-
-            android.database.Cursor cursor =
-                    manager.query(query);
-
-            if (cursor != null && cursor.moveToFirst()) {
-
-                int statusIndex =
-                        cursor.getColumnIndex(
-                                DownloadManager.COLUMN_STATUS);
-
-                int status =
-                        cursor.getInt(statusIndex);
-                        Toast.makeText(
-                             MainActivity.this,
-                             "Status = " + status,
-                             Toast.LENGTH_LONG
-                ).show();
-
-                if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                    Toast.makeText(
-                         MainActivity.this,
-                         "STATUS_SUCCESSFUL",
-                         Toast.LENGTH_LONG
-                 ).show();
-                    cursor.close();
-
-                Uri apkUri = manager.getUriForDownloadedFile(updateDownloadId);
-
-                if (apkUri != null) {
-
-                   installApk(apkUri);
-
-                } else {
-
-                Toast.makeText(
-                    MainActivity.this,
-                    "APK URI not found",
-                    Toast.LENGTH_LONG
-               ).show();
-
-               }
-
-               return;
-
-                } else if (status == DownloadManager.STATUS_FAILED) {
-
-                    cursor.close();
-
-                    Toast.makeText(
-                            MainActivity.this,
-                            "Download Failed",
-                            Toast.LENGTH_LONG
-                    ).show();
-
-                    return;
-
-                }
-
-                cursor.close();
-
-            }
-
-            handler.postDelayed(this, 1000);
-
-          }
-
-          };
-
-          handler.post(runnable);
-  
-          } */
+            
+      
           private void installApk(Uri apkUri) {
 
                try {
@@ -1246,10 +1036,7 @@ jobs:
           protected void onDestroy() {
              super.onDestroy();
 
-            /* if (updateReceiver != null) {
-             unregisterReceiver(updateReceiver);
-          }
-          */
+          
           }
           }
           EOF
