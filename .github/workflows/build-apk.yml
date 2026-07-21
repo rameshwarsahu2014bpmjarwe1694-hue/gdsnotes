@@ -1232,16 +1232,32 @@ jobs:
           <?xml version="1.0" encoding="utf-8"?>
           <paths xmlns:android="http://schemas.android.com/apk/res/android">
 
-           <external-path
-               name="external"
-               path="." />
+               <!-- External Files Dir (/storage/emulated/0/Android/data/io.gdsnote.rshtwa/files) -->
+               <external-files-path
+                    name="external_files"
+                    path="." />
 
-          <external-files-path
-              name="camera_images"
-              path="Pictures/" />
+          <!-- External Cache Dir (/storage/emulated/0/Android/data/io.gdsnote.rshtwa/cache) -->
+          <external-cache-path
+                   name="external_cache"
+                   path="." />
+
+          <!-- External Storage Root -->
+          <external-path
+                   name="external_storage"
+                   path="." />
+
+          <!-- Internal Files/Cache -->
+          <files-path
+                  name="files"
+                  path="." />
+          <cache-path
+                  name="cache"
+                  path="." />
 
           </paths>
           EOF
+
           cat > webview-build/app/src/main/res/xml/network_security_config.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <network-security-config>
