@@ -977,6 +977,13 @@ jobs:
 
           @Override
           public void run() {
+          runOnUiThread(() ->
+            Toast.makeText(
+                MainActivity.this,
+               "checkDownloadStatus running",
+                Toast.LENGTH_LONG
+          ).show()
+          );
 
             DownloadManager manager =
                     (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
