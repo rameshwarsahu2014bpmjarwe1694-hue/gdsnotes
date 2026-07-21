@@ -1051,7 +1051,13 @@ jobs:
           }
           private void installApk(Uri apkUri) {
 
-              try {
+               try {
+
+                 Toast.makeText(
+                    this,
+                 "installApk called",
+                 Toast.LENGTH_LONG
+           ).show();
 
           Intent intent = new Intent(Intent.ACTION_VIEW);
           intent.setDataAndType(
@@ -1066,8 +1072,8 @@ jobs:
 
           } catch (Exception e) {
 
-          Toast.makeText(
-                this,
+              Toast.makeText(
+                  this,
                 e.toString(),
                 Toast.LENGTH_LONG
           ).show();
