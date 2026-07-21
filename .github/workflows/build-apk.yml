@@ -723,7 +723,7 @@ jobs:
                       offlineLayout.setVisibility(View.GONE);
                       webView.reload();
                   });
-          updateReceiver = new android.content.BroadcastReceiver() {
+          /* updateReceiver = new android.content.BroadcastReceiver() {
           @Override
           public void onReceive(Context context, Intent intent) {
           Toast.makeText(
@@ -793,7 +793,7 @@ jobs:
                MainActivity.this,
                "DEBUG-0 Receiver Registered",
                 Toast.LENGTH_LONG
-          ).show();
+          ).show(); */
           getOnBackPressedDispatcher().addCallback(this,
                     new OnBackPressedCallback(true) {
                     @Override
