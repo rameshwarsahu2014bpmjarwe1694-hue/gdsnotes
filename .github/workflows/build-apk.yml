@@ -1240,8 +1240,9 @@ jobs:
              super.onDestroy();
 
             /* if (updateReceiver != null) {
-             unregisterReceiver(updateReceiver); */
+             unregisterReceiver(updateReceiver);
           }
+          */
           }
           }
           EOF
