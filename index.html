@@ -314,7 +314,32 @@ if (isPWA) {
 function installApp() {
     window.location.href = "https://rsh.gdsnotes.in/app-release.apk";
 }
+document.addEventListener("DOMContentLoaded", () => {
 
+    const isAndroidApp = typeof AndroidBridge !== "undefined";
+
+    if (!isAndroidApp) {
+
+        // Browser users
+        document.querySelector(".btn-group").style.display = "none";
+
+        document.querySelector(".hero").insertAdjacentHTML(
+            "beforeend",
+            `
+            <div style="margin-top:20px">
+                <a href="/app-release.apk"
+                   style="background:#8d151a;color:#fff;padding:15px 25px;
+                          border-radius:8px;text-decoration:none;
+                          display:inline-block;font-weight:bold;">
+                    📥 Download Android App
+                </a>
+            </div>
+            `
+        );
+
+    }
+
+});
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
