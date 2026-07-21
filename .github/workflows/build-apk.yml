@@ -959,9 +959,14 @@ jobs:
 
            // Naya Logic: Dynamic MIME Type detection
            String contentType = connection.getContentType();
-           if (contentType == null || contentType.isEmpty() || contentType.contains(";")) {
-               contentType = "application/pdf"; // Fallback for safety
-            }
+
+           if (contentType == null || contentType.isEmpty()) {
+           if (fileName.toLowerCase().endsWith(".apk")) {
+               contentType = "application/vnd.android.package-archive";
+           } else {
+             contentType = "application/pdf";
+           }
+          }
             values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, contentType);
 
             values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS);
