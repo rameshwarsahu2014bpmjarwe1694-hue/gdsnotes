@@ -925,7 +925,13 @@ jobs:
             .show();
           }
           private void downloadApk(String apkUrl) {
-          downloadFile(apkUrl, "app-release.apk", null);
+               Toast.makeText(
+               MainActivity.this,
+               "downloadApk() called",
+                Toast.LENGTH_LONG
+          ).show();
+
+           downloadFile(apkUrl, "app-release.apk", null);
           }
           
           /* private void downloadApk(String apkUrl) {
