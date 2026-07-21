@@ -927,7 +927,8 @@ jobs:
           private void downloadApk(String apkUrl) {
           downloadFile(apkUrl, "app-release.apk", null);
           }
-          private void downloadApk(String apkUrl) {
+          
+          /* private void downloadApk(String apkUrl) {
 
            try {
 
@@ -971,8 +972,8 @@ jobs:
 
           }
 
-          }
-          private void checkDownloadStatus() {
+          } */
+          /* private void checkDownloadStatus() {
 
           Handler handler = new Handler(Looper.getMainLooper());
 
@@ -1067,7 +1068,7 @@ jobs:
 
           handler.post(runnable);
   
-          }
+          } */
           private void installApk(Uri apkUri) {
 
                try {
