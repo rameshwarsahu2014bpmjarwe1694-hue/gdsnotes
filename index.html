@@ -68,14 +68,18 @@
             100%{transform:translateX(-100%);}
         }
 
+        /* डिफॉल्ट रूप से छिपे रहेंगे ताकि मिस-फ्लैश न हो */
         .btn-group {
             margin-top: 25px;
-            display: none; /* डिफ़ॉल्ट रूप से ब्राउज़र में छुपा रहेगा */
+            display: none; 
             flex-wrap: wrap;
             justify-content: center;
             gap: 15px;
         }
-        
+
+        #installBtn {
+            display: none;
+        }
 
         .btn{
             padding:14px 22px;
@@ -237,13 +241,12 @@
         <img src="RSH.png?v=9" class="logo" alt="Logo">
         <h1>RAMESHWAR SAHU GDS DEPARTMENTAL EXAM STUDY HUB</h1>
 
-        <!-- App status ke according button dynamic show hoga -->
         <div id="actionArea">
             <button id="installBtn" onclick="installApp()" style="padding:12px 18px;background:#ffd600;color:#000;border:none;border-radius:8px;font-weight:bold;font-size:16px;cursor:pointer;">
                 📲 Install / Download Android App
             </button>
 
-            <div class="btn-group" id="loginRegisterGroup" style="display:none;">
+            <div class="btn-group" id="loginRegisterGroup">
                 <a href="login.html" class="btn btn-login">Candidate Login</a>
                 <a href="register.html" class="btn btn-register">Register</a>
             </div>
@@ -297,33 +300,53 @@ function installApp() {
     window.location.href = "https://rsh.gdsnotes.in/app-release.apk";
 }
 
-function checkEnvironment() {
+let checkAttempts = 0;
+const maxAttempts = 30; // 3 सेकंड तक लगातार चेक करेगा
+
+function detectEnvironment() {
     const loginGroup = document.getElementById("loginRegisterGroup");
     const installBtn = document.getElementById("installBtn");
 
     if (!loginGroup || !installBtn) return;
 
-    // चेक करें कि क्या यह Android App (WebView) के अंदर खुला है
+    // 1. Check for AndroidBridge (Java Interface Injection)
     const isAndroidBridge = typeof window.AndroidBridge !== "undefined";
-    const userAgent = navigator.userAgent || "";
-    const isWebView = userAgent.includes("wv") || userAgent.includes("AndroidApp");
 
-    if (isAndroidBridge || isWebView) {
-        // अगर ऐप के अंदर है -> Login/Register दिखाओ, Download बटन छुपाओ
+    // 2. Check User Agent for WebView signatures
+    const ua = navigator.userAgent || "";
+    const isWebViewUA = ua.includes("wv") || ua.includes("AndroidApp") || ua.includes("Version/") && ua.includes("Chrome/");
+
+    // 3. App Detection
+    if (isAndroidBridge) {
+        // ऐप में है -> Show Login/Register, Hide Download
         loginGroup.style.display = "flex";
         installBtn.style.display = "none";
-    } else {
-        // अगर नॉर्मल ब्राउज़र में है -> Login/Register छुपा ही रहेगा, Download बटन दिखाओ
+        return true; 
+    } else if (isWebViewUA && checkAttempts > 5) {
+        // अगर UserAgent से WebView लग रहा है तो 500ms बाद लॉगिन शो करो
+        loginGroup.style.display = "flex";
+        installBtn.style.display = "none";
+        return true;
+    }
+
+    checkAttempts++;
+
+    // अगर 3 सेकंड बाद भी App/Bridge नहीं मिलता, तो ब्राउज़र घोषित कर डाउनलोड दिखाओ
+    if (checkAttempts >= maxAttempts) {
         loginGroup.style.display = "none";
         installBtn.style.display = "inline-block";
+        return true;
     }
+
+    return false;
 }
 
-// तुरंत और लोड होने पर भी चेक करें
-checkEnvironment();
-document.addEventListener("DOMContentLoaded", checkEnvironment);
-window.addEventListener("load", checkEnvironment);
-setTimeout(checkEnvironment, 300);
+// बार-बार चेक करने का लूप (जब तक ब्रिज लोड न हो जाए)
+const timer = setInterval(() => {
+    if (detectEnvironment()) {
+        clearInterval(timer);
+    }
+}, 100);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
