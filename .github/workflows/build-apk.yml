@@ -1477,12 +1477,20 @@ jobs:
               }
           }
           EOF
-          
+      - name: Run Android Lint
+        run: |
+         cd webview-build
+         chmod +x gradlew
+         ./gradlew lintRelease
       - name: Build Native APK & AAB
         run: |
           cd webview-build
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease
+      - name: Verify APK Signature
+        run: |
+         $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose \
+         webview-build/app/build/outputs/apk/release/app-release.apk
       - name: Replace latest APK in repository
         run: |
           cp webview-build/app/build/outputs/apk/release/app-release.apk app-release.apk
