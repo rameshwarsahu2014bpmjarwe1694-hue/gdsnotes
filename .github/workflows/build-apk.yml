@@ -538,9 +538,17 @@ jobs:
                       }
                      @Override
                      public void onPermissionRequest(PermissionRequest request) {
-
-                           runOnUiThread(() -> request.grant(request.getResources()));
-                     }
+                        runOnUiThread(() -> {
+                     for (String resource : request.getResources()) {
+                     if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource)
+                      || PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) {
+                     request.grant(new String[]{resource});
+                return;
+            }
+          }
+          request.deny();
+          });
+          }
                      @Override
                      public void onShowCustomView(View view,
                              CustomViewCallback callback) {
@@ -705,7 +713,9 @@ jobs:
               });
               webView.setOnLongClickListener(v -> true);
               webView.setLongClickable(false);
-          webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");        
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+          webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
+          }      
           webView.clearCache(false);
           CookieManager cookieManager = CookieManager.getInstance();
           cookieManager.setAcceptCookie(true);
