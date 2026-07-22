@@ -625,6 +625,15 @@ jobs:
 
                           String url = request.getUrl().toString();
                           Uri uri = request.getUrl();
+                          String scheme = uri.getScheme();
+
+                          if (!"https".equalsIgnoreCase(scheme)
+                          && !"http".equalsIgnoreCase(scheme)
+                          && !"mailto".equalsIgnoreCase(scheme)
+                          && !"tel".equalsIgnoreCase(scheme)
+                          && !"whatsapp".equalsIgnoreCase(scheme)) {
+                            return true;
+                          }
                           String host = uri.getHost();
 
                           if (host != null &&
@@ -738,11 +747,6 @@ jobs:
           updateReceiver = new android.content.BroadcastReceiver() {
           @Override
           public void onReceive(Context context, Intent intent) {
-          Toast.makeText(
-             MainActivity.this,
-             "DEBUG-1 Receiver Triggered",
-              Toast.LENGTH_LONG
-            ).show();
 
             long id = intent.getLongExtra(
                 DownloadManager.EXTRA_DOWNLOAD_ID,
@@ -801,11 +805,6 @@ jobs:
           } else {
           registerReceiver(updateReceiver, filter);
           }
-          Toast.makeText(
-               MainActivity.this,
-               "DEBUG-0 Receiver Registered",
-                Toast.LENGTH_LONG
-          ).show();
           getOnBackPressedDispatcher().addCallback(this,
                     new OnBackPressedCallback(true) {
                     @Override
@@ -831,7 +830,6 @@ jobs:
                 "Downloading...",
                  Toast.LENGTH_SHORT
            ).show();
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, "Listener Triggered", Toast.LENGTH_SHORT).show());
                downloadFile(url, fileName, null);
 
           });
