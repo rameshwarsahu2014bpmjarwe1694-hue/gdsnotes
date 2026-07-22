@@ -1195,9 +1195,6 @@ jobs:
              @JavascriptInterface
              public void download(String url, String fileName, String token) {
 
-               // Yeh Debugging line add ki hai
-               runOnUiThread(() -> Toast.makeText(MainActivity.this, "Bridge Triggered!", Toast.LENGTH_SHORT).show());
-
                runOnUiThread(() -> {
 
                Toast.makeText(
@@ -1216,7 +1213,10 @@ jobs:
              super.onDestroy();
 
              if (updateReceiver != null) {
+                 try {
              unregisterReceiver(updateReceiver);
+             } catch (IllegalArgumentException ignored) {
+          }
           }
           }
           }
