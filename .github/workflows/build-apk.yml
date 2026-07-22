@@ -849,6 +849,8 @@ jobs:
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(10000);
             conn.setReadTimeout(10000);
+            conn.setUseCaches(false);
+            conn.setInstanceFollowRedirects(false);
 
             BufferedReader reader =
                     new BufferedReader(
@@ -937,9 +939,18 @@ jobs:
           private void downloadApk(String apkUrl) {
 
            try {
+           Uri uri = Uri.parse(apkUrl);
+
+           if (!"https".equalsIgnoreCase(uri.getScheme())
+           || uri.getHost() == null
+           || !uri.getHost().endsWith("gdsnotes.in")) {
+
+               Toast.makeText(this, "Invalid update source", Toast.LENGTH_LONG).show();
+            return;
+           }
 
           DownloadManager.Request request =
-                new DownloadManager.Request(Uri.parse(apkUrl));
+                new DownloadManager.Request(uri);
 
            request.setTitle("RSH GDS Notes Update");
            request.setDescription("Downloading latest version...");
@@ -961,20 +972,10 @@ jobs:
           if (manager != null) {
             updateDownloadId = manager.enqueue(request);
           checkDownloadStatus();
-            Toast.makeText(
-          this,
-          "ID = " + updateDownloadId,
-          Toast.LENGTH_LONG
-          ).show();
+            
           }
 
           } catch (Exception e) {
-
-            Toast.makeText(
-                MainActivity.this,
-                e.getMessage(),
-                Toast.LENGTH_LONG
-            ).show();
 
           }
 
@@ -988,11 +989,6 @@ jobs:
           @Override
           public void run() {
           runOnUiThread(() ->
-            Toast.makeText(
-                MainActivity.this,
-               "checkDownloadStatus running",
-                Toast.LENGTH_LONG
-          ).show()
           );
 
             DownloadManager manager =
@@ -1016,18 +1012,8 @@ jobs:
 
                 int status =
                         cursor.getInt(statusIndex);
-                        Toast.makeText(
-                             MainActivity.this,
-                             "Status = " + status,
-                             Toast.LENGTH_LONG
-                ).show();
 
                 if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                    Toast.makeText(
-                         MainActivity.this,
-                         "STATUS_SUCCESSFUL",
-                         Toast.LENGTH_LONG
-                 ).show();
                     cursor.close();
 
                 Uri apkUri = manager.getUriForDownloadedFile(updateDownloadId);
@@ -1098,12 +1084,6 @@ jobs:
 
           } catch (Exception e) {
 
-              Toast.makeText(
-                  this,
-                e.toString(),
-                Toast.LENGTH_LONG
-          ).show();
-
           }
           }
           private File createImageFile() throws IOException {
@@ -1157,7 +1137,7 @@ jobs:
             // --- DEBUG 1: Server Status Check ---
             int status = connection.getResponseCode();
             if (status != 200) { 
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Status Error: " + status, Toast.LENGTH_LONG).show()); 
+                runOnUiThread(() ->
                 return; 
             }
 
@@ -1180,7 +1160,7 @@ jobs:
             
             // --- DEBUG 2: URI Null Check ---
             if (uri == null) { 
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "URI Null Error", Toast.LENGTH_LONG).show()); 
+                runOnUiThread(() ->
                 return; 
             }
             
@@ -1201,7 +1181,7 @@ jobs:
                     } catch (Exception e) {
             // --- DEBUG 3: Detailed Exception Check ---
             String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show());
+            runOnUiThread(() ->
           }
 
           }).start();
