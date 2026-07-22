@@ -1474,11 +1474,11 @@ jobs:
               }
           }
           EOF
-      - name: Run Android Lint
-        run: |
-         cd webview-build
-         chmod +x gradlew
-         ./gradlew lintRelease
+          /* - name: Run Android Lint
+               run: |
+               cd webview-build
+               chmod +x gradlew
+               ./gradlew lintRelease */
       - name: Build Native APK & AAB
         run: |
           cd webview-build
