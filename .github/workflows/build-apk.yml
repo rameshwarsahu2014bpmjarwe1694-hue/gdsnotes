@@ -195,7 +195,6 @@ jobs:
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
               <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
               <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
-              <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
               
               <application
                   android:allowBackup="true"
@@ -413,7 +412,8 @@ jobs:
                   settings.setLoadWithOverviewMode(true);
 
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                      settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+                      settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
+                      
                   }
 
                   webView.setWebChromeClient(new WebChromeClient() {
@@ -470,8 +470,15 @@ jobs:
 
                       @Override
                       public void onPermissionRequest(PermissionRequest request) {
-                          runOnUiThread(() -> request.grant(request.getResources()));
-                      }
+                         runOnUiThread(() -> {
+                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                             request.grant(request.getResources());
+                       } else {
+            request.deny();
+           }
+          });
+          }
+
 
                       @Override
                       public void onShowCustomView(View view, CustomViewCallback callback) {
@@ -662,25 +669,6 @@ jobs:
                   downloadFile(apkUrl, "app-release.apk", null);
               }
 
-              private void installApk(File apkFile) {
-                  try {
-                      Uri apkUri = FileProvider.getUriForFile(
-                              this,
-                              getPackageName() + ".fileprovider",
-                              apkFile
-                      );
-
-                      Intent intent = new Intent(Intent.ACTION_VIEW);
-                      intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
-                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                      intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-                      startActivity(intent);
-                  } catch (Exception e) {
-                      runOnUiThread(() -> Toast.makeText(this, "Install Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
-                  }
-              }
-
               private File createImageFile() throws IOException {
                   String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
                   String imageFileName = "IMG_" + timeStamp + "_";
@@ -721,26 +709,18 @@ jobs:
 
                           InputStream input = connection.getInputStream();
 
-                          // APK special handling for Android 12, 14, 16+
+                            // APK Handling: Redirect to Browser
                           if (fileName.toLowerCase().endsWith(".apk")) {
-                              File apkFile = new File(getExternalCacheDir(), fileName);
-                              if (apkFile.exists()) apkFile.delete();
-
-                              FileOutputStream output = new FileOutputStream(apkFile);
-                              byte[] buffer = new byte[4096];
-                              int len;
-                              while ((len = input.read(buffer)) != -1) {
-                                  output.write(buffer, 0, len);
-                              }
-                              output.flush();
-                              output.close();
-                              input.close();
-
                               runOnUiThread(() -> {
-                                  Toast.makeText(MainActivity.this, "Download Complete. Starting Install...", Toast.LENGTH_SHORT).show();
-                                  installApk(apkFile);
+                                  try {
+                                      Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(fileUrl));
+                                      startActivity(browserIntent);
+                                  } catch (Exception e) {
+                                      Toast.makeText(MainActivity.this, "Unable to open browser", Toast.LENGTH_SHORT).show();
+                                  }
                               });
                           } else {
+                          
                               // Normal non-APK files using MediaStore
                               android.content.ContentValues values = new android.content.ContentValues();
                               values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
