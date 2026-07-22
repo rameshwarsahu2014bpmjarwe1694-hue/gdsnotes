@@ -988,8 +988,6 @@ jobs:
 
           @Override
           public void run() {
-          runOnUiThread(() ->
-          );
 
             DownloadManager manager =
                     (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
@@ -1137,7 +1135,6 @@ jobs:
             // --- DEBUG 1: Server Status Check ---
             int status = connection.getResponseCode();
             if (status != 200) { 
-                runOnUiThread(() ->
                 return; 
             }
 
@@ -1160,7 +1157,6 @@ jobs:
             
             // --- DEBUG 2: URI Null Check ---
             if (uri == null) { 
-                runOnUiThread(() ->
                 return; 
             }
             
@@ -1179,10 +1175,8 @@ jobs:
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download Complete", Toast.LENGTH_LONG).show());
             }
                     } catch (Exception e) {
-            // --- DEBUG 3: Detailed Exception Check ---
-            String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
-            runOnUiThread(() ->
-          }
+                      e.printStackTrace();
+            }
 
           }).start();
           }
