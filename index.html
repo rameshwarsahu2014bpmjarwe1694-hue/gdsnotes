@@ -68,13 +68,14 @@
             100%{transform:translateX(-100%);}
         }
 
-        .btn-group{
-            margin-top:25px;
-            display:flex;
-            flex-wrap:wrap;
-            justify-content:center;
-            gap:15px;
+        .btn-group {
+            margin-top: 25px;
+            display: none; /* डिफ़ॉल्ट रूप से ब्राउज़र में छुपा रहेगा */
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
         }
+        
 
         .btn{
             padding:14px 22px;
@@ -296,25 +297,33 @@ function installApp() {
     window.location.href = "https://rsh.gdsnotes.in/app-release.apk";
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    // Check points to detect if request is coming from Android App / WebView
-    const userAgent = navigator.userAgent || "";
-    const isAndroidBridge = typeof AndroidBridge !== "undefined";
-    const isWebView = userAgent.includes("wv") || userAgent.includes("AndroidApp");
-
+function checkEnvironment() {
     const loginGroup = document.getElementById("loginRegisterGroup");
     const installBtn = document.getElementById("installBtn");
 
+    if (!loginGroup || !installBtn) return;
+
+    // चेक करें कि क्या यह Android App (WebView) के अंदर खुला है
+    const isAndroidBridge = typeof window.AndroidBridge !== "undefined";
+    const userAgent = navigator.userAgent || "";
+    const isWebView = userAgent.includes("wv") || userAgent.includes("AndroidApp");
+
     if (isAndroidBridge || isWebView) {
-        // App se open hua h -> Show Login/Register & Hide Download button
+        // अगर ऐप के अंदर है -> Login/Register दिखाओ, Download बटन छुपाओ
         loginGroup.style.display = "flex";
         installBtn.style.display = "none";
     } else {
-        // Normal Browser h -> Hide Login/Register & Show Download button
+        // अगर नॉर्मल ब्राउज़र में है -> Login/Register छुपा ही रहेगा, Download बटन दिखाओ
         loginGroup.style.display = "none";
         installBtn.style.display = "inline-block";
     }
-});
+}
+
+// तुरंत और लोड होने पर भी चेक करें
+checkEnvironment();
+document.addEventListener("DOMContentLoaded", checkEnvironment);
+window.addEventListener("load", checkEnvironment);
+setTimeout(checkEnvironment, 300);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
