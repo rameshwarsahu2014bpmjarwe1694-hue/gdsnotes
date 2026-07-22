@@ -1,4 +1,4 @@
-Name: Auto Deploy to GitHub Pages Repo
+name: Auto Deploy to GitHub Pages Repo
 
 on:
   workflow_run:
