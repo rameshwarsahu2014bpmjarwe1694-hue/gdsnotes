@@ -1227,6 +1227,9 @@ jobs:
           echo "===== SEARCH DEBUG ====="
           grep -n "ONCREATE" webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java || true
           grep -n "DEBUG-0" webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java || true    
+      - name: Show MainActivity around error
+        run: |
+         nl -ba webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java | sed -n '680,920p'
       - name: Verify Generated MainActivity
         run: |
          echo "===== Package ====="
