@@ -145,7 +145,10 @@ jobs:
 
               buildTypes {
                   release {
-                      minifyEnabled false
+                      minifyEnabled true
+                      shrinkResources true
+                      debuggable false
+                      jniDebuggable false
                       proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
                   }
               }
