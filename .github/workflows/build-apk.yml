@@ -25,6 +25,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Clear Caches Older Than 15 Minutes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const caches = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            
+            const now = new Date();
+            const FIFTEEN_MINUTES = 15 * 60 * 1000; // 15 मिनट्स (Milliseconds में)
+
+            for (const cache of caches.data.actions_caches) {
+              const cacheTime = new Date(cache.last_accessed_at || cache.created_at);
+              const ageInMs = now - cacheTime;
+
+              // केवल उन Caches को डिलीट करें जो 15 मिनट से पुराने हैं
+              if (ageInMs > FIFTEEN_MINUTES) {
+                console.log(`Deleting old cache ${cache.id} (Age: ${Math.round(ageInMs / 60000)} mins)...`);
+                await github.rest.actions.deleteActionsCacheByIdOfVariableKey({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  cache_id: cache.id,
+                });
+              } else {
+                console.log(`Keeping recent cache ${cache.id} (Age: ${Math.round(ageInMs / 60000)} mins)`);
+              }
+            }
+            
       - name: Checkout repository
         uses: actions/checkout@v4
 
