@@ -647,18 +647,17 @@ jobs:
                       }
                   });
 
-                  WebView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
-                         try {
-                  // APK डाउनलोड के लिए सिस्टम ब्राउज़र (Chrome) का उपयोग करें ताकि सीधे Install स्क्रीन आए
-                  Intent intent = new Intent(Intent.ACTION_VIEW);
-                  intent.setData(Uri.parse(url));
-                  startActivity(intent);
-                  } catch (Exception e) {
-                  // अगर ब्राउज़र न खुले तो बैकअप डाउनलोडर
-                  String fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
-                  downloadFile(url, fileName, null);
-                  }
+                  webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
+                      try {
+                 Intent browserIntent = new Intent(Intent.ACTION_VIEW);
+                 browserIntent.setData(Uri.parse(url));
+                      startActivity(browserIntent);
+                 } catch (Exception e) {
+                    String fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                 downloadFile(url, fileName, null);
+                 }
                  });
+
 
                  checkForUpdates();
                  }
