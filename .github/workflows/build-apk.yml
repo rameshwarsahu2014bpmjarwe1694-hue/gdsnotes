@@ -704,28 +704,24 @@ jobs:
                       }
                   });
               }
-
               private void showUpdateDialog(String versionName, String message, String apkUrl) {
                   new AlertDialog.Builder(MainActivity.this)
                           .setTitle("🎉 New Update Available")
                           .setMessage("Current Version : " + BuildConfig.VERSION_NAME + "\n\nLatest Version : " + versionName + "\n\n" + message)
                           .setCancelable(false)
-                          .setPositiveButton("Update Now", (dialog, which) -> downloadApk(apkUrl))
+                          .setPositiveButton("Update Now", (dialog, which) -> {
+                              dialog.dismiss(); // 1. डायलॉग को तुरंत स्क्रीन से हटाएँ
+                              downloadApk(apkUrl); // 2. बैकग्राउंड डाउनलोड शुरू करें
+                          })
                           .setNegativeButton("Later", (dialog, which) -> dialog.dismiss())
                           .show();
               }
 
               private void downloadApk(String apkUrl) {
-                   try {
-             if (apkUrl != null && !apkUrl.isEmpty()) {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            }
-            } catch (Exception e) {
-             Toast.makeText(MainActivity.this, "Unable to open browser for update", Toast.LENGTH_SHORT).show();
-            }
-            }
+                  // सीधा DownloadManager को चलाएँ ताकि फ़ाइल बैकग्राउंड में डाउनलोड होकर ऊपर टास्कबार में दिखे
+                  downloadFile(apkUrl, "app-release.apk", null);
+              }
+
 
 
 
