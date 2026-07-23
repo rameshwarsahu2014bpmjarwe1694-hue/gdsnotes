@@ -1478,13 +1478,10 @@ jobs:
          test -f "$APK" && echo "APK OK"
       - name: Upload latest APK to Target Pages & Source Repo
         run: |
-          # 1. à¤¤à¤¾à¤œà¤¼à¤¾ à¤¬à¤¨à¥€ APK à¤«à¤¼à¤¾à¤‡à¤² à¤•à¤¾ à¤ªà¤¾à¤¥ à¤¢à¥‚à¤à¤¢à¥‡à¤‚
           APK_SRC=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -n1)
           echo "Found source APK: $APK_SRC"
 
-          # ----------------------------------------------------
-          # A) Source Repo (Main Repo) à¤•à¥‡ à¤°à¥‚à¤Ÿ à¤®à¥‡à¤‚ Overwrite à¤•à¤°à¤¨à¤¾
-          # ----------------------------------------------------
+          # A) Source Repo (Main Repo) root overwrite
           cp -f "$APK_SRC" ./app-release.apk
 
           git config user.name "github-actions[bot]"
@@ -1499,9 +1496,7 @@ jobs:
             echo "No changes in Source Repo APK."
           fi
 
-          # ----------------------------------------------------
-          # B) Target Repo (GitHub Pages Repo) à¤®à¥‡à¤‚ Overwrite à¤•à¤°à¤¨à¤¾
-          # ----------------------------------------------------
+          # B) Target Repo (GitHub Pages Repo) overwrite
           git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/rameshwarsahu2014bpmjarwe1694-hue/rameshwarsahu2014bpmjarwe1694-hue.github.io.git target
 
           cp -f "$APK_SRC" target/app-release.apk
@@ -1513,13 +1508,12 @@ jobs:
           git add -f app-release.apk
           if ! git diff --staged --quiet; then
             echo "New APK detected in Target Repo. Committing..."
-            git commit -m "Auto Update: Latest APK in Source Repo [build ${{ github.run_number }}] [skip ci]"
-
+            git commit -m "Auto Update: Latest APK in Target Repo [build ${{ github.run_number }}] [skip ci]"
             git push origin main
           else
             echo "No changes in Target Repo APK."
           fi
-      
+          
       - name: Show SHA256 fingerprint (for assetlinks.json)
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
