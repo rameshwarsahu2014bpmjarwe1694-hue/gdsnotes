@@ -675,79 +675,43 @@ jobs:
                   File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
                   return File.createTempFile(imageFileName, ".jpg", storageDir);
               }
-
               private void downloadFile(String fileUrl, String fileName, String token) {
                   runOnUiThread(() -> Toast.makeText(MainActivity.this, "Downloading...", Toast.LENGTH_SHORT).show());
 
-                  new Thread(() -> {
-                      try {
-                          String cookies = CookieManager.getInstance().getCookie(fileUrl);
-                          URL url = new URL(fileUrl.replace(" ", "%20"));
-                          HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                  try {
+                      // Android System DownloadManager setup
+                      android.app.DownloadManager downloadManager = (android.app.DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                      Uri uri = Uri.parse(fileUrl.replace(" ", "%20"));
 
-                          connection.setInstanceFollowRedirects(true);
-                          connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
+                      android.app.DownloadManager.Request request = new android.app.DownloadManager.Request(uri);
 
-                          if (token != null && !token.isEmpty() && !token.equals("null")) {
-                              connection.setRequestProperty("Authorization", "Bearer " + token);
-                          }
+                      // Taskbar / Notification Bar में प्रोग्रेस और कंप्लीट होने का नोटिफिकेशन दिखाएँ
+                      request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                      request.setTitle(fileName);
+                      request.setDescription("Downloading file...");
 
-                          connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
-                          if (cookies != null && !cookies.isEmpty()) {
-                              connection.setRequestProperty("Cookie", cookies);
-                          }
-                          connection.setConnectTimeout(15000);
-                          connection.setReadTimeout(15000);
-                          connection.setRequestMethod("GET");
-                          connection.connect();
+                      // फ़ाइल को Android Downloads फ़ोल्डर में सुरक्षित सेव करें (Notes, PYQ & APK)
+                      request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
 
-                          int status = connection.getResponseCode();
-                          if (status != 200) {
-                              runOnUiThread(() -> Toast.makeText(MainActivity.this, "Status Error: " + status, Toast.LENGTH_LONG).show());
-                              return;
-                          }
-
-                          InputStream input = connection.getInputStream();
-
-                            // APK Handling: Redirect to Browser
-                          if (fileName.toLowerCase().endsWith(".apk")) {
-                              runOnUiThread(() -> {
-                                  try {
-                                      Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(fileUrl));
-                                      startActivity(browserIntent);
-                                  } catch (Exception e) {
-                                      Toast.makeText(MainActivity.this, "Unable to open browser", Toast.LENGTH_SHORT).show();
-                                  }
-                              });
-                          } else {
-                          
-                              // Normal non-APK files using MediaStore
-                              android.content.ContentValues values = new android.content.ContentValues();
-                              values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-                              values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
-                              values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
-
-                              Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-                              if (uri != null) {
-                                  OutputStream output = getContentResolver().openOutputStream(uri);
-                                  if (output != null) {
-                                      byte[] buffer = new byte[4096];
-                                      int len;
-                                      while ((len = input.read(buffer)) != -1) {
-                                          output.write(buffer, 0, len);
-                                      }
-                                      output.flush();
-                                      output.close();
-                                  }
-                                  input.close();
-                                  runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download Complete", Toast.LENGTH_LONG).show());
-                              }
-                          }
-                      } catch (Exception e) {
-                          String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
-                          runOnUiThread(() -> Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show());
+                      // Cookies और Header की व्यवस्था (ताकि Auth/Secure PDF डाउनलोड न रुके)
+                      String cookies = CookieManager.getInstance().getCookie(fileUrl);
+                      if (cookies != null && !cookies.isEmpty()) {
+                          request.addRequestHeader("Cookie", cookies);
                       }
-                  }).start();
+                      request.addRequestHeader("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
+                      request.addRequestHeader("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
+
+                      if (token != null && !token.isEmpty() && !token.equals("null")) {
+                          request.addRequestHeader("Authorization", "Bearer " + token);
+                      }
+
+                      if (downloadManager != null) {
+                          downloadManager.enqueue(request);
+                      }
+                  } catch (Exception e) {
+                      String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
+                      runOnUiThread(() -> Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show());
+                  }
               }
 
               private class AndroidBridge {
