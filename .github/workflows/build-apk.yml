@@ -1000,21 +1000,49 @@ jobs:
           cd webview-build
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease
-      - name: Upload latest APK to GitHub Pages repo
+      - name: Upload latest APK to Target Pages & Source Repo
         run: |
+          # 1. ताज़ा बनी APK फ़ाइल का पाथ ढूँढें
+          APK_SRC=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -n1)
+          echo "Found source APK: $APK_SRC"
+
+          # ----------------------------------------------------
+          # A) Source Repo (Main Repo) के रूट में Overwrite करना
+          # ----------------------------------------------------
+          cp -f "$APK_SRC" ./app-release.apk
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add -f app-release.apk
+          if ! git diff --staged --quiet; then
+            echo "New APK detected in Source Repo. Committing..."
+            git commit -m "Auto Update: Latest APK in Source Repo [build ${{ github.run_number }}]"
+            git push origin HEAD:${{ github.ref_name }}
+          else
+            echo "No changes in Source Repo APK."
+          fi
+
+          # ----------------------------------------------------
+          # B) Target Repo (GitHub Pages Repo) में Overwrite करना
+          # ----------------------------------------------------
           git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/rameshwarsahu2014bpmjarwe1694-hue/rameshwarsahu2014bpmjarwe1694-hue.github.io.git target
 
-          cp webview-build/app/build/outputs/apk/release/app-release.apk target/app-release.apk
+          cp -f "$APK_SRC" target/app-release.apk
 
-            cd target
+          cd target
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-
-          git add app-release.apk
-          git commit -m "Update latest APK" || echo "No APK changes"
-
-          git push origin main
+          git add -f app-release.apk
+          if ! git diff --staged --quiet; then
+            echo "New APK detected in Target Repo. Committing..."
+            git commit -m "Auto Update: Latest Release APK [build ${{ github.run_number }}]"
+            git push origin main
+          else
+            echo "No changes in Target Repo APK."
+          fi
+          
       - name: Find APK Files
         run: |
          echo "===== APK ====="
