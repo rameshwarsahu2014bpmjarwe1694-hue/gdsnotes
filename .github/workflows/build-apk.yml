@@ -224,7 +224,6 @@ jobs:
               <uses-permission android:name="android.permission.CAMERA"/>
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-              <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
               <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
               <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
               
@@ -717,15 +716,17 @@ jobs:
               }
 
               private void downloadApk(String apkUrl) {
-                     try {
-             // APK डाउनलोड सीधे बाहरी ब्राउज़र में खोलें ताकि डाउनलोड होते ही ऑटो-इन्स्टॉल का ऑप्शन आए
-              Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl));
-                startActivity(intent);
-              } catch (Exception e) {
-              // अगर कोई ब्राउज़र न हो तो बैकअप डाउनलोड
-              downloadFile(apkUrl, "app-release.apk", null);
-              }
-              }
+                   try {
+             if (apkUrl != null && !apkUrl.isEmpty()) {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            }
+            } catch (Exception e) {
+             Toast.makeText(MainActivity.this, "Unable to open browser for update", Toast.LENGTH_SHORT).show();
+            }
+            }
+
 
 
               private File createImageFile() throws IOException {
