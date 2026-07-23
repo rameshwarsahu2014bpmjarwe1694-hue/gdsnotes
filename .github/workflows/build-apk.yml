@@ -561,51 +561,62 @@ jobs:
                           Uri uri = request.getUrl();
                           String host = uri.getHost();
 
-                          if (host != null && !host.endsWith("gdsnotes.in") && !host.equals("wa.me") && !host.equals("api.whatsapp.com")) {
-                              Intent browser = new Intent(Intent.ACTION_VIEW, uri);
-                              startActivity(browser);
-                              return true;
-                          }
+                     // 1. APK डाउनलोड फिक्स: अगर URL किसी .apk फाइल का है, तो उसे सीधे बाहर ब्राउज़र में भेजें
+                        if (url.endsWith(".apk") || url.contains("app-release.apk")) {
+                             try {
+            Intent apkIntent = new Intent(Intent.ACTION_VIEW, uri);
+            startActivity(apkIntent);
+            return true; // WebView को रोकें ताकि डाउनलोड बाहर ब्राउज़र में हो
+            } catch (Exception e) {
+            Toast.makeText(MainActivity.this, "Unable to open browser", Toast.LENGTH_SHORT).show();
+            }
+            }
 
-                          if (url.startsWith("mailto:")) {
-                              try {
-                                  Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse(url));
-                                  startActivity(intent);
-                              } catch (Exception e) {
-                                  Toast.makeText(MainActivity.this, "No email app found", Toast.LENGTH_SHORT).show();
-                              }
-                              return true;
-                          }
+            if (host != null && !host.endsWith("gdsnotes.in") && !host.equals("wa.me") && !host.equals("api.whatsapp.com")) {
+            Intent browser = new Intent(Intent.ACTION_VIEW, uri);
+              startActivity(browser);
+             return true;
+            }
 
-                          if (url.startsWith("tel:")) {
-                              try {
-                                  Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse(url));
-                                  startActivity(intent);
-                              } catch (Exception e) {
-                                  Toast.makeText(MainActivity.this, "Unable to open dialer", Toast.LENGTH_SHORT).show();
-                              }
-                              return true;
-                          }
+           if (url.startsWith("mailto:")) {
+               try {
+            Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse(url));
+            startActivity(intent);
+           } catch (Exception e) {
+            Toast.makeText(MainActivity.this, "No email app found", Toast.LENGTH_SHORT).show();
+           }
+            return true;
+          }
 
-                          if (url.startsWith("https://wa.me/") || url.startsWith("https://api.whatsapp.com/") || url.startsWith("whatsapp://")) {
-                              try {
-                                  Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                                  intent.setPackage("com.whatsapp");
-                                  startActivity(intent);
-                              } catch (Exception e) {
-                                  try {
-                                      Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                                      startActivity(browserIntent);
-                                  } catch (Exception ex) {
-                                      Toast.makeText(MainActivity.this, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
-                                  }
-                              }
-                              return true;
-                          }
+          if (url.startsWith("tel:")) {
+              try {
+            Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse(url));
+            startActivity(intent);
+           } catch (Exception e) {
+            Toast.makeText(MainActivity.this, "Unable to open dialer", Toast.LENGTH_SHORT).show();
+           }
+            return true;
+           }
 
-                          view.loadUrl(url);
-                          return true;
-                      }
+          if (url.startsWith("https://wa.me/") || url.startsWith("https://api.whatsapp.com/") || url.startsWith("whatsapp://")) {
+              try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            intent.setPackage("com.whatsapp");
+            startActivity(intent);
+           } catch (Exception e) {
+            try {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(browserIntent);
+            } catch (Exception ex) {
+                Toast.makeText(MainActivity.this, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
+            }
+            }
+             return true;
+           }
+
+          // साधारण वेब पेजों को WebView में खुलने दें (ध्यान दें: view.loadUrl(url) की ज़रूरत नहीं होती जब return false करते हैं)
+            return false;
+           }
 
                       @Override
                       public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
