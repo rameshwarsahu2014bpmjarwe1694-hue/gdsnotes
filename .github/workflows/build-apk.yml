@@ -717,8 +717,16 @@ jobs:
               }
 
               private void downloadApk(String apkUrl) {
-                  downloadFile(apkUrl, "app-release.apk", null);
+                     try {
+             // APK डाउनलोड सीधे बाहरी ब्राउज़र में खोलें ताकि डाउनलोड होते ही ऑटो-इन्स्टॉल का ऑप्शन आए
+              Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl));
+                startActivity(intent);
+              } catch (Exception e) {
+              // अगर कोई ब्राउज़र न हो तो बैकअप डाउनलोड
+              downloadFile(apkUrl, "app-release.apk", null);
               }
+              }
+
 
               private File createImageFile() throws IOException {
                   String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
@@ -728,6 +736,13 @@ jobs:
               }
               private void downloadFile(String fileUrl, String fileName, String token) {
                   runOnUiThread(() -> Toast.makeText(MainActivity.this, "Downloading...", Toast.LENGTH_SHORT).show());
+                      // Android 13+ के लिए Taskbar Notification Permission Check
+             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+            }
+    
 
                   try {
                       // Android System DownloadManager setup
@@ -740,7 +755,8 @@ jobs:
                       request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                       request.setTitle(fileName);
                       request.setDescription("Downloading file...");
-
+                      request.allowScanningByMediaScanner();
+                              
                       // फ़ाइल को Android Downloads फ़ोल्डर में सुरक्षित सेव करें (Notes, PYQ & APK)
                       request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
 
