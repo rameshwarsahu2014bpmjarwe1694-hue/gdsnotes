@@ -911,7 +911,7 @@ jobs:
           DownloadManager.Request request =
                 new DownloadManager.Request(Uri.parse(apkUrl));
 
-           request.setTitle("RSH GDS Notes Update");
+           request.setTitle("app-release.apk");
            request.setDescription("Downloading latest version...");
            request.setNotificationVisibility(
                 DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
@@ -1059,7 +1059,6 @@ jobs:
                   }
                  });
 
-            }
                     } catch (Exception e) {
             // --- DEBUG 3: Detailed Exception Check ---
             String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
