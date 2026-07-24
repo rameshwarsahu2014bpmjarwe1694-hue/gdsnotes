@@ -817,8 +817,8 @@ jobs:
                     (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("GET");
-            conn.setConnectTimeout(10000);
-            conn.setReadTimeout(10000);
+            conn.setConnectTimeout(30000);
+            conn.setReadTimeout(30000);
 
             BufferedReader reader =
                     new BufferedReader(
@@ -1001,8 +1001,8 @@ jobs:
                 connection.setRequestProperty("Cookie", cookies);
             }
             // Connection setup ke turant baad
-            connection.setConnectTimeout(15000); // 15 seconds wait
-            connection.setReadTimeout(15000);
+            connection.setConnectTimeout(60000); // 15 seconds wait
+            connection.setReadTimeout(60000);
 
             // Ye line add karein, ye batayega ki URL sahi se fetch ho raha hai ya nahi
                 connection.setRequestMethod("GET"); 
@@ -1051,7 +1051,14 @@ jobs:
                     output.close();
                 }
                 input.close();
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download Complete", Toast.LENGTH_LONG).show());
+                 runOnUiThread(() -> {
+                   Toast.makeText(MainActivity.this, "Download Complete", Toast.LENGTH_SHORT).show();
+                   DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                if (dm != null) {
+                   dm.addCompletedDownload(fileName, "Downloaded File", true, contentType, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/" + fileName, 0, true);
+                  }
+                 });
+
             }
                     } catch (Exception e) {
             // --- DEBUG 3: Detailed Exception Check ---
