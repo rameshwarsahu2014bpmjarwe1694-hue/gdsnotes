@@ -1021,11 +1021,9 @@ jobs:
             android.content.ContentValues values = new android.content.ContentValues();
             values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
 
-           // Naya Logic: Dynamic MIME Type detection
-           String contentType = connection.getContentType();
-           if (contentType == null || contentType.isEmpty() || contentType.contains(";")) {
-               contentType = "application/pdf"; // Fallback for safety
-            }
+           String rawContentType = connection.getContentType();
+           String contentType = (rawContentType == null || rawContentType.isEmpty() || rawContentType.contains(";")) ? "application/pdf" : rawContentType;
+
             values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, contentType);
 
             values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS);
