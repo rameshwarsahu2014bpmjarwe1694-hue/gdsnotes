@@ -34,10 +34,20 @@ jobs:
          --exclude ".github" \
          --exclude "target" \
          ./ target/
+      - name: Check copied files
+        run: |
+         ls -la
+         ls -la target
+         git status
          
       - name: Restore CNAME
         run: |
           echo "rsh.gdsnotes.in" > target/CNAME
+      - name: Show target changes
+        run: |
+         cd target
+         git status
+         git diff --stat
           
       - name: Commit and Push
         run: |
