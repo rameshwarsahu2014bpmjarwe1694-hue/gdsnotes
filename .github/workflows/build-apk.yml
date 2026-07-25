@@ -881,6 +881,8 @@ jobs:
 
           request.setMimeType(
                 "application/vnd.android.package-archive");
+                request.allowScanningByMediaScanner();
+                request.setVisibleInDownloadsUi(true);
 
           DownloadManager manager =
                 (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
