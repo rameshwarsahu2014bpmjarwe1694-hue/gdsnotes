@@ -712,68 +712,26 @@ jobs:
           updateReceiver = new android.content.BroadcastReceiver() {
           @Override
           public void onReceive(Context context, Intent intent) {
+              long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
 
-            long id = intent.getLongExtra(
-                DownloadManager.EXTRA_DOWNLOAD_ID,
-                -1
-           );
-
-          if (id == updateDownloadId) {
-
-            DownloadManager dm =
-                    (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-
-            if (dm == null) return;
-
-            DownloadManager.Query query =
-                    new DownloadManager.Query();
-
-            query.setFilterById(updateDownloadId);
-
-            android.database.Cursor cursor =
-                    dm.query(query);
-
-            if (cursor != null && cursor.moveToFirst()) {
-
-                int uriIndex =
-                        cursor.getColumnIndex(
-                                DownloadManager.COLUMN_LOCAL_URI);
-
-                if (uriIndex >= 0) {
-
-                    String uri =
-                            cursor.getString(uriIndex);
-
-                    if (uri != null) {
-
-                        installApk(new File(Uri.parse(uri).getPath()));
-
-                    }
-
-                }
-
-                cursor.close();
-
-            }
-
+          if (id == updateDownloadId && updateDownloadId != -1) {
+            // Straight install method with download ID (Android 12/16 fix)
+            installApk(updateDownloadId);
           }
-
           }
           };
 
-          IntentFilter filter = new IntentFilter(
-          DownloadManager.ACTION_DOWNLOAD_COMPLETE
-          );
+          IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
 
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-          registerReceiver(
-            updateReceiver,
-            filter,
-            Context.RECEIVER_NOT_EXPORTED
-          );
+          // Fix for Android 14/16: DownloadManager system broadcast ke liye EXPORTED hona zaroori hai
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // API 34+
+          registerReceiver(updateReceiver, filter, Context.RECEIVER_EXPORTED);
+          } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33
+          registerReceiver(updateReceiver, filter, Context.RECEIVER_EXPORTED);
           } else {
-          registerReceiver(updateReceiver, filter);
+            registerReceiver(updateReceiver, filter);
           }
+
           getOnBackPressedDispatcher().addCallback(this,
                     new OnBackPressedCallback(true) {
                     @Override
@@ -946,19 +904,26 @@ jobs:
           }
           }
 
-          private void installApk(File apkFile) {
-             try {
-          // डाउनलोड पूरा होने पर यूजर को सूचना दें
-           Toast.makeText(this, "Update downloaded! Open Downloads folder to install.", Toast.LENGTH_LONG).show();
-        
-          // सीधे डाउनलोड फोल्डर / फाइल मैनेजर खोलने का इंटेंट
-          Intent intent = new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS);
-          intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-          startActivity(intent);
+          private void installApk(long downloadId) {
+               try {
+          DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+          if (dm != null) {
+            // Android 12 aur 16 ke liye FilePath ki jagah direct DownloadManager Uri
+            Uri apkUri = dm.getUriForDownloadedFile(downloadId);
+            if (apkUri != null) {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Downloaded file not found", Toast.LENGTH_LONG).show();
+            }
+          }
           } catch (Exception e) {
-            Toast.makeText(this, "File saved in Downloads folder", Toast.LENGTH_LONG).show();
+          Toast.makeText(this, "Error launching installer: " + e.getMessage(), Toast.LENGTH_LONG).show();
           }
           }
+
 
           private File createImageFile() throws IOException {
 
