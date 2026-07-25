@@ -1019,7 +1019,14 @@ jobs:
             java.io.InputStream input = connection.getInputStream();
             
             android.content.ContentValues values = new android.content.ContentValues();
-            values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+
+            // Strictly Android 12 ke liye .apk extension guard
+            String finalFileName = (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.VERSION.SDK_INT <= 32 && !fileName.endsWith(".apk")) 
+            ? fileName + ".apk" 
+            : fileName;
+
+            values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, finalFileName);
+
 
            String rawContentType = connection.getContentType();
            String contentType = (rawContentType == null || rawContentType.isEmpty() || rawContentType.contains(";")) ? "application/pdf" : rawContentType;
@@ -1053,7 +1060,7 @@ jobs:
                    Toast.makeText(MainActivity.this, "Download Complete", Toast.LENGTH_SHORT).show();
                    DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
                 if (dm != null) {
-                   dm.addCompletedDownload(fileName, "Downloaded File", true, contentType, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/" + fileName, 0, true);
+                   dm.addCompletedDownload(finalFileName, "Downloaded File", true, contentType, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/" + finalFileName, 0, true);
                   }
                  });
                  }
