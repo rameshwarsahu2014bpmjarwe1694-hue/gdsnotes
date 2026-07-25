@@ -912,7 +912,7 @@ jobs:
           // Android 12 Duplicate File Name Fix
           String safeApkName = "app-release-" + System.currentTimeMillis() + ".apk";
 
-          request.setTitle("App Update");
+          request.setTitle(safeApkName);
           request.setDescription("Downloading latest version...");
           request.setNotificationVisibility(
                DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
