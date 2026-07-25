@@ -1057,13 +1057,22 @@ jobs:
                 }
                 input.close();
                  runOnUiThread(() -> {
-                   Toast.makeText(MainActivity.this, "Download Complete", Toast.LENGTH_SHORT).show();
-                   DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                if (dm != null) {
-                   dm.addCompletedDownload(finalFileName, "Downloaded File", true, contentType, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/" + finalFileName, 0, true);
-                  }
-                 });
-                 }
+                     Toast.makeText(MainActivity.this, "Download Complete", Toast.LENGTH_SHORT).show();
+                     DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                 if (dm != null) {
+                     dm.addCompletedDownload(finalFileName, "Downloaded File", true, contentType, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/" + finalFileName, 0, true);
+                }
+                      try {
+                    Intent openIntent = new Intent(Intent.ACTION_VIEW);
+                    openIntent.setDataAndType(uri, contentType);
+                    openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(openIntent);
+              } catch (Exception e) {
+                  Toast.makeText(MainActivity.this, "No app found to open this file", Toast.LENGTH_SHORT).show();
+              }
+              });
+
+              }
 
                     } catch (Exception e) {
             // --- DEBUG 3: Detailed Exception Check ---
