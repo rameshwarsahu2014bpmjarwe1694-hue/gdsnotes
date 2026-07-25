@@ -1001,8 +1001,8 @@ jobs:
                 connection.setRequestProperty("Cookie", cookies);
             }
             // Connection setup ke turant baad
-            connection.setConnectTimeout(60000); // 15 seconds wait
-            connection.setReadTimeout(60000);
+            connection.setConnectTimeout(120000); // 120seconds wait
+            connection.setReadTimeout(120000);
 
             // Ye line add karein, ye batayega ki URL sahi se fetch ho raha hai ya nahi
                 connection.setRequestMethod("GET"); 
