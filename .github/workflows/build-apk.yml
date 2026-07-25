@@ -867,8 +867,7 @@ jobs:
            DownloadManager.Request request =
               new DownloadManager.Request(Uri.parse(apkUrl));
 
-          // Android 12 Duplicate File Name Fix
-          String safeApkName = "app-release-" + System.currentTimeMillis() + ".apk";
+          String safeApkName = "RSH_GDS_Notes_Update.apk";
 
           request.setTitle(safeApkName);
           request.setDescription("Downloading latest version...");
