@@ -151,12 +151,14 @@ jobs:
                   testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
               }
 
-              buildTypes {
+             buildTypes {
                   release {
-                      minifyEnabled false
+                      minifyEnabled true
+                      shrinkResources true
                       proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
                   }
               }
+              
 
               compileOptions {
                   sourceCompatibility JavaVersion.VERSION_17
@@ -181,7 +183,27 @@ jobs:
           }
           EOF
 
-          touch webview-build/app/proguard-rules.pro
+                    cat > webview-build/app/proguard-rules.pro <<'EOF'
+          # Remove all Log and Debug output to prevent decompilers/scanners from reading sensitive info
+          -assumenosideeffects class android.util.Log {
+              public static *** d(...);
+              public static *** v(...);
+              public static *** i(...);
+              public static *** w(...);
+              public static *** e(...);
+          }
+
+          # Protect Javascript Interface & Native Bridge
+          -keepclassmembers class * {
+              @android.webkit.JavascriptInterface <methods>;
+          }
+
+          # Obfuscate classes and remove line numbers/source file attributes
+          -renamesourcefileattribute SourceFile
+          -keepattributes SourceFile,LineNumberTable
+          -repackageclasses ''
+          -allowaccessmodification
+          EOF
 
           echo "===== app/build.gradle ====="
           cat webview-build/app/build.gradle
