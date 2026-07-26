@@ -34,6 +34,14 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Clean Cache Older Than 15 Minutes (Pre-Build)
+        run: |
+          echo "Clearing Gradle & Android cache older than 15 minutes..."
+          find ~/.gradle/caches/ -type f -mmin +15 -delete 2>/dev/null || true
+          find ~/.gradle/wrapper/ -type f -mmin +15 -delete 2>/dev/null || true
+          find ~/.android/build-cache/ -type f -mmin +15 -delete 2>/dev/null || true
+          
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
