@@ -1388,6 +1388,13 @@ jobs:
           cd webview-build
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease
+      - name: Clean Cache Older Than 15 Minutes (Post-Build)
+        run: |
+          echo "Clearing temporary build caches older than 15 minutes..."
+          find ~/.gradle/caches/ -type f -mmin +15 -delete 2>/dev/null || true
+          find webview-build/app/build/ -type f -mmin +15 -delete 2>/dev/null || true
+          find webview-build/.gradle/ -type f -mmin +15 -delete 2>/dev/null || true
+          
       - name: Find APK Files
         run: |
          echo "===== APK ====="
