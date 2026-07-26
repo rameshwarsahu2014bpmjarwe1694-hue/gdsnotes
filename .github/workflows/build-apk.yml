@@ -1387,21 +1387,6 @@ jobs:
           cd webview-build
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease
-      - name: Clean Cache Older Than 15 Minutes (Post-Build)
-        run: |
-          echo "Clearing temporary build caches older than 15 minutes..."
-          find ~/.gradle/caches/ -type f -mmin +15 -delete 2>/dev/null || true
-          find webview-build/app/build/ -type f -mmin +15 -delete 2>/dev/null || true
-          find webview-build/.gradle/ -type f -mmin +15 -delete 2>/dev/null || true
-          # 🚀 Step 4: Strip Debug Metadata and Harden Binary Signature
-      - name: Harden APK Binary (Strip Debug Metadata)
-        run: |
-          echo "Stripping debug metadata & unnecessary signatures from built APK..."
-          APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
-          if [ -f "$APK" ]; then
-            zip -d "$APK" "META-INF/*.SF" "META-INF/*.RSA" "META-INF/*.MF" 2>/dev/null || true
-            echo "Binary Hardening completed for: $APK"
-          fi
           
       - name: Find APK Files
         run: |
