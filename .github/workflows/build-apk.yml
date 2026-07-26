@@ -765,67 +765,35 @@ jobs:
           @Override
           public void onReceive(Context context, Intent intent) {
 
-            long id = intent.getLongExtra(
-                DownloadManager.EXTRA_DOWNLOAD_ID,
-                -1
-           );
+              long id = intent.getLongExtra(
+              DownloadManager.EXTRA_DOWNLOAD_ID,
+              -1
+          );
 
-          if (id == updateDownloadId) {
-
-            DownloadManager dm =
-                    (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-
-            if (dm == null) return;
-
-            DownloadManager.Query query =
-                    new DownloadManager.Query();
-
-            query.setFilterById(updateDownloadId);
-
-            android.database.Cursor cursor =
-                    dm.query(query);
-
-            if (cursor != null && cursor.moveToFirst()) {
-
-                int uriIndex =
-                        cursor.getColumnIndex(
-                                DownloadManager.COLUMN_LOCAL_URI);
-
-                if (uriIndex >= 0) {
-
-                    String uri =
-                            cursor.getString(uriIndex);
-
-                    if (uri != null) {
-
-                        installApk(new File(Uri.parse(uri).getPath()));
-
-                    }
-
-                }
-
-                cursor.close();
-
-            }
-
+          if (id == updateDownloadId && updateDownloadId != -1) {
+              // DownloadManager से सुरक्षित URI लेकर सीधे पैकेज इंस्टॉलर खोलें
+              installApkFromDownloadManager(id);
           }
 
           }
           };
 
           IntentFilter filter = new IntentFilter(
-          DownloadManager.ACTION_DOWNLOAD_COMPLETE
+           DownloadManager.ACTION_DOWNLOAD_COMPLETE
           );
 
+          // 🔴 FIX: RECEIVER_NOT_EXPORTED को बदलकर RECEIVER_EXPORTED किया गया है
+          // ताकि DownloadManager (System Service) का सिग्नल Android 12 Go और Android 16 दोनों में मिल सके
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-          registerReceiver(
-            updateReceiver,
-            filter,
-            Context.RECEIVER_NOT_EXPORTED
-          );
-          } else {
-          registerReceiver(updateReceiver, filter);
-          }
+             registerReceiver(
+              updateReceiver,
+           filter,
+            Context.RECEIVER_EXPORTED
+           );
+           } else {
+            registerReceiver(updateReceiver, filter);
+           }
+
           getOnBackPressedDispatcher().addCallback(this,
                     new OnBackPressedCallback(true) {
                     @Override
@@ -957,60 +925,65 @@ jobs:
             .show();
           }
           private void downloadApk(String apkUrl) {
-               try {
-           DownloadManager.Request request =
-              new DownloadManager.Request(Uri.parse(apkUrl));
+             try {
+          DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl));
 
-          // Android 12 Duplicate File Name Fix
-          String safeApkName = "app-release-" + System.currentTimeMillis() + ".apk";
+           String safeApkName = "app-release-" + System.currentTimeMillis() + ".apk";
 
-          request.setTitle(safeApkName);
-          request.setDescription("Downloading latest version...");
-          request.setNotificationVisibility(
-               DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+           request.setTitle("RSH GDS Notes Update");
+           request.setDescription("Downloading latest version...");
+           request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
-          request.setDestinationInExternalPublicDir(
-               Environment.DIRECTORY_DOWNLOADS,
-               safeApkName);
+           request.setDestinationInExternalPublicDir(
+                Environment.DIRECTORY_DOWNLOADS,
+                safeApkName
+           );
 
-          request.setMimeType(
-                "application/vnd.android.package-archive");
+           request.setMimeType("application/vnd.android.package-archive");
 
-          DownloadManager manager =
-                (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+           DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
-          if (manager != null) {
+           if (manager != null) {
             updateDownloadId = manager.enqueue(request);
 
             Toast.makeText(
-                   MainActivity.this,
-                   "Update download started...",
-                  Toast.LENGTH_LONG
+                    MainActivity.this,
+                    "Update download started...",
+                    Toast.LENGTH_LONG
+            ).show();
+            }
+
+            } catch (Exception e) {
+              Toast.makeText(
+                MainActivity.this,
+                "Download error: " + e.getMessage(),
+                Toast.LENGTH_LONG
            ).show();
           }
-
-          } catch (Exception e) {
-              Toast.makeText(
-                  MainActivity.this,
-                  e.getMessage(),
-                  Toast.LENGTH_LONG
-             ).show();
-          }
           }
 
-          private void installApk(File apkFile) {
-             try {
-          // डाउनलोड पूरा होने पर यूजर को सूचना दें
-           Toast.makeText(this, "Update downloaded! Open Downloads folder to install.", Toast.LENGTH_LONG).show();
-        
-          // सीधे डाउनलोड फोल्डर / फाइल मैनेजर खोलने का इंटेंट
-          Intent intent = new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS);
-          intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-          startActivity(intent);
+
+          private void installApkFromDownloadManager(long downloadId) {
+              try {
+          DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+          if (dm == null) return;
+
+          Uri apkUri = dm.getUriForDownloadedFile(downloadId);
+
+          if (apkUri != null) {
+            Intent installIntent = new Intent(Intent.ACTION_VIEW);
+            installIntent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            startActivity(installIntent);
+          } else {
+            Toast.makeText(this, "Downloaded file not ready or missing", Toast.LENGTH_SHORT).show();
+          }
           } catch (Exception e) {
-            Toast.makeText(this, "File saved in Downloads folder", Toast.LENGTH_LONG).show();
+           Toast.makeText(this, "Unable to launch installer: " + e.getMessage(), Toast.LENGTH_LONG).show();
           }
           }
+
 
           private File createImageFile() throws IOException {
 
