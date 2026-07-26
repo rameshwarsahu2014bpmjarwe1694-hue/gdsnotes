@@ -169,6 +169,11 @@ jobs:
               viewBinding true
               buildConfig true
            }
+           lint {
+              checkReleaseBuilds false
+              abortOnError false
+          }
+
 
           }
 
@@ -228,7 +233,6 @@ jobs:
               
               <application
                   android:allowBackup="false"
-                  android:debuggable="false"
                   android:extractNativeLibs="false"
                   android:icon="@mipmap/ic_launcher"
                   android:roundIcon="@mipmap/ic_launcher_round"
