@@ -1362,20 +1362,6 @@ jobs:
           cd webview-build
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease
-      - name: Replace latest APK in repository
-        run: |
-          cp webview-build/app/build/outputs/apk/release/app-release.apk app-release.apk
-
-      - name: Commit latest APK
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-
-          git add app-release.apk
-
-          git commit -m "Update latest APK" || echo "No APK changes"
-
-          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
       - name: Find APK Files
         run: |
          echo "===== APK ====="
@@ -1479,6 +1465,21 @@ jobs:
          echo ""
          echo "===== APK Exists ====="
          test -f "$APK" && echo "APK OK"
+
+      - name: Replace latest APK in repository
+        run: |
+          cp webview-build/app/build/outputs/apk/release/app-release.apk app-release.apk
+
+      - name: Commit latest APK
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add app-release.apk
+
+          git commit -m "Update latest APK" || echo "No APK changes"
+
+          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
      
       - name: Show SHA256 fingerprint (for assetlinks.json)
         env:
