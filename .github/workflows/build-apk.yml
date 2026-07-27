@@ -628,6 +628,11 @@ jobs:
                           String url = request.getUrl().toString();
                           Uri uri = request.getUrl();
                           String host = uri.getHost();
+                          if (url.startsWith("view-source:")) {
+                             Toast.makeText(MainActivity.this, "Access Denied!", Toast.LENGTH_SHORT).show();
+                             return true; // ब्लॉक कर देगा
+                        }
+
                           // ---------- UPI Deep-Link Auto Launch Handler ----------
                           if (url.startsWith("upi://") || 
                           url.startsWith("gpay://") || 
