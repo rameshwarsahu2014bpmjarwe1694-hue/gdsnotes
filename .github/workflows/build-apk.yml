@@ -707,8 +707,7 @@ jobs:
                  }
               });
               webView.setOnLongClickListener(v -> true);
-              webView.setLongClickable(false);
-          webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");        
+              webView.setLongClickable(false);      
           webView.clearCache(false);
           webView.clearHistory();
           CookieManager cookieManager = CookieManager.getInstance();
