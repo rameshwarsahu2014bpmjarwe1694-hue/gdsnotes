@@ -1029,6 +1029,62 @@ jobs:
         Toast.makeText(this, "Cannot open file picker", Toast.LENGTH_SHORT).show();
     }
 }
+private void writeStreamToUri(String fileUrl, Uri targetUri, String token) {
+    Toast.makeText(MainActivity.this, "Downloading...", Toast.LENGTH_SHORT).show();
+
+    new Thread(() -> {
+        try {
+            String cookies = android.webkit.CookieManager.getInstance().getCookie(fileUrl);
+
+            java.net.URL url = new java.net.URL(fileUrl.replace(" ", "%20"));
+            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
+
+            // Setup Request Properties BEFORE Connect
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(30000);
+            connection.setInstanceFollowRedirects(true);
+            connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
+
+            if (token != null && !token.isEmpty() && !token.equals("null")) {
+                connection.setRequestProperty("Authorization", "Bearer " + token);
+            }
+            if (cookies != null && !cookies.isEmpty()) {
+                connection.setRequestProperty("Cookie", cookies);
+            }
+
+            connection.connect();
+
+            int status = connection.getResponseCode();
+            if (status != 200) {
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Error status: " + status, Toast.LENGTH_LONG).show());
+                return;
+            }
+
+            java.io.InputStream input = connection.getInputStream();
+            java.io.OutputStream output = getContentResolver().openOutputStream(targetUri);
+
+            if (output != null) {
+                byte[] buffer = new byte[4096];
+                int len;
+                while ((len = input.read(buffer)) != -1) {
+                    output.write(buffer, 0, len);
+                }
+                output.flush();
+                output.close();
+            }
+            input.close();
+
+            runOnUiThread(() -> Toast.makeText(MainActivity.this, "File Saved Successfully!", Toast.LENGTH_SHORT).show());
+
+        } catch (Exception e) {
+            String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
+            runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download Error: " + error, Toast.LENGTH_LONG).show());
+        }
+    }).start();
+}
+
 
 
 
