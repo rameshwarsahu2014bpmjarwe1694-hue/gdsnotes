@@ -130,20 +130,29 @@ jobs:
           }
 
           android {
-              namespace 'io.gdsnote.rshtwa'
-              compileSdk 34
+                namespace 'io.gdsnote.rshtwa'
+                compileSdk 34
 
-              defaultConfig {
-                  applicationId "io.gdsnote.rshtwa"
-                  minSdk 21
-                  targetSdk 34
-                  versionCode 7
-                  versionName "1.6"
+            defaultConfig {
+            applicationId "io.gdsnote.rshtwa"
+                minSdk 21
+                targetSdk 34
+                versionCode 7
+                versionName "1.6"
 
-                  testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-              }
+                testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+          }
 
-             buildTypes {
+               signingConfigs {
+          release {
+                storeFile file("../../android.keystore")
+                storePassword "${{ secrets.KEYSTORE_PASSWORD }}"
+                keyAlias "${{ secrets.KEY_ALIAS }}"
+                keyPassword "${{ secrets.KEY_PASSWORD }}"
+          }
+          }
+
+            buildTypes {
                     release {
                     minifyEnabled true
                     shrinkResources true
@@ -152,24 +161,22 @@ jobs:
              }
              }
 
-              
+           compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+            }
 
-              compileOptions {
-                  sourceCompatibility JavaVersion.VERSION_17
-                  targetCompatibility JavaVersion.VERSION_17
-              }
-
-              buildFeatures {
-              viewBinding true
-              buildConfig true
+           buildFeatures {
+                   viewBinding true
+                   buildConfig true
            }
+
            lint {
-              checkReleaseBuilds false
-              abortOnError false
-          }
+               checkReleaseBuilds false
+               abortOnError false
+           }
+           }
 
-
-          }
 
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.7.0'
