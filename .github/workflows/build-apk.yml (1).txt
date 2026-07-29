@@ -998,100 +998,37 @@ jobs:
           );
           }
 
-          private void downloadFile(String fileUrl, String fileName, String token) {
-              runOnUiThread(() -> Toast.makeText(MainActivity.this, "Downloading...", Toast.LENGTH_SHORT).show());
+    private void downloadFile(String fileUrl, String fileName, String token) {
+    this.pendingDownloadUrl = fileUrl;
+    this.pendingToken = token;
 
-              new Thread(() -> {
-           try {
-            String cookies = android.webkit.CookieManager.getInstance().getCookie(fileUrl);
-
-            java.net.URL url = new java.net.URL(fileUrl.replace(" ", "%20"));
-            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
-            
-            connection.setInstanceFollowRedirects(true); 
-            connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
-            
-            if (token != null && !token.isEmpty() && !token.equals("null")) {
-                connection.setRequestProperty("Authorization", "Bearer " + token);
-            }
-            
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
-            if (cookies != null && !cookies.isEmpty()) {
-                connection.setRequestProperty("Cookie", cookies);
-            }
-            // Connection setup ke turant baad
-            connection.setConnectTimeout(60000); // 15 seconds wait
-            connection.setReadTimeout(60000);
-
-            // Ye line add karein, ye batayega ki URL sahi se fetch ho raha hai ya nahi
-                connection.setRequestMethod("GET"); 
-
-            connection.connect();
-            
-            // --- DEBUG 1: Server Status Check ---
-            int status = connection.getResponseCode();
-            if (status != 200) { 
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Status Error: " + status, Toast.LENGTH_LONG).show()); 
-                return; 
-            }
-
-            java.io.InputStream input = connection.getInputStream();
-            
-            android.content.ContentValues values = new android.content.ContentValues();
-
-            // Strictly Android 12 ke liye .apk extension guard
-            String finalFileName = (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.VERSION.SDK_INT <= 32 && !fileName.endsWith(".apk")) 
+    // Extension Guard Check
+    String finalFileName = (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.VERSION.SDK_INT <= 32 && !fileName.endsWith(".apk")) 
             ? fileName + ".apk" 
             : fileName;
 
-            values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, finalFileName);
+    // MimeType identify karein
+    String mimeType = "application/pdf"; 
+    if (finalFileName.endsWith(".apk")) {
+        mimeType = "application/vnd.android.package-archive";
+    } else if (finalFileName.endsWith(".png")) {
+        mimeType = "image/png";
+    } else if (finalFileName.endsWith(".jpg") || finalFileName.endsWith(".jpeg")) {
+        mimeType = "image/jpeg";
+    }
 
+    // Android Storage Access Framework (SAF) Dialog
+    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType(mimeType);
+    intent.putExtra(Intent.EXTRA_TITLE, finalFileName);
 
-           String rawContentType = connection.getContentType();
-           String contentType = (rawContentType == null || rawContentType.isEmpty() || rawContentType.contains(";")) ? "application/pdf" : rawContentType;
-
-            values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, contentType);
-
-            values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS);
-
-
-            android.net.Uri uri = getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-            
-            // --- DEBUG 2: URI Null Check ---
-            if (uri == null) { 
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "URI Null Error", Toast.LENGTH_LONG).show()); 
-                return; 
-            }
-            
-            if (uri != null) {
-                java.io.OutputStream output = getContentResolver().openOutputStream(uri);
-                if (output != null) {
-                    byte[] buffer = new byte[4096];
-                    int len;
-                    while ((len = input.read(buffer)) != -1) {
-                        output.write(buffer, 0, len);
-                    }
-                    output.flush();
-                    output.close();
-                }
-                input.close();
-                 runOnUiThread(() -> {
-                   Toast.makeText(MainActivity.this, "Download Complete", Toast.LENGTH_SHORT).show();
-                   DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                if (dm != null) {
-                   dm.addCompletedDownload(finalFileName, "Downloaded File", true, contentType, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/" + finalFileName, 0, true);
-                  }
-                 });
-                 }
-
-                    } catch (Exception e) {
-            // --- DEBUG 3: Detailed Exception Check ---
-            String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show());
-          }
-
-          }).start();
-          }
+    try {
+        createDocumentLauncher.launch(intent);
+    } catch (Exception e) {
+        Toast.makeText(this, "Cannot open file picker", Toast.LENGTH_SHORT).show();
+    }
+}
 
 
 
