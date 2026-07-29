@@ -340,6 +340,25 @@ jobs:
               private Uri cameraImageUri;
               private long updateDownloadId = -1;
               private android.content.BroadcastReceiver updateReceiver;
+              private String  pendingDownloadUrl;
+              private String pendingToken;
+
+             private final  ActivityResultLauncher<Intent>       createDocumentLauncher =
+             registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri targetUri = result.getData().getData();
+                        if (targetUri != null && pendingDownloadUrl != null) {
+                            // User ne permission aur location de di, ab download start karein
+                            writeStreamToUri(pendingDownloadUrl, targetUri, pendingToken);
+                        }
+                    } else {
+                        Toast.makeText(this, "Download cancelled", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
               private final ActivityResultLauncher<Intent> fileChooserLauncher =
               registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
