@@ -217,11 +217,7 @@ jobs:
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
               <uses-permission android:name="android.permission.INTERNET"/>
-              <uses-permission android:name="android.permission.CAMERA"/>
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-              <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-              <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-              <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
               
               <application
                   android:allowBackup="false"
@@ -778,17 +774,16 @@ jobs:
            DownloadManager.ACTION_DOWNLOAD_COMPLETE
           );
 
-          // 🔴 FIX: RECEIVER_NOT_EXPORTED को बदलकर RECEIVER_EXPORTED किया गया है
-          // ताकि DownloadManager (System Service) का सिग्नल Android 12 Go और Android 16 दोनों में मिल सके
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-             registerReceiver(
-              updateReceiver,
-           filter,
-            Context.RECEIVER_EXPORTED
-           );
-           } else {
+          registerReceiver(
+          updateReceiver,
+          filter,
+          Context.RECEIVER_NOT_EXPORTED // 👈 Fix: Ab external apps ise access nahi kar sakti
+          );
+          } else {
             registerReceiver(updateReceiver, filter);
-           }
+          }
+
 
           getOnBackPressedDispatcher().addCallback(this,
                     new OnBackPressedCallback(true) {
