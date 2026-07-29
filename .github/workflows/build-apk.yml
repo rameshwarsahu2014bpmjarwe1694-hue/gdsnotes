@@ -984,7 +984,7 @@ jobs:
           }
           }
           private void writeStreamToUri(String fileUrl, Uri targetUri, String token) {
-               Toast.makeText(MainActivity.this, "Downloading...", Toast.LENGTH_SHORT).show();
+               Toast.makeText(MainActivity.this, "Connecting to server...", Toast.LENGTH_SHORT).show();
 
           new Thread(() -> {
                  try {
@@ -995,8 +995,8 @@ jobs:
 
             // Setup Request Properties BEFORE Connect
             connection.setRequestMethod("GET");
-            connection.setConnectTimeout(30000);
-            connection.setReadTimeout(30000);
+            connection.setConnectTimeout(90000);
+            connection.setReadTimeout(90000);
             connection.setInstanceFollowRedirects(true);
             connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
             connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
