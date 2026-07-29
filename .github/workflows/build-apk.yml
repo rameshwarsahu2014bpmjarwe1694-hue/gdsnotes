@@ -617,6 +617,17 @@ jobs:
                           String url = request.getUrl().toString();
                           Uri uri = request.getUrl();
                           String host = uri.getHost();
+                          // UPI Payment (GPay, PhonePe, Paytm, etc.)
+                          if (url.startsWith("upi://")) {
+                              try {
+                                  Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                  startActivity(intent);
+                              } catch (Exception e) {
+                                  Toast.makeText(MainActivity.this, "No UPI App found on this device", Toast.LENGTH_SHORT).show();
+                              }
+                              return true;
+                          }
+                          
 
                           if (host != null &&
                       !host.endsWith("gdsnotes.in") &&
