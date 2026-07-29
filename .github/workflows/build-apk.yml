@@ -343,7 +343,8 @@ jobs:
               private String  pendingDownloadUrl;
               private String pendingToken;
 
-             private final  ActivityResultLauncher<Intent>       createDocumentLauncher =
+             private final  ActivityResultLauncher<Intent> 
+             createDocumentLauncher =
              registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -357,7 +358,7 @@ jobs:
                         Toast.makeText(this, "Download cancelled", Toast.LENGTH_SHORT).show();
                     }
                 }
-        );
+             );
 
               private final ActivityResultLauncher<Intent> fileChooserLauncher =
               registerForActivityResult(
@@ -998,42 +999,42 @@ jobs:
           );
           }
 
-    private void downloadFile(String fileUrl, String fileName, String token) {
-    this.pendingDownloadUrl = fileUrl;
-    this.pendingToken = token;
+          private void downloadFile(String fileUrl, String fileName, String token) {
+          this.pendingDownloadUrl = fileUrl;
+          this.pendingToken = token;
 
-    // Extension Guard Check
-    String finalFileName = (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.VERSION.SDK_INT <= 32 && !fileName.endsWith(".apk")) 
+          // Extension Guard Check
+          String finalFileName = (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.VERSION.SDK_INT <= 32 && !fileName.endsWith(".apk")) 
             ? fileName + ".apk" 
             : fileName;
 
-    // MimeType identify karein
-    String mimeType = "application/pdf"; 
-    if (finalFileName.endsWith(".apk")) {
-        mimeType = "application/vnd.android.package-archive";
-    } else if (finalFileName.endsWith(".png")) {
-        mimeType = "image/png";
-    } else if (finalFileName.endsWith(".jpg") || finalFileName.endsWith(".jpeg")) {
-        mimeType = "image/jpeg";
-    }
+          // MimeType identify karein
+          String mimeType = "application/pdf"; 
+          if (finalFileName.endsWith(".apk")) {
+          mimeType = "application/vnd.android.package-archive";
+          } else if (finalFileName.endsWith(".png")) {
+          mimeType = "image/png";
+          } else if (finalFileName.endsWith(".jpg") || finalFileName.endsWith(".jpeg")) {
+          mimeType = "image/jpeg";
+          }
 
-    // Android Storage Access Framework (SAF) Dialog
-    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-    intent.addCategory(Intent.CATEGORY_OPENABLE);
-    intent.setType(mimeType);
-    intent.putExtra(Intent.EXTRA_TITLE, finalFileName);
+          // Android Storage Access Framework (SAF) Dialog
+          Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+          intent.addCategory(Intent.CATEGORY_OPENABLE);
+          intent.setType(mimeType);
+          intent.putExtra(Intent.EXTRA_TITLE, finalFileName);
 
-    try {
-        createDocumentLauncher.launch(intent);
-    } catch (Exception e) {
-        Toast.makeText(this, "Cannot open file picker", Toast.LENGTH_SHORT).show();
-    }
-}
-private void writeStreamToUri(String fileUrl, Uri targetUri, String token) {
-    Toast.makeText(MainActivity.this, "Downloading...", Toast.LENGTH_SHORT).show();
+             try {
+          createDocumentLauncher.launch(intent);
+          } catch (Exception e) {
+          Toast.makeText(this, "Cannot open file picker", Toast.LENGTH_SHORT).show();
+          }
+          }
+          private void writeStreamToUri(String fileUrl, Uri targetUri, String token) {
+               Toast.makeText(MainActivity.this, "Downloading...", Toast.LENGTH_SHORT).show();
 
-    new Thread(() -> {
-        try {
+          new Thread(() -> {
+                 try {
             String cookies = android.webkit.CookieManager.getInstance().getCookie(fileUrl);
 
             java.net.URL url = new java.net.URL(fileUrl.replace(" ", "%20"));
@@ -1078,38 +1079,12 @@ private void writeStreamToUri(String fileUrl, Uri targetUri, String token) {
 
             runOnUiThread(() -> Toast.makeText(MainActivity.this, "File Saved Successfully!", Toast.LENGTH_SHORT).show());
 
-        } catch (Exception e) {
+            } catch (Exception e) {
             String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
             runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download Error: " + error, Toast.LENGTH_LONG).show());
-        }
-    }).start();
-}
-
-
-
-
-       
-                    private class AndroidBridge {
-
-             @JavascriptInterface
-             public void download(String url, String fileName, String token) {
-
-               // Yeh Debugging line add ki hai
-               runOnUiThread(() -> Toast.makeText(MainActivity.this, "Bridge Triggered!", Toast.LENGTH_SHORT).show());
-
-               runOnUiThread(() -> {
-
-               Toast.makeText(
-                    MainActivity.this,
-                    "Downloading...",
-                    Toast.LENGTH_SHORT
-               ).show();
-
-               downloadFile(url, fileName, token);
-
-          });
-          }
-          }
+            }
+            }).start();
+            }
           }
           EOF
 
