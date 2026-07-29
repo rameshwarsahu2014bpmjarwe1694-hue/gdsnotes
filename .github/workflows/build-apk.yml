@@ -912,48 +912,15 @@ jobs:
             .show();
           }
           private void downloadApk(String apkUrl) {
-
-           try {
-
-          DownloadManager.Request request =
-                new DownloadManager.Request(Uri.parse(apkUrl));
-
-           request.setTitle("app-release.apk");
-           request.setDescription("Downloading latest version...");
-           request.setNotificationVisibility(
-                DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-
-           request.setDestinationInExternalPublicDir(
-                Environment.DIRECTORY_DOWNLOADS,
-                "app-release.apk");
-
-          request.setMimeType(
-                "application/vnd.android.package-archive");
-
-                DownloadManager manager =
-                (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-
-          if (manager != null) {
-            updateDownloadId = manager.enqueue(request);
-
-            Toast.makeText(
-                    MainActivity.this,
-                    "Update download started...",
-                    Toast.LENGTH_LONG
-            ).show();
-          }
-
+          //    Direct Browser Intent so user confirms download
+              try {
+          Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl));
+           startActivity(intent);
           } catch (Exception e) {
-
-            Toast.makeText(
-                MainActivity.this,
-                e.getMessage(),
-                Toast.LENGTH_LONG
-            ).show();
-
+             Toast.makeText(this, "Unable to open download link", Toast.LENGTH_SHORT).show();
+          }
           }
 
-          }
           private void installApk(File apkFile) {
              try {
           // डाउनलोड पूरा होने पर यूजर को सूचना दें
