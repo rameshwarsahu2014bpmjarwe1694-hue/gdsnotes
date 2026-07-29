@@ -44,7 +44,6 @@ jobs:
         run: |
          sudo apt-get update
          sudo apt-get install -y imagemagick
-
          convert -version
          
       - name: Accept Android SDK licenses
@@ -65,20 +64,15 @@ jobs:
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > android.keystore
           ls -lh android.keystore
+
       - name: Create Native WebView workspace
         run: |
-          mkdir -p webview-build
-
           mkdir -p webview-build/app/src/main/java
           mkdir -p webview-build/app/src/main/res/layout
           mkdir -p webview-build/app/src/main/res/values
           mkdir -p webview-build/app/src/main/res/xml
           mkdir -p webview-build/gradle/wrapper
 
-          echo "===================================="
-          echo "Native WebView workspace created."
-          find webview-build -type d | sort
-          echo "===================================="
       - name: Generate Gradle project files
         run: |
           cat > webview-build/settings.gradle <<'EOF'
@@ -89,7 +83,6 @@ jobs:
                   gradlePluginPortal()
               }
           }
-
           dependencyResolutionManagement {
               repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
               repositories {
@@ -97,7 +90,6 @@ jobs:
                   mavenCentral()
               }
           }
-
           rootProject.name = "GDSNotes"
           include ':app'
           EOF
@@ -114,14 +106,6 @@ jobs:
           android.enableJetifier=true
           EOF
 
-          echo "===== settings.gradle ====="
-          cat webview-build/settings.gradle
-
-          echo "===== build.gradle ====="
-          cat webview-build/build.gradle
-
-          echo "===== gradle.properties ====="
-          cat webview-build/gradle.properties
       - name: Generate app build.gradle
         run: |
           cat > webview-build/app/build.gradle <<'EOF'
@@ -130,53 +114,51 @@ jobs:
           }
 
           android {
-                namespace 'io.gdsnote.rshtwa'
-                compileSdk 34
+              namespace 'io.gdsnote.rshtwa'
+              compileSdk 34
 
-            defaultConfig {
-            applicationId "io.gdsnote.rshtwa"
-                minSdk 21
-                targetSdk 34
-                versionCode 7
-                versionName "1.6"
+              defaultConfig {
+                  applicationId "io.gdsnote.rshtwa"
+                  minSdk 21
+                  targetSdk 34
+                  versionCode 7
+                  versionName "1.6"
 
-                testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+                  testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+              }
+
+              signingConfigs {
+                  release {
+                      storeFile file("../../android.keystore")
+                      storePassword "${{ secrets.KEYSTORE_PASSWORD }}"
+                      keyAlias "${{ secrets.KEY_ALIAS }}"
+                      keyPassword "${{ secrets.KEY_PASSWORD }}"
+                  }
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled true
+                      shrinkResources true
+                      signingConfig signingConfigs.release
+                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+                  }
+              }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+
+              buildFeatures {
+                  viewBinding true
+                  buildConfig true
+              }
+              lint {
+                  checkReleaseBuilds false
+                  abortOnError false
+              }
           }
-
-               signingConfigs {
-          release {
-                storeFile file("../../android.keystore")
-                storePassword "${{ secrets.KEYSTORE_PASSWORD }}"
-                keyAlias "${{ secrets.KEY_ALIAS }}"
-                keyPassword "${{ secrets.KEY_PASSWORD }}"
-          }
-          }
-
-            buildTypes {
-                    release {
-                    minifyEnabled true
-                    shrinkResources true
-                    signingConfig signingConfigs.release
-                    proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-             }
-             }
-
-           compileOptions {
-                    sourceCompatibility JavaVersion.VERSION_17
-                    targetCompatibility JavaVersion.VERSION_17
-            }
-
-           buildFeatures {
-                   viewBinding true
-                   buildConfig true
-           }
-
-           lint {
-               checkReleaseBuilds false
-               abortOnError false
-           }
-           }
-
 
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.7.0'
@@ -189,8 +171,7 @@ jobs:
           }
           EOF
 
-                    cat > webview-build/app/proguard-rules.pro <<'EOF'
-          # Remove all Log and Debug output to prevent decompilers/scanners from reading sensitive info
+          cat > webview-build/app/proguard-rules.pro <<'EOF'
           -assumenosideeffects class android.util.Log {
               public static *** d(...);
               public static *** v(...);
@@ -198,25 +179,15 @@ jobs:
               public static *** w(...);
               public static *** e(...);
           }
-
-          # Protect Javascript Interface & Native Bridge
           -keepclassmembers class * {
               @android.webkit.JavascriptInterface <methods>;
           }
-
-          # Obfuscate classes and remove line numbers/source file attributes
           -renamesourcefileattribute SourceFile
           -keepattributes SourceFile,LineNumberTable
           -repackageclasses ''
           -allowaccessmodification
           EOF
 
-          echo "===== app/build.gradle ====="
-          cat webview-build/app/build.gradle
-          
-      - name: Verify Gradle Dependencies
-        run: |
-         grep "core-splashscreen" webview-build/app/build.gradle
       - name: Generate AndroidManifest.xml
         run: |
           mkdir -p webview-build/app/src/main
@@ -246,60 +217,41 @@ jobs:
 
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN"/>
-
                           <category android:name="android.intent.category.LAUNCHER"/>
                       </intent-filter>
+
                       <intent-filter android:autoVerify="true">
-
-                      <action android:name="android.intent.action.VIEW"/>
-
-                      <category android:name="android.intent.category.DEFAULT"/>
-                      <category android:name="android.intent.category.BROWSABLE"/>
- 
-                     <data
-                       android:scheme="https"
-                       android:host="rsh.gdsnotes.in"
-                       android:pathPrefix="/" />
- 
-                    </intent-filter>
-
+                          <action android:name="android.intent.action.VIEW"/>
+                          <category android:name="android.intent.category.DEFAULT"/>
+                          <category android:name="android.intent.category.BROWSABLE"/>
+                          <data
+                             android:scheme="https"
+                             android:host="rsh.gdsnotes.in"
+                             android:pathPrefix="/" />
+                      </intent-filter>
                   </activity>
+
                   <provider
                       android:name="androidx.core.content.FileProvider"
                       android:authorities="${applicationId}.fileprovider"
                       android:exported="false"
                       android:grantUriPermissions="true">
-
-                <meta-data
-                      android:name="android.support.FILE_PROVIDER_PATHS"
-                      android:resource="@xml/file_paths"/>
-
-              </provider>
+                      <meta-data
+                          android:name="android.support.FILE_PROVIDER_PATHS"
+                          android:resource="@xml/file_paths"/>
+                  </provider>
 
               </application>
-
           </manifest>
           EOF
 
-          echo "===== AndroidManifest.xml ====="
-          cat webview-build/app/src/main/AndroidManifest.xml
-      - name: Verify App Links
-        run: |
-         echo "===== App Links ====="
-         grep -n "autoVerify" webview-build/app/src/main/AndroidManifest.xml
-
-         echo ""
-         grep -n "rsh.gdsnotes.in" webview-build/app/src/main/AndroidManifest.xml
-
-         echo ""
-         grep -n "pathPrefix" webview-build/app/src/main/AndroidManifest.xml
-      
       - name: Generate MainActivity.java
         run: |
           mkdir -p webview-build/app/src/main/java/io/gdsnote/rshtwa
 
           cat > webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java <<'EOF'
           package io.gdsnote.rshtwa;
+
           import android.annotation.SuppressLint;
           import android.graphics.Bitmap;
           import android.os.Build;
@@ -315,7 +267,6 @@ jobs:
           import android.widget.Button;
           import android.widget.ProgressBar;
           import android.widget.FrameLayout;
-          import android.view.ViewGroup;
           import android.webkit.PermissionRequest;
 
           import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -328,15 +279,9 @@ jobs:
           import android.content.ActivityNotFoundException;
           import android.net.Uri;
           import android.webkit.ValueCallback;
-          import android.webkit.WebChromeClient.FileChooserParams;
-          import java.net.URL;
-          import java.net.HttpURLConnection;
-          import java.io.InputStream;
-          import java.io.FileOutputStream;
           import java.io.File;
           import java.io.IOException;
           import android.webkit.CookieManager;
-          import android.webkit.JavascriptInterface;
           import androidx.activity.result.ActivityResultLauncher;
           import androidx.activity.result.contract.ActivityResultContracts;
           import android.app.DownloadManager;
@@ -354,9 +299,12 @@ jobs:
           import org.json.JSONObject;
           import java.io.BufferedReader;
           import java.io.InputStreamReader;
+          import java.net.HttpURLConnection;
+          import java.net.URL;
           import java.util.concurrent.Executors;
           import android.os.Handler;
           import android.os.Looper;
+
           public class MainActivity extends AppCompatActivity {
 
               private WebView webView;
@@ -371,36 +319,21 @@ jobs:
               private Uri cameraImageUri;
               private long updateDownloadId = -1;
               private android.content.BroadcastReceiver updateReceiver;
+
               private final ActivityResultLauncher<Intent> fileChooserLauncher =
               registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-
-                    if (filePathCallback == null)
-                        return;
-
+                    if (filePathCallback == null) return;
                     Uri[] results = null;
 
                     if (result.getResultCode() == Activity.RESULT_OK) {
-
-                        // Gallery
-                        if (result.getData() != null &&
-                                result.getData().getData() != null) {
-
-                            results = new Uri[]{
-                                    result.getData().getData()
-                            };
-
-                        }
-                        // Camera
-                        else if (cameraImageUri != null) {
-
-                            results = new Uri[]{
-                                    cameraImageUri
-                            };
+                        if (result.getData() != null && result.getData().getData() != null) {
+                            results = new Uri[]{ result.getData().getData() };
+                        } else if (cameraImageUri != null) {
+                            results = new Uri[]{ cameraImageUri };
                         }
                     }
-
                     filePathCallback.onReceiveValue(results);
                     filePathCallback = null;
                 });
@@ -408,34 +341,24 @@ jobs:
               @SuppressLint("SetJavaScriptEnabled")
               @Override
               protected void onCreate(Bundle savedInstanceState) {
-             SplashScreen.installSplashScreen(this);
+                  SplashScreen.installSplashScreen(this);
+                  super.onCreate(savedInstanceState);
+                  
+                  getWindow().setFlags(
+                      WindowManager.LayoutParams.FLAG_SECURE,
+                      WindowManager.LayoutParams.FLAG_SECURE
+                  );
+                  setContentView(R.layout.activity_main);
 
-            super.onCreate(savedInstanceState);
-            getWindow().setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE
-            );
-            setContentView(R.layout.activity_main);
-            Intent intent = getIntent();
-
-            if (intent != null && intent.getData() != null) {
-              webView = findViewById(R.id.webView);
-              webView.loadUrl(intent.getData().toString());
-          }
-            fullscreenContainer = new FrameLayout(this);
-            fullscreenContainer.setLayoutParams(
-                new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-           )
-           );
-
-          addContentView(
-                fullscreenContainer,
-                fullscreenContainer.getLayoutParams()
-          );
-
-                fullscreenContainer.setVisibility(View.GONE);
+                  fullscreenContainer = new FrameLayout(this);
+                  fullscreenContainer.setLayoutParams(
+                      new FrameLayout.LayoutParams(
+                          FrameLayout.LayoutParams.MATCH_PARENT,
+                          FrameLayout.LayoutParams.MATCH_PARENT
+                      )
+                  );
+                  addContentView(fullscreenContainer, fullscreenContainer.getLayoutParams());
+                  fullscreenContainer.setVisibility(View.GONE);
 
                   swipeRefresh = findViewById(R.id.swipeRefresh);
                   progressBar = findViewById(R.id.progressBar);
@@ -448,17 +371,22 @@ jobs:
                   webView.setHapticFeedbackEnabled(false);
                   webView.setLongClickable(false);
                   settings.setDomStorageEnabled(true);
+                  
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                  CookieManager.getInstance().setAcceptThirdPartyCookies(webView, false);
+                      CookieManager.getInstance().setAcceptThirdPartyCookies(webView, false);
+                      settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
                   }
+                  
                   settings.setDatabaseEnabled(true);
                   settings.setCacheMode(WebSettings.LOAD_DEFAULT);
                   settings.setAllowFileAccess(true);
                   settings.setAllowContentAccess(true);
+                  
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                  settings.setAllowFileAccessFromFileURLs(false);
-                  settings.setAllowUniversalAccessFromFileURLs(false);
+                      settings.setAllowFileAccessFromFileURLs(false);
+                      settings.setAllowUniversalAccessFromFileURLs(false);
                   }
+                  
                   settings.setLoadsImagesAutomatically(true);
                   settings.setBlockNetworkImage(false);
                   settings.setBlockNetworkLoads(false);
@@ -471,143 +399,109 @@ jobs:
                   settings.setUseWideViewPort(true);
                   settings.setLoadWithOverviewMode(true);
 
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                      settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-                  }
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                  settings.setSafeBrowsingEnabled(true);
+                      settings.setSafeBrowsingEnabled(true);
                   }
-                  webView.setWebChromeClient(new WebChromeClient() {
 
+                  webView.setWebChromeClient(new WebChromeClient() {
                       @Override
                       public boolean onShowFileChooser(
                          WebView webView,
                          ValueCallback<Uri[]> filePathCallback,
                          FileChooserParams fileChooserParams) {
 
-                      MainActivity.this.filePathCallback = filePathCallback;
+                          MainActivity.this.filePathCallback = filePathCallback;
 
-                       try {
+                          try {
+                              File photoFile = createImageFile();
+                              cameraImageUri = FileProvider.getUriForFile(
+                                  MainActivity.this,
+                                  getPackageName() + ".fileprovider",
+                                  photoFile
+                              );
 
-                      File photoFile = createImageFile();
+                              Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                              cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
+                              cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                              cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
-                     cameraImageUri = FileProvider.getUriForFile(
-                MainActivity.this,
-                getPackageName() + ".fileprovider",
-                photoFile
-                );
+                              Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                              galleryIntent.setType("*/*");
+                              galleryIntent.addCategory(Intent.CATEGORY_OPENABLE);
 
-                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
-                cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                              Intent chooser = Intent.createChooser(galleryIntent, "Select File");
+                              chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
 
-                Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
-                galleryIntent.setType("*/*");
-                galleryIntent.addCategory(Intent.CATEGORY_OPENABLE);
-
-                Intent chooser = Intent.createChooser(galleryIntent, "Select File");
-                chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
-
-                fileChooserLauncher.launch(chooser);
-
-                } catch (Exception e) {
-
-               Toast.makeText(
-                MainActivity.this,
-                "Unable to open file chooser",
-                Toast.LENGTH_SHORT
-          ).show();
-
-          return false;
-          }
-
-            return true;
-          }
-                      @Override
-                      public boolean onJsAlert(WebView view, String url, String message,
-                         JsResult result) {
-
-                        new AlertDialog.Builder(MainActivity.this)
-                            .setMessage(message)
-                            .setPositiveButton("OK", (d, w) -> result.confirm())
-                            .setCancelable(false)
-                            .show();
-
-                         return true;
-                     }
-
-                     @Override
-                     public boolean onJsConfirm(WebView view, String url, String message,
-                           JsResult result) {
-
-                        new AlertDialog.Builder(MainActivity.this)
-                            .setMessage(message)
-                            .setPositiveButton("OK", (d, w) -> result.confirm())
-                            .setNegativeButton("Cancel", (d, w) -> result.cancel())
-                            .setCancelable(false)
-                            .show();
-
-                           return true;
+                              fileChooserLauncher.launch(chooser);
+                          } catch (Exception e) {
+                              Toast.makeText(MainActivity.this, "Unable to open file chooser", Toast.LENGTH_SHORT).show();
+                              return false;
+                          }
+                          return true;
                       }
-                     @Override
-                     public void onPermissionRequest(PermissionRequest request) {
 
-                           runOnUiThread(() -> request.grant(request.getResources()));
-                     }
-                     @Override
-                     public void onShowCustomView(View view,
-                             CustomViewCallback callback) {
+                      @Override
+                      public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+                          new AlertDialog.Builder(MainActivity.this)
+                              .setMessage(message)
+                              .setPositiveButton("OK", (d, w) -> result.confirm())
+                              .setCancelable(false)
+                              .show();
+                          return true;
+                      }
 
-                            if (customView != null) {
-                           callback.onCustomViewHidden();
-                           return;
-                    }
+                      @Override
+                      public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
+                          new AlertDialog.Builder(MainActivity.this)
+                              .setMessage(message)
+                              .setPositiveButton("OK", (d, w) -> result.confirm())
+                              .setNegativeButton("Cancel", (d, w) -> result.cancel())
+                              .setCancelable(false)
+                              .show();
+                          return true;
+                      }
 
+                      @Override
+                      public void onPermissionRequest(PermissionRequest request) {
+                          runOnUiThread(() -> request.grant(request.getResources()));
+                      }
+
+                      @Override
+                      public void onShowCustomView(View view, CustomViewCallback callback) {
+                          if (customView != null) {
+                              callback.onCustomViewHidden();
+                              return;
+                          }
                           customView = view;
                           customViewCallback = callback;
+                          fullscreenContainer.addView(view);
+                          fullscreenContainer.setVisibility(View.VISIBLE);
+                          webView.setVisibility(View.GONE);
+                      }
 
-                         fullscreenContainer.addView(view);
-                         fullscreenContainer.setVisibility(View.VISIBLE);
-
-                         webView.setVisibility(View.GONE);
-                   }
-                   @Override
-                   public void onHideCustomView() {
-
-                        if (customView == null) {
-                        return;
-                  }
-   
-                        fullscreenContainer.removeView(customView);
-
-                        fullscreenContainer.setVisibility(View.GONE);
-
-                        customView = null;
-
-                        webView.setVisibility(View.VISIBLE);
-
-                        if (customViewCallback != null) {
-                        customViewCallback.onCustomViewHidden();
-                        customViewCallback = null;
-                    }
-                   }
+                      @Override
+                      public void onHideCustomView() {
+                          if (customView == null) return;
+                          fullscreenContainer.removeView(customView);
+                          fullscreenContainer.setVisibility(View.GONE);
+                          customView = null;
+                          webView.setVisibility(View.VISIBLE);
+                          if (customViewCallback != null) {
+                              customViewCallback.onCustomViewHidden();
+                              customViewCallback = null;
+                          }
+                      }
                   });
 
                   webView.setWebViewClient(new WebViewClient() {
-                  @Override
-                  public void onReceivedSslError(
-                       WebView view,
-                       android.webkit.SslErrorHandler handler,
-                       android.net.http.SslError error) {
-
-                     handler.cancel();
-                  }
+                      @Override
+                      public void onReceivedSslError(WebView view, android.webkit.SslErrorHandler handler, android.net.http.SslError error) {
+                          handler.cancel();
+                      }
 
                       @Override
                       public void onPageStarted(WebView view, String url, Bitmap favicon) {
                           super.onPageStarted(view, url, favicon);
-
                           progressBar.setVisibility(View.VISIBLE);
                           webView.setVisibility(View.VISIBLE);
                           offlineLayout.setVisibility(View.GONE);
@@ -620,68 +514,49 @@ jobs:
                           progressBar.setVisibility(View.GONE);
                           swipeRefresh.setRefreshing(false);
                       }
-                      @Override
-                      public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
-                          super.doUpdateVisitedHistory(view, url, isReload);
 
-                          CookieManager.getInstance().flush();
-                      }
                       @Override
                       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-
                           String url = request.getUrl().toString();
                           Uri uri = request.getUrl();
                           String host = uri.getHost();
+
                           if (url.startsWith("view-source:")) {
-                             Toast.makeText(MainActivity.this, "Access Denied!", Toast.LENGTH_SHORT).show();
-                             return true; // ब्लॉक कर देगा
-                        }
+                              Toast.makeText(MainActivity.this, "Access Denied!", Toast.LENGTH_SHORT).show();
+                              return true;
+                          }
 
-                          // ---------- UPI Deep-Link Auto Launch Handler ----------
-                          if (url.startsWith("upi://") || 
-                          url.startsWith("gpay://") || 
-                          url.startsWith("phonepe://") || 
-                          url.startsWith("paytmmp://") || 
-                          url.startsWith("paytm://") ||
-                          url.contains("pay?pa=")) {
-                            try {
-                          Intent intent = new Intent(Intent.ACTION_VIEW);
-                          intent.setData(Uri.parse(url));
-                           startActivity(intent);
-                         } catch (Exception e) {
-                             Toast.makeText(MainActivity.this, "आपके फ़ोन में कोई UPI ऐप (GPay/PhonePe/Paytm) नहीं मिला!", Toast.LENGTH_LONG).show();
-                        }
-                           return true;
-                        }
-
-
-                          if (host != null &&
-                      !host.endsWith("gdsnotes.in") &&
-                      !host.equals("wa.me") &&
-                      !host.equals("api.whatsapp.com")) {
-  
-                      Intent browser = new Intent(Intent.ACTION_VIEW, uri);
-                          startActivity(browser);
-                          return true;
-                      }
-
-                          // Email
-                          if (url.startsWith("mailto:")) {
+                          // UPI Deep-Link
+                          if (url.startsWith("upi://") || url.startsWith("gpay://") || url.startsWith("phonepe://") || url.startsWith("paytmmp://") || url.startsWith("paytm://") || url.contains("pay?pa=")) {
                               try {
-                                  Intent intent = new Intent(Intent.ACTION_SENDTO);
+                                  Intent intent = new Intent(Intent.ACTION_VIEW);
                                   intent.setData(Uri.parse(url));
                                   startActivity(intent);
-                              } catch (ActivityNotFoundException e) {
+                              } catch (Exception e) {
+                                  Toast.makeText(MainActivity.this, "No UPI app found!", Toast.LENGTH_LONG).show();
+                              }
+                              return true;
+                          }
+
+                          if (host != null && !host.endsWith("gdsnotes.in") && !host.equals("wa.me") && !host.equals("api.whatsapp.com")) {
+                              Intent browser = new Intent(Intent.ACTION_VIEW, uri);
+                              startActivity(browser);
+                              return true;
+                          }
+
+                          if (url.startsWith("mailto:")) {
+                              try {
+                                  Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse(url));
+                                  startActivity(intent);
+                              } catch (Exception e) {
                                   Toast.makeText(MainActivity.this, "No email app found", Toast.LENGTH_SHORT).show();
                               }
                               return true;
                           }
 
-                          // Phone
                           if (url.startsWith("tel:")) {
                               try {
-                                  Intent intent = new Intent(Intent.ACTION_DIAL);
-                                  intent.setData(Uri.parse(url));
+                                  Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse(url));
                                   startActivity(intent);
                               } catch (Exception e) {
                                   Toast.makeText(MainActivity.this, "Unable to open dialer", Toast.LENGTH_SHORT).show();
@@ -689,22 +564,14 @@ jobs:
                               return true;
                           }
 
-                          // WhatsApp
-                          if (url.startsWith("https://wa.me/") ||
-                              url.startsWith("https://api.whatsapp.com/") ||
-                              url.startsWith("whatsapp://")) {
-
+                          if (url.startsWith("https://wa.me/") || url.startsWith("https://api.whatsapp.com/") || url.startsWith("whatsapp://")) {
                               try {
                                   Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                                   intent.setPackage("com.whatsapp");
                                   startActivity(intent);
                               } catch (Exception e) {
-                                  try {
-                                      Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                                      startActivity(browserIntent);
-                                  } catch (Exception ex) {
-                                      Toast.makeText(MainActivity.this, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
-                                  }
+                                  Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                  startActivity(browserIntent);
                               }
                               return true;
                           }
@@ -712,422 +579,240 @@ jobs:
                           view.loadUrl(url);
                           return true;
                       }
+
                       @Override
-                      public boolean onRenderProcessGone(
-                         WebView view,
-                         android.webkit.RenderProcessGoneDetail detail) {
+                      public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+                          view.destroy();
+                          recreate();
+                          return true;
+                      }
 
-                         view.destroy();
-                         recreate();
-                         return true;
-                     }
                       @Override
-                      public void onReceivedError(WebView view,
-                            WebResourceRequest request,
-                            WebResourceError error) {
+                      public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                          super.onReceivedError(view, request, error);
+                          if (request.isForMainFrame()) {
+                              progressBar.setVisibility(View.GONE);
+                              swipeRefresh.setRefreshing(false);
+                              webView.setVisibility(View.GONE);
+                              offlineLayout.setVisibility(View.VISIBLE);
+                          }
+                      }
+                  });
 
-                        super.onReceivedError(view, request, error);
-
-                    // Sirf main page fail hone par offline screen dikhao
-                    if (request.isForMainFrame()) {
-
-                       progressBar.setVisibility(View.GONE);
-                       swipeRefresh.setRefreshing(false);
-
-                       webView.setVisibility(View.GONE);
-                       offlineLayout.setVisibility(View.VISIBLE);
-                   }
-                 }
-              });
-              webView.setOnLongClickListener(v -> true);
-              webView.setLongClickable(false);      
-          webView.clearCache(false);
-          webView.clearHistory();
-          CookieManager cookieManager = CookieManager.getInstance();
-          cookieManager.setAcceptCookie(true);
-
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-          cookieManager.setAcceptThirdPartyCookies(webView, false);
-          }
-          if (getIntent() == null || getIntent().getData() == null) {
-              webView.loadUrl("https://rsh.gdsnotes.in");
-          }
+                  webView.setOnLongClickListener(v -> true);
+                  webView.setLongClickable(false);
+                  webView.clearCache(false);
+                  
+                  Intent intent = getIntent();
+                  if (intent != null && intent.getData() != null) {
+                      webView.loadUrl(intent.getData().toString());
+                  } else {
+                      webView.loadUrl("https://rsh.gdsnotes.in");
+                  }
 
                   swipeRefresh.setOnRefreshListener(() -> webView.reload());
-                  swipeRefresh.setOnChildScrollUpCallback(
-                  (parent, child) -> webView.getScrollY() > 0
-                  );
+                  swipeRefresh.setOnChildScrollUpCallback((parent, child) -> webView.getScrollY() > 0);
+                  
                   btnRetry.setOnClickListener(v -> {
                       offlineLayout.setVisibility(View.GONE);
                       webView.reload();
                   });
-          updateReceiver = new android.content.BroadcastReceiver() {
-          @Override
-          public void onReceive(Context context, Intent intent) {
 
-              long id = intent.getLongExtra(
-              DownloadManager.EXTRA_DOWNLOAD_ID,
-              -1
-          );
+                  updateReceiver = new android.content.BroadcastReceiver() {
+                      @Override
+                      public void onReceive(Context context, Intent intent) {
+                          long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+                          if (id == updateDownloadId && updateDownloadId != -1) {
+                              installApkFromDownloadManager(id);
+                          }
+                      }
+                  };
 
-          if (id == updateDownloadId && updateDownloadId != -1) {
-              // DownloadManager से सुरक्षित URI लेकर सीधे पैकेज इंस्टॉलर खोलें
-              installApkFromDownloadManager(id);
-          }
-
-          }
-          };
-
-          IntentFilter filter = new IntentFilter(
-           DownloadManager.ACTION_DOWNLOAD_COMPLETE
-          );
-
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-          registerReceiver(
-          updateReceiver,
-          filter,
-          Context.RECEIVER_NOT_EXPORTED // 👈 Fix: Ab external apps ise access nahi kar sakti
-          );
-          } else {
-            registerReceiver(updateReceiver, filter);
-          }
-
-
-          getOnBackPressedDispatcher().addCallback(this,
-                    new OnBackPressedCallback(true) {
-                    @Override
-                    public void handleOnBackPressed() {
-                      if (webView.canGoBack()) {
-                          webView.goBack();
-                       } else {
-                         finish();
+                  IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      registerReceiver(updateReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+                  } else {
+                      registerReceiver(updateReceiver, filter);
                   }
-               }
-           });
-           CookieManager.getInstance().setAcceptCookie(true);
-          webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
 
-            String fileName = URLUtil.guessFileName(
-                   url,
-                  contentDisposition,
-                  mimeType
-            );
-
-           Toast.makeText(
-                 MainActivity.this,
-                "Downloading...",
-                 Toast.LENGTH_SHORT
-           ).show();
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, "Listener Triggered", Toast.LENGTH_SHORT).show());
-               downloadFile(url, fileName, null);
-
-          });
-          checkForUpdates();
-          }
-          private void checkForUpdates() {
-
-          Executors.newSingleThreadExecutor().execute(() -> {
-
-          try {
-
-            URL url = new URL("https://rsh.gdsnotes.in/version.json");
-
-            HttpURLConnection conn =
-                    (HttpURLConnection) url.openConnection();
-
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(30000);
-            conn.setReadTimeout(30000);
-
-            BufferedReader reader =
-                    new BufferedReader(
-                            new InputStreamReader(conn.getInputStream()));
-
-            StringBuilder json = new StringBuilder();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                json.append(line);
-            }
-
-            reader.close();
-
-            JSONObject object = new JSONObject(json.toString());
-
-            int latestVersionCode =
-                    object.getInt("versionCode");
-
-            String latestVersionName =
-                    object.getString("versionName");
-
-            String apkUrl =
-                    object.getString("apkUrl");
-
-            String message =
-                    object.getString("message");
-
-                    if (latestVersionCode > BuildConfig.VERSION_CODE &&
-                    !isFinishing() &&
-                    !isDestroyed()) {
-
-                new Handler(Looper.getMainLooper()).post(() -> {
-
-                    showUpdateDialog(
-                            latestVersionName,
-                            message,
-                            apkUrl
-                    );
-
-                });
-
-            }
-
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-
-          });
-
-          }
-          private void showUpdateDialog(
-           String versionName,
-           String message,
-           String apkUrl) {
-
-          new AlertDialog.Builder(MainActivity.this)
-            .setTitle("🎉 New Update Available")
-
-            .setMessage(
-                    "Current Version : "
-                            + BuildConfig.VERSION_NAME
-                            + "\n\nLatest Version : "
-                            + versionName
-                            + "\n\n"
-                            + message)
-
-            .setCancelable(false)
-
-            .setPositiveButton("Update Now",
-                    (dialog, which) -> {
-
-                        downloadApk(apkUrl);
-
-                    })
-
-            .setNegativeButton("Later",
-                    (dialog, which) -> {
-
-                        dialog.dismiss();
-
-                    })
-
-            .show();
-          }
-          private void downloadApk(String apkUrl) {
-             try {
-          DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl));
-
-           String safeApkName = "app-release-" + System.currentTimeMillis() + ".apk";
-
-           request.setTitle("RSH GDS Notes Update");
-           request.setDescription("Downloading latest version...");
-           request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-
-           request.setDestinationInExternalPublicDir(
-                Environment.DIRECTORY_DOWNLOADS,
-                safeApkName
-           );
-
-           request.setMimeType("application/vnd.android.package-archive");
-
-           DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-
-           if (manager != null) {
-            updateDownloadId = manager.enqueue(request);
-
-            Toast.makeText(
-                    MainActivity.this,
-                    "Update download started...",
-                    Toast.LENGTH_LONG
-            ).show();
-            }
-
-            } catch (Exception e) {
-              Toast.makeText(
-                MainActivity.this,
-                "Download error: " + e.getMessage(),
-                Toast.LENGTH_LONG
-           ).show();
-          }
-          }
-
-
-          private void installApkFromDownloadManager(long downloadId) {
-              try {
-          DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-          if (dm == null) return;
-
-          Uri apkUri = dm.getUriForDownloadedFile(downloadId);
-
-          if (apkUri != null) {
-            Intent installIntent = new Intent(Intent.ACTION_VIEW);
-            installIntent.setDataAndType(apkUri, "application/vnd.android.package-archive");
-            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-            startActivity(installIntent);
-          } else {
-            Toast.makeText(this, "Downloaded file not ready or missing", Toast.LENGTH_SHORT).show();
-          }
-          } catch (Exception e) {
-           Toast.makeText(this, "Unable to launch installer: " + e.getMessage(), Toast.LENGTH_LONG).show();
-          }
-          }
-
-
-          private File createImageFile() throws IOException {
-
-             String timeStamp = new SimpleDateFormat(
-            "yyyyMMdd_HHmmss",
-             Locale.getDefault()
-             ).format(new Date());
- 
-            String imageFileName = "IMG_" + timeStamp + "_";
-
-            File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-
-            return File.createTempFile(
-            imageFileName,
-            ".jpg",
-            storageDir
-          );
-          }
-
-          private void downloadFile(String fileUrl, String fileName, String token) {
-          runOnUiThread(() -> Toast.makeText(MainActivity.this, "Downloading...", Toast.LENGTH_SHORT).show());
-
-          new Thread(() -> {
-              try {
-            String cookies = android.webkit.CookieManager.getInstance().getCookie(fileUrl);
-
-            java.net.URL url = new java.net.URL(fileUrl.replace(" ", "%20"));
-            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
-            
-            connection.setInstanceFollowRedirects(true); 
-            connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
-            
-            if (token != null && !token.isEmpty() && !token.equals("null")) {
-                connection.setRequestProperty("Authorization", "Bearer " + token);
-            }
-            
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
-            if (cookies != null && !cookies.isEmpty()) {
-                connection.setRequestProperty("Cookie", cookies);
-            }
-            connection.setConnectTimeout(120000); 
-            connection.setReadTimeout(120000);
-            connection.setRequestMethod("GET"); 
-
-            connection.connect();
-            
-            int status = connection.getResponseCode();
-            if (status != 200) { 
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Status Error: " + status, Toast.LENGTH_LONG).show()); 
-                return; 
-            }
-
-            java.io.InputStream input = connection.getInputStream();
-            android.content.ContentValues values = new android.content.ContentValues();
-
-            String finalFileName = (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.VERSION.SDK_INT <= 32 && !fileName.endsWith(".apk")) 
-            ? fileName + ".apk" 
-            : fileName;
-
-            values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, finalFileName);
-
-            String rawContentType = connection.getContentType();
-            String contentType = (rawContentType == null || rawContentType.isEmpty() || rawContentType.contains(";")) ? "application/pdf" : rawContentType;
-
-            values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, contentType);
-            values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS);
-
-            android.net.Uri uri = getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-            
-            if (uri == null) { 
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "URI Null Error", Toast.LENGTH_LONG).show()); 
-                return; 
-            }
-            
-            if (uri != null) {
-                java.io.OutputStream output = getContentResolver().openOutputStream(uri);
-                if (output != null) {
-                    byte[] buffer = new byte[4096];
-                    int len;
-                    while ((len = input.read(buffer)) != -1) {
-                        output.write(buffer, 0, len);
-                    }
-                    output.flush();
-                    output.close();
-                }
-                input.close();
-
-                // 🔴 FIX 1: Handler delay to ensure UI thread stability
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    if (isFinishing() || isDestroyed()) return;
-
-                    Toast.makeText(MainActivity.this, "Download Complete", Toast.LENGTH_SHORT).show();
-
-                    // 🔴 FIX 2: DownloadManager.addCompletedDownload हटा दिया गया है ताकि OS Conflict न हो
-
-                    try {
-                        Intent openIntent = new Intent(Intent.ACTION_VIEW);
-                        openIntent.setDataAndType(uri, contentType);
-
-                        // 🔴 FIX 3: Dynamic Multi-Task Flags (PDF Viewer अलग इंडिपेंडेंट विंडो में खुलेगा)
-                        openIntent.setFlags(
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION |
-                            Intent.FLAG_ACTIVITY_NEW_TASK |
-                            Intent.FLAG_ACTIVITY_MULTIPLE_TASK
-                        );
-
-                        Intent chooser = Intent.createChooser(openIntent, "Open File With...");
-                        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-
-                        startActivity(chooser);
-
-                    } catch (ActivityNotFoundException e) {
-                        Toast.makeText(MainActivity.this, "No app found to open this file", Toast.LENGTH_LONG).show();
-                    } catch (Exception e) {
-                        Toast.makeText(MainActivity.this, "File saved in Downloads folder", Toast.LENGTH_SHORT).show();
-                    }
-                }, 200); // 200ms का सेफ डिले
-            }
-
-            } catch (Exception e) {
-                String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show());
-            }
-           }).start();
-           }
+                  getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+                      @Override
+                      public void handleOnBackPressed() {
+                          if (webView.canGoBack()) {
+                              webView.goBack();
+                          } else {
+                              finish();
+                          }
+                      }
+                  });
+
+                  webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
+                      String fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                      downloadFile(url, fileName, null);
+                  });
+
+                  checkForUpdates();
+              }
+              private void checkForUpdates() {
+                  Executors.newSingleThreadExecutor().execute(() -> {
+                      try {
+                          URL url = new URL("https://rsh.gdsnotes.in/version.json");
+                          HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                          conn.setRequestMethod("GET");
+                          conn.setConnectTimeout(15000);
+                          conn.setReadTimeout(15000);
+
+                          BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                          StringBuilder json = new StringBuilder();
+                          String line;
+                          while ((line = reader.readLine()) != null) json.append(line);
+                          reader.close();
+
+                          JSONObject object = new JSONObject(json.toString());
+                          int latestVersionCode = object.getInt("versionCode");
+                          String latestVersionName = object.getString("versionName");
+                          String apkUrl = object.getString("apkUrl");
+                          String message = object.getString("message");
+
+                          if (latestVersionCode > BuildConfig.VERSION_CODE && !isFinishing() && !isDestroyed()) {
+                              new Handler(Looper.getMainLooper()).post(() -> 
+                                  showUpdateDialog(latestVersionName, message, apkUrl)
+                              );
+                          }
+                      } catch (Exception e) {
+                          e.printStackTrace();
+                      }
+                  });
+              }
+
+              private void showUpdateDialog(String versionName, String message, String apkUrl) {
+                  new AlertDialog.Builder(MainActivity.this)
+                      .setTitle("🎉 New Update Available")
+                      .setMessage("Current Version : " + BuildConfig.VERSION_NAME + "\n\nLatest Version : " + versionName + "\n\n" + message)
+                      .setCancelable(false)
+                      .setPositiveButton("Update Now", (dialog, which) -> downloadApk(apkUrl))
+                      .setNegativeButton("Later", (dialog, which) -> dialog.dismiss())
+                      .show();
+              }
+
+              private void downloadApk(String apkUrl) {
+                  try {
+                      DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl));
+                      String safeApkName = "app-release-" + System.currentTimeMillis() + ".apk";
+                      request.setTitle("RSH GDS Notes Update");
+                      request.setDescription("Downloading latest version...");
+                      request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                      request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, safeApkName);
+                      request.setMimeType("application/vnd.android.package-archive");
+
+                      DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                      if (manager != null) {
+                          updateDownloadId = manager.enqueue(request);
+                          Toast.makeText(MainActivity.this, "Update download started...", Toast.LENGTH_LONG).show();
+                      }
+                  } catch (Exception e) {
+                      Toast.makeText(MainActivity.this, "Download error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                  }
+              }
+
+              private void installApkFromDownloadManager(long downloadId) {
+                  try {
+                      DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                      if (dm == null) return;
+                      Uri apkUri = dm.getUriForDownloadedFile(downloadId);
+
+                      if (apkUri != null) {
+                          Intent installIntent = new Intent(Intent.ACTION_VIEW);
+                          installIntent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+                          installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                          startActivity(installIntent);
+                      }
+                  } catch (Exception e) {
+                      Toast.makeText(this, "Unable to launch installer: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                  }
+              }
+
+              private File createImageFile() throws IOException {
+                  String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+                  String imageFileName = "IMG_" + timeStamp + "_";
+                  File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                  return File.createTempFile(imageFileName, ".jpg", storageDir);
+              }
+
+              private void downloadFile(String fileUrl, String fileName, String token) {
+                  Toast.makeText(MainActivity.this, "Downloading...", Toast.LENGTH_SHORT).show();
+
+                  new Thread(() -> {
+                      try {
+                          String cookies = CookieManager.getInstance().getCookie(fileUrl);
+                          URL url = new URL(fileUrl.replace(" ", "%20"));
+                          HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                          
+                          connection.setInstanceFollowRedirects(true);
+                          connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
+                          if (token != null && !token.isEmpty() && !token.equals("null")) {
+                              connection.setRequestProperty("Authorization", "Bearer " + token);
+                          }
+                          connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
+                          if (cookies != null && !cookies.isEmpty()) {
+                              connection.setRequestProperty("Cookie", cookies);
+                          }
+                          connection.setConnectTimeout(60000);
+                          connection.setReadTimeout(60000);
+                          connection.setRequestMethod("GET");
+                          connection.connect();
+
+                          int status = connection.getResponseCode();
+                          if (status != 200) {
+                              runOnUiThread(() -> Toast.makeText(MainActivity.this, "Status Error: " + status, Toast.LENGTH_LONG).show());
+                              return;
+                          }
+
+                          java.io.InputStream input = connection.getInputStream();
+                          android.content.ContentValues values = new android.content.ContentValues();
+                          values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+
+                          String rawContentType = connection.getContentType();
+                          String contentType = (rawContentType == null || rawContentType.isEmpty() || rawContentType.contains(";")) ? "application/pdf" : rawContentType;
+                          values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, contentType);
+                          values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+
+                          Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                          if (uri != null) {
+                              java.io.OutputStream output = getContentResolver().openOutputStream(uri);
+                              if (output != null) {
+                                  byte[] buffer = new byte[4096];
+                                  int len;
+                                  while ((len = input.read(buffer)) != -1) {
+                                      output.write(buffer, 0, len);
+                                  }
+                                  output.flush();
+                                  output.close();
+                              }
+                              input.close();
+
+                              new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                  if (isFinishing() || isDestroyed()) return;
+                                  Toast.makeText(MainActivity.this, "Download Complete", Toast.LENGTH_SHORT).show();
+
+                                  try {
+                                      Intent openIntent = new Intent(Intent.ACTION_VIEW);
+                                      openIntent.setDataAndType(uri, contentType);
+                                      openIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                      startActivity(Intent.createChooser(openIntent, "Open File With..."));
+                                  } catch (Exception e) {
+                                      Toast.makeText(MainActivity.this, "File saved in Downloads", Toast.LENGTH_SHORT).show();
+                                  }
+                              }, 200);
+                          }
+                      } catch (Exception e) {
+                          runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download failed", Toast.LENGTH_LONG).show());
+                      }
+                  }).start();
+              }
           }
           EOF
-
-          echo "===== MainActivity.java ====="
-          cat webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java
-          
-      - name: Verify Generated MainActivity
-        run: |
-         echo "===== Package ====="
-         grep "^package " webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java
-
-         echo ""
-         echo "===== Splash API ====="
-         grep -n "SplashScreen.installSplashScreen" webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java
-
-         echo ""
-         echo "===== onCreate ====="
-         grep -n "protected void onCreate" webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java
-         
-      - name: Generate Android Resources
+          - name: Generate Android Resources
         run: |
           mkdir -p webview-build/app/src/main/res/layout
           mkdir -p webview-build/app/src/main/res/values
@@ -1139,56 +824,37 @@ jobs:
           mkdir -p webview-build/app/src/main/res/mipmap-xhdpi
           mkdir -p webview-build/app/src/main/res/mipmap-xxhdpi
           mkdir -p webview-build/app/src/main/res/mipmap-xxxhdpi
-          convert icon-512.png -resize 48x48 \
-          webview-build/app/src/main/res/mipmap-mdpi/ic_launcher.png
 
-          convert icon-512.png -resize 48x48 \
-          webview-build/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+          convert icon-512.png -resize 48x48 webview-build/app/src/main/res/mipmap-mdpi/ic_launcher.png
+          convert icon-512.png -resize 48x48 webview-build/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+          convert icon-512.png -resize 72x72 webview-build/app/src/main/res/mipmap-hdpi/ic_launcher.png
+          convert icon-512.png -resize 72x72 webview-build/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+          convert icon-512.png -resize 96x96 webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          convert icon-512.png -resize 96x96 webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+          convert icon-512.png -resize 144x144 webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          convert icon-512.png -resize 144x144 webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+          convert icon-512.png -resize 192x192 webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          convert icon-512.png -resize 192x192 webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+          convert icon-512.png -resize 432x432 webview-build/app/src/main/res/drawable/ic_launcher_foreground.png
 
-          convert icon-512.png -resize 72x72 \
-          webview-build/app/src/main/res/mipmap-hdpi/ic_launcher.png
-
-          convert icon-512.png -resize 72x72 \
-          webview-build/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
-
-          convert icon-512.png -resize 96x96 \
-          webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-
-          convert icon-512.png -resize 96x96 \
-          webview-build/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
-
-          convert icon-512.png -resize 144x144 \
-          webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-
-          convert icon-512.png -resize 144x144 \
-          webview-build/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
-
-          convert icon-512.png -resize 192x192 \
-          webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-
-          convert icon-512.png -resize 192x192 \
-          webview-build/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
-          convert icon-512.png -resize 432x432 \
-          webview-build/app/src/main/res/drawable/ic_launcher_foreground.png
-          file webview-build/app/src/main/res/mipmap-*/ic_launcher.png
           cat > webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-          <background android:drawable="@android:color/white"/>
-          <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+              <background android:drawable="@android:color/white"/>
+              <foreground android:drawable="@drawable/ic_launcher_foreground"/>
           </adaptive-icon>
           EOF
 
           cat > webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-          <background android:drawable="@android:color/white"/>
-          <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+              <background android:drawable="@android:color/white"/>
+              <foreground android:drawable="@drawable/ic_launcher_foreground"/>
           </adaptive-icon>
           EOF
+
           cat > webview-build/app/src/main/res/layout/activity_main.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-
           <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
               xmlns:android="http://schemas.android.com/apk/res/android"
               android:id="@+id/swipeRefresh"
@@ -1218,12 +884,11 @@ jobs:
                       android:visibility="gone"/>
 
               </FrameLayout>
-
           </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
           EOF
+
           cat > webview-build/app/src/main/res/layout/network_error.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -1258,9 +923,10 @@ jobs:
 
           </LinearLayout>
           EOF
+
           cat > webview-build/app/src/main/res/values/strings.xml <<'EOF'
           <resources>
-              <string name="app_name"> RSH GDS Notes</string>
+              <string name="app_name">RSH GDS Notes</string>
           </resources>
           EOF
 
@@ -1274,155 +940,64 @@ jobs:
 
           cat > webview-build/app/src/main/res/values/themes.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <resources xmlns:tools="http://schemas.android.com/tools">
-
-             <style name="Theme.GDSNotes"
-              parent="Theme.Material3.DayNight.NoActionBar">
-
-          <!-- Android 12+ Splash -->
-          <item name="android:windowSplashScreenBackground">@android:color/white</item>
-          <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
-          <item name="android:windowSplashScreenAnimationDuration">300</item>
-
-          <!-- Normal Background -->
-          <item name="android:windowBackground">@android:color/white</item>
-
+          <resources>
+             <style name="Theme.GDSNotes" parent="Theme.Material3.DayNight.NoActionBar">
+                 <item name="android:windowSplashScreenBackground">@android:color/white</item>
+                 <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+                 <item name="android:windowSplashScreenAnimationDuration">300</item>
+                 <item name="android:windowBackground">@android:color/white</item>
             </style>
-
           </resources>
           EOF
+
           cat > webview-build/app/src/main/res/xml/file_paths.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <paths xmlns:android="http://schemas.android.com/apk/res/android">
-          <external-files-path
-          name="camera_images"
-          path="Pictures/" />
+          <paths>
+              <external-files-path name="camera_images" path="Pictures/" />
           </paths>
           EOF
+
           cat > webview-build/app/src/main/res/xml/network_security_config.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <network-security-config>
-
-          <base-config cleartextTrafficPermitted="false">
-          <trust-anchors>
-            <certificates src="system"/>
-          </trust-anchors>
-          </base-config>
-
+              <base-config cleartextTrafficPermitted="false">
+                  <trust-anchors>
+                      <certificates src="system"/>
+                  </trust-anchors>
+              </base-config>
           </network-security-config>
           EOF
-          echo "===== Resources ====="
-          find webview-build/app/src/main/res -type f | sort
-      - name: Debug Launcher Icons
-        run: |
-         echo "========== Mipmap Files =========="
-         find webview-build/app/src/main/res -type f | grep mipmap | sort
-
-         echo ""
-         echo "========== File Sizes =========="
-         ls -lh webview-build/app/src/main/res/mipmap-*/ic_launcher*
-    
-         echo ""
-         echo "========== Adaptive Icon XML =========="
-         cat webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
-
-         echo ""
-         echo "========== Round Icon XML =========="
-         cat webview-build/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
-
-         echo ""
-         echo "========== PNG Info =========="
-         file webview-build/app/src/main/res/mipmap-*/ic_launcher.png || true
-      - name: Download Gradle Wrapper
+          - name: Download Gradle Wrapper
         run: |
           cd webview-build
           gradle wrapper --gradle-version 8.10
-          
+
       - name: Build Native APK & AAB
         run: |
           cd webview-build
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease
-          
-      - name: Find APK Files
-        run: |
-         echo "===== APK ====="
-         find webview-build -name "*.apk"
 
-         echo ""
-         echo "===== AAB ====="
-         find webview-build -name "*.aab"
-      - name: Verify APK Contents
-        run: |
-         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
-
-         echo "===== APK Resources ====="
-         unzip -l "$APK" | grep -E "ic_launcher|mipmap|themes|AndroidManifest" || true
-
-         echo ""
-         echo "===== Manifest Strings ====="
-         strings "$APK" | grep "Theme.GDSNotes" || true
-
-         echo ""
-         echo "===== Splash ====="
-         strings "$APK" | grep "windowSplash" || true
-
-      - name: Verify Manifest
-        run: |
-          strings webview-build/app/build/outputs/apk/release/app-release.apk | grep -E "Theme.GDSNotes|ic_launcher|roundIcon|windowSplash"
-         
-      - name: Inspect APK Icons
-        run: |
-         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -n1)
-
-         echo "APK = $APK"
-
-         unzip -l "$APK" | grep -E "mipmap|ic_launcher|round|splash" || true
       - name: Locate output artifacts
         id: artifacts
         run: |
-         cd webview-build
+          cd webview-build
+          APK_PATH=$(find . -path "*/outputs/apk/release/*.apk" | head -n1)
+          AAB_PATH=$(find . -path "*/outputs/bundle/release/*.aab" | head -n1)
 
-         APK_PATH=$(find . -name "app-release-signed.apk" | head -n1)
+          if [ -z "$APK_PATH" ] || [ -z "$AAB_PATH" ]; then
+              echo "Build artifacts missing!"
+              exit 1
+          fi
 
-         if [ -z "$APK_PATH" ]; then
-         APK_PATH=$(find . -path "*/outputs/apk/release/*.apk" | head -n1)
-         fi
+          echo "apk_path=webview-build/${APK_PATH#./}" >> "$GITHUB_OUTPUT"
+          echo "aab_path=webview-build/${AAB_PATH#./}" >> "$GITHUB_OUTPUT"
 
-         AAB_PATH=$(find . -path "*/outputs/bundle/release/*.aab" | head -n1)
-
-         if [ -z "$APK_PATH" ]; then
-         echo "APK not found!"
-         exit 1
-         fi
-
-         if [ -z "$AAB_PATH" ]; then
-         echo "AAB not found!"
-         exit 1
-         fi
-
-         echo "apk_path=webview-build/${APK_PATH#./}" >> "$GITHUB_OUTPUT"
-         echo "aab_path=webview-build/${AAB_PATH#./}" >> "$GITHUB_OUTPUT"
-
-         echo "Found APK: $APK_PATH"
-         echo "Found AAB: $AAB_PATH"
-      - name: Verify Final APK Icons
-        run: |
-         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
-
-         echo "===== Launcher Resources in APK ====="
-         unzip -l "$APK" | grep ic_launcher || true
-
-         echo ""
-         echo "===== PNG Resources ====="
-         unzip -l "$APK" | grep png || true
-         
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: gdsnotes-signed-apk
           path: ${{ steps.artifacts.outputs.apk_path }}
-          if-no-files-found: error
           retention-days: 30
 
       - name: Upload AAB artifact
@@ -1430,61 +1005,17 @@ jobs:
         with:
           name: gdsnotes-signed-aab
           path: ${{ steps.artifacts.outputs.aab_path }}
-          if-no-files-found: warn
           retention-days: 30
-          
-      - name: Verify Final APK
-        run: |
-         APK=$(find webview-build/app/build/outputs/apk/release -name "*.apk" | head -1)
 
-         echo "===== APK ====="
-         ls -lh "$APK"
-
-         echo ""
-         echo "===== SHA256 ====="
-         sha256sum "$APK"
-
-         echo ""
-         echo "===== APK Exists ====="
-         test -f "$APK" && echo "APK OK"
-
-      - name: Replace latest APK in repository
+      - name: Commit latest APK to repo
         run: |
           cp webview-build/app/build/outputs/apk/release/app-release.apk app-release.apk
-
-      - name: Commit latest APK
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app-release.apk
+          git commit -m "Update latest compiled APK" || echo "No changes to commit"
+          git push origin HEAD:${{ github.ref_name }}
 
-          git commit -m "Update latest APK" || echo "No APK changes"
-
-          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
-     
-      - name: Show SHA256 fingerprint (for assetlinks.json)
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        run: |
-          keytool -list -v \
-            -keystore android.keystore \
-            -alias "$KEY_ALIAS" \
-            -storepass "$KEYSTORE_PASSWORD" \
-            | grep -E "SHA256|SHA1" || true
-            
-      - name: Verify assetlinks.json
-        run: |
-         echo "===== assetlinks.json ====="
-
-         if [ -f .well-known/assetlinks.json ]; then
-         cat .well-known/assetlinks.json
-           else
-         echo "assetlinks.json not found"
-         exit 1
-         fi
-      
       - name: Create GitHub Release (optional)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true'
         uses: softprops/action-gh-release@v2
@@ -1495,11 +1026,4 @@ jobs:
             ${{ steps.artifacts.outputs.apk_path }}
             ${{ steps.artifacts.outputs.aab_path }}
           generate_release_notes: true
-
-      - name: Build Summary
-        run: |
-          echo "================================="
-          echo "Build completed successfully."
-          echo "APK : ${{ steps.artifacts.outputs.apk_path }}"
-          echo "AAB : ${{ steps.artifacts.outputs.aab_path }}"
-          echo "================================="
+          
