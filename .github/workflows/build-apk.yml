@@ -812,7 +812,7 @@ jobs:
               }
           }
           EOF
-          - name: Generate Android Resources
+      - name: Generate Android Resources
         run: |
           mkdir -p webview-build/app/src/main/res/layout
           mkdir -p webview-build/app/src/main/res/values
@@ -967,7 +967,7 @@ jobs:
               </base-config>
           </network-security-config>
           EOF
-          - name: Download Gradle Wrapper
+      - name: Download Gradle Wrapper
         run: |
           cd webview-build
           gradle wrapper --gradle-version 8.10
