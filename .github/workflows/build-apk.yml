@@ -144,12 +144,14 @@ jobs:
               }
 
              buildTypes {
-                  release {
-                      minifyEnabled true
-                      shrinkResources true
-                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-                  }
-              }
+                    release {
+                    minifyEnabled true
+                    shrinkResources true
+                    signingConfig signingConfigs.release
+                    proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+             }
+             }
+
               
 
               compileOptions {
@@ -227,7 +229,6 @@ jobs:
                   android:label="@string/app_name"
                   android:supportsRtl="true"
                   android:usesCleartextTraffic="false"
-                  android:requestLegacyExternalStorage="true"
                   android:networkSecurityConfig="@xml/network_security_config"
                   android:theme="@style/Theme.GDSNotes">
                   
@@ -464,7 +465,7 @@ jobs:
                   settings.setLoadWithOverviewMode(true);
 
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                      settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+                      settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
                   }
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                   settings.setSafeBrowsingEnabled(true);
@@ -1329,27 +1330,6 @@ jobs:
         run: |
           cd webview-build
           gradle wrapper --gradle-version 8.10
-      - name: Configure Release Signing
-        run: |
-          cat >> webview-build/app/build.gradle <<EOF
-
-          android {
-              signingConfigs {
-                  release {
-                      storeFile file("../../android.keystore")
-                      storePassword "${{ secrets.KEYSTORE_PASSWORD }}"
-                      keyAlias "${{ secrets.KEY_ALIAS }}"
-                      keyPassword "${{ secrets.KEY_PASSWORD }}"
-                  }
-              }
-
-              buildTypes {
-                  release {
-                      signingConfig signingConfigs.release
-                  }
-              }
-          }
-          EOF
           
       - name: Build Native APK & AAB
         run: |
