@@ -806,7 +806,13 @@ jobs:
                }
            });
            CookieManager.getInstance().setAcceptCookie(true);
-          webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
+           webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
+           String fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+    
+          // Ab direct new SAF-based downloadFile call hoga
+           downloadFile(url, fileName, null);
+           });
+
 
             String fileName = URLUtil.guessFileName(
                    url,
