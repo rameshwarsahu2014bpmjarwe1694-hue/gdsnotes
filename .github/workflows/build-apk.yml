@@ -1071,10 +1071,6 @@ jobs:
             }).start();
             }
             }
-            EOF
-
-          echo "===== MainActivity.java ====="
-          cat webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java
           
       - name: Verify Generated MainActivity
         run: |
