@@ -971,10 +971,6 @@ jobs:
           String finalFileName = (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.VERSION.SDK_INT <= 32 && !fileName.endsWith(".apk")) 
             ? fileName + ".apk" 
             : fileName;
-            // 🚀 FIX: UUID / Blob Name Override Guard
-            if (finalFileName.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-.*") || finalFileName.startsWith("blob")) {
-            finalFileName = "GDS_Study_Material.pdf";
-            }
 
 
           // MimeType identify karein
