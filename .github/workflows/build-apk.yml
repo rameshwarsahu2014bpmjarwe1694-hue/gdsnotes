@@ -987,11 +987,18 @@ jobs:
           mimeType = "image/jpeg";
           }
 
+          // 🚀 Exact File Name Preservation Check
+          String cleanTitle = finalFileName;
+          if (cleanTitle.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-.*") || cleanTitle.startsWith("blob")) {
+              cleanTitle = (fileName != null && !fileName.isEmpty() && !fileName.startsWith("blob")) ? fileName : finalFileName;
+          }
+
           // Android Storage Access Framework (SAF) Dialog
           Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
           intent.addCategory(Intent.CATEGORY_OPENABLE);
           intent.setType(mimeType);
-          intent.putExtra(Intent.EXTRA_TITLE, finalFileName);
+          intent.putExtra(Intent.EXTRA_TITLE, cleanTitle);
+
 
              try {
           createDocumentLauncher.launch(intent);
@@ -1031,20 +1038,16 @@ jobs:
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "Error status: " + status, Toast.LENGTH_LONG).show());
                 return;
             }
-            // 🚀 FIX: Server Header se Actual File Name Extract karein
+            // 🚀 Server Response Header Verification Check (Safe & Crash-Free)
             String disposition = connection.getHeaderField("Content-Disposition");
             if (disposition != null && disposition.contains("filename=")) {
-                 try {
-            String realName = disposition.split("filename=")[1].replace("\"", "").replace("'", "").trim();
-            if (realName.contains(";")) {
-            realName = realName.split(";")[0].trim();
+                try {
+            String exactServerFileName = disposition.split("filename=")[1].replace("\"", "").replace("'", "").trim();
+            if (exactServerFileName.contains(";")) {
+            exactServerFileName = exactServerFileName.split(";")[0].trim();
             }
-             android.content.ContentValues cv = new android.content.ContentValues();
-             cv.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, realName);
-             getContentResolver().update(targetUri, cv, null, null);
-           } catch (Exception ignored) {}
-           }
-
+            } catch (Exception ignored) {}
+            }
 
             java.io.InputStream input = connection.getInputStream();
             java.io.OutputStream output = getContentResolver().openOutputStream(targetUri);
