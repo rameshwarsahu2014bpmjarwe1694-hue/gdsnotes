@@ -815,10 +815,21 @@ jobs:
           CookieManager.getInstance().setAcceptCookie(true);
 
           webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
-              String fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
-              downloadFile(url, fileName, null);
-          });
 
+          String fileName = "Document.pdf";
+
+          if (contentDisposition != null && contentDisposition.contains("filename=")) {
+             fileName = contentDisposition
+                    .replaceFirst("(?i).*filename=\"?", "")
+                .replace("\"", "")
+                .split(";")[0]
+                .trim();
+           } else {
+             fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+           }
+
+             downloadFile(url, fileName, null);
+          });
           checkForUpdates();
           }
   
