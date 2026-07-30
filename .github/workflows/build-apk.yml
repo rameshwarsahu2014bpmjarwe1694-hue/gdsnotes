@@ -962,57 +962,59 @@ jobs:
             storageDir
           );
           }
-
           private void downloadFile(String fileUrl, String fileName, String token) {
-          this.pendingDownloadUrl = fileUrl;
-          this.pendingToken = token;
+             this.pendingDownloadUrl = fileUrl;
+             this.pendingToken = token;
 
           // Extension Guard Check
-          String finalFileName = (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.VERSION.SDK_INT <= 32 && !fileName.endsWith(".apk")) 
-            ? fileName + ".apk" 
-            : fileName;
+             String finalFileName = (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.VERSION.SDK_INT <= 32 && !fileName.endsWith(".apk")) 
+          ? fileName + ".apk" 
+          : fileName;
 
-
-          // MimeType identify karein
-          String mimeType = "application/pdf"; 
-          if (finalFileName.endsWith(".apk")) {
-          mimeType = "application/vnd.android.package-archive";
-          } else if (finalFileName.endsWith(".png")) {
-          mimeType = "image/png";
-          } else if (finalFileName.endsWith(".jpg") || finalFileName.endsWith(".jpeg")) {
-          mimeType = "image/jpeg";
-          }
-
-          // 🚀 Exact File Name Preservation Check
+          // 🚀 Exact Dynamic Title Preservation (UUID/Blob/Base64 Garbage Filter)
           String cleanTitle = finalFileName;
-          if (cleanTitle.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-.*") || cleanTitle.startsWith("blob")) {
-              cleanTitle = (fileName != null && !fileName.isEmpty() && !fileName.startsWith("blob")) ? fileName : finalFileName;
+          if (cleanTitle.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-.*") || cleanTitle.startsWith("blob") || cleanTitle.length() > 50) {
+          if (fileName != null && !fileName.isEmpty() && !fileName.startsWith("blob") && fileName.length() <= 50) {
+            cleanTitle = fileName;
+          } else {
+            cleanTitle = "GDS_PYQ_Document.pdf";
+          }
           }
 
-          // Android Storage Access Framework (SAF) Dialog
+          // MimeType identify
+          String mimeType = "application/pdf"; 
+          if (cleanTitle.endsWith(".apk")) {
+             mimeType = "application/vnd.android.package-archive";
+          } else if (cleanTitle.endsWith(".png")) {
+            mimeType = "image/png";
+          } else if (cleanTitle.endsWith(".jpg") || cleanTitle.endsWith(".jpeg")) {
+             mimeType = "image/jpeg";
+          }
+
+          // Android SAF File Creator Dialog Launcher
           Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
           intent.addCategory(Intent.CATEGORY_OPENABLE);
           intent.setType(mimeType);
           intent.putExtra(Intent.EXTRA_TITLE, cleanTitle);
 
-
-             try {
+              try {
           createDocumentLauncher.launch(intent);
           } catch (Exception e) {
-          Toast.makeText(this, "Cannot open file picker", Toast.LENGTH_SHORT).show();
+              Toast.makeText(this, "Cannot open file picker", Toast.LENGTH_SHORT).show();
           }
           }
+
           private void writeStreamToUri(String fileUrl, Uri targetUri, String token) {
                Toast.makeText(MainActivity.this, "Connecting to server...", Toast.LENGTH_SHORT).show();
 
           new Thread(() -> {
-                 try {
+              try {
             String cookies = android.webkit.CookieManager.getInstance().getCookie(fileUrl);
 
             java.net.URL url = new java.net.URL(fileUrl.replace(" ", "%20"));
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
 
-            // Setup Request Properties BEFORE Connect
+            // Headers Setup
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(90000);
             connection.setReadTimeout(90000);
@@ -1034,15 +1036,16 @@ jobs:
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "Error status: " + status, Toast.LENGTH_LONG).show());
                 return;
             }
-            // 🚀 Server Response Header Verification Check (Safe & Crash-Free)
+
+            // Server Content-Disposition extraction
             String disposition = connection.getHeaderField("Content-Disposition");
             if (disposition != null && disposition.contains("filename=")) {
                 try {
-            String exactServerFileName = disposition.split("filename=")[1].replace("\"", "").replace("'", "").trim();
-            if (exactServerFileName.contains(";")) {
-            exactServerFileName = exactServerFileName.split(";")[0].trim();
-            }
-            } catch (Exception ignored) {}
+                    String exactServerFileName = disposition.split("filename=")[1].replace("\"", "").replace("'", "").trim();
+                    if (exactServerFileName.contains(";")) {
+                        exactServerFileName = exactServerFileName.split(";")[0].trim();
+                    }
+                } catch (Exception ignored) {}
             }
 
             java.io.InputStream input = connection.getInputStream();
@@ -1062,13 +1065,13 @@ jobs:
             runOnUiThread(() -> Toast.makeText(MainActivity.this, "File Saved Successfully!", Toast.LENGTH_SHORT).show());
 
             } catch (Exception e) {
-            String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download Error: " + error, Toast.LENGTH_LONG).show());
+                String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download Error: " + error, Toast.LENGTH_LONG).show());
             }
             }).start();
             }
-          }
-          EOF
+            }
+            EOF
 
           echo "===== MainActivity.java ====="
           cat webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java
