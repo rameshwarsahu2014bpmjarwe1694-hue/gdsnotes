@@ -974,22 +974,14 @@ jobs:
           );
           }
           private void downloadFile(String fileUrl, String fileName, String token) {
-             this.pendingDownloadUrl = fileUrl;
-             this.pendingToken = token;
+          this.pendingDownloadUrl = fileUrl;
+          this.pendingToken = token;
 
-          // Extension Guard Check
-             String finalFileName = (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.VERSION.SDK_INT <= 32 && !fileName.endsWith(".apk")) 
-          ? fileName + ".apk" 
-          : fileName;
+          String cleanTitle = fileName;
 
-          // 🚀 Exact Dynamic Title Preservation (UUID/Blob/Base64 Garbage Filter)
-          String cleanTitle = finalFileName;
-          if (cleanTitle.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-.*") || cleanTitle.startsWith("blob") || cleanTitle.length() > 50) {
-          if (fileName != null && !fileName.isEmpty() && !fileName.startsWith("blob") && fileName.length() <= 50) {
-            cleanTitle = fileName;
-          } else {
-            cleanTitle = "Document.pdf";
-          }
+          // Agar Frontend se exact name aaya hai to wahi rakhein
+          if (cleanTitle == null || cleanTitle.isEmpty() || cleanTitle.startsWith("blob")) {
+          cleanTitle = "Document.pdf";
           }
 
           // MimeType identify
@@ -999,21 +991,22 @@ jobs:
           } else if (cleanTitle.endsWith(".png")) {
             mimeType = "image/png";
           } else if (cleanTitle.endsWith(".jpg") || cleanTitle.endsWith(".jpeg")) {
-             mimeType = "image/jpeg";
+            mimeType = "image/jpeg";
           }
 
-          // Android SAF File Creator Dialog Launcher
+          // Android Storage Access Framework Dialog Launcher
           Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
           intent.addCategory(Intent.CATEGORY_OPENABLE);
           intent.setType(mimeType);
-          intent.putExtra(Intent.EXTRA_TITLE, cleanTitle);
+          intent.putExtra(Intent.EXTRA_TITLE, cleanTitle); // 🔥 EXACT REAL NAME SHOW HOGA
 
-              try {
-          createDocumentLauncher.launch(intent);
-          } catch (Exception e) {
+            try {
+           createDocumentLauncher.launch(intent);
+           } catch (Exception e) {
               Toast.makeText(this, "Cannot open file picker", Toast.LENGTH_SHORT).show();
-          }
-          }
+           }
+           }
+
 
           private void writeStreamToUri(String fileUrl, Uri targetUri, String token) {
                Toast.makeText(MainActivity.this, "Connecting to server...", Toast.LENGTH_SHORT).show();
