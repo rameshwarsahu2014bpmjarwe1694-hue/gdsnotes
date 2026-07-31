@@ -988,7 +988,7 @@ jobs:
           if (fileName != null && !fileName.isEmpty() && !fileName.startsWith("blob") && fileName.length() <= 50) {
             cleanTitle = fileName;
           } else {
-            cleanTitle = "GDS_PYQ_Document.pdf";
+            cleanTitle = "Document.pdf";
           }
           }
 
@@ -1046,17 +1046,6 @@ jobs:
             if (status != 200) {
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "Error status: " + status, Toast.LENGTH_LONG).show());
                 return;
-            }
-
-            // Server Content-Disposition extraction
-            String disposition = connection.getHeaderField("Content-Disposition");
-            if (disposition != null && disposition.contains("filename=")) {
-                try {
-                    String exactServerFileName = disposition.split("filename=")[1].replace("\"", "").replace("'", "").trim();
-                    if (exactServerFileName.contains(";")) {
-                        exactServerFileName = exactServerFileName.split(";")[0].trim();
-                    }
-                } catch (Exception ignored) {}
             }
 
             java.io.InputStream input = connection.getInputStream();
