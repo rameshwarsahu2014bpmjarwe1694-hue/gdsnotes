@@ -977,35 +977,40 @@ jobs:
           this.pendingDownloadUrl = fileUrl;
           this.pendingToken = token;
 
-          String cleanTitle = fileName;
+          // 🚀 Har Download par fixed "Document.pdf" name hi dikhaya jayega
+          String cleanTitle = "Document.pdf";
 
-          // Agar Frontend se exact name aaya hai to wahi rakhein
-          if (cleanTitle == null || cleanTitle.isEmpty() || cleanTitle.startsWith("blob")) {
-          cleanTitle = "Document.pdf";
+          // Agar APK, Image ya kisi aur extension ki file ho to uske hisab se extension set karein
+          if (fileName != null) {
+           if (fileName.endsWith(".apk")) {
+            cleanTitle = "App_Update.apk";
+           } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+            cleanTitle = "Image.jpg";
+          }
           }
 
           // MimeType identify
           String mimeType = "application/pdf"; 
           if (cleanTitle.endsWith(".apk")) {
-             mimeType = "application/vnd.android.package-archive";
+           mimeType = "application/vnd.android.package-archive";
           } else if (cleanTitle.endsWith(".png")) {
-            mimeType = "image/png";
+           mimeType = "image/png";
           } else if (cleanTitle.endsWith(".jpg") || cleanTitle.endsWith(".jpeg")) {
             mimeType = "image/jpeg";
           }
-
+  
           // Android Storage Access Framework Dialog Launcher
-          Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-          intent.addCategory(Intent.CATEGORY_OPENABLE);
-          intent.setType(mimeType);
-          intent.putExtra(Intent.EXTRA_TITLE, cleanTitle); // 🔥 EXACT REAL NAME SHOW HOGA
+           Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+           intent.addCategory(Intent.CATEGORY_OPENABLE);
+           intent.setType(mimeType);
+           intent.putExtra(Intent.EXTRA_TITLE, cleanTitle); // 🔥 Storage dialog me "Document.pdf" hi aayega
 
-            try {
+               try {
            createDocumentLauncher.launch(intent);
-           } catch (Exception e) {
-              Toast.makeText(this, "Cannot open file picker", Toast.LENGTH_SHORT).show();
-           }
-           }
+          } catch (Exception e) {
+            Toast.makeText(this, "Cannot open file picker", Toast.LENGTH_SHORT).show();
+          }
+          }
 
 
           private void writeStreamToUri(String fileUrl, Uri targetUri, String token) {
