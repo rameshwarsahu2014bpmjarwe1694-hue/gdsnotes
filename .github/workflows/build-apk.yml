@@ -974,43 +974,42 @@ jobs:
           );
           }
           private void downloadFile(String fileUrl, String fileName, String token) {
-          this.pendingDownloadUrl = fileUrl;
-          this.pendingToken = token;
+             this.pendingDownloadUrl = fileUrl;
+             this.pendingToken = token;
 
-          // 🚀 Har Download par fixed "Document.pdf" name hi dikhaya jayega
-          String cleanTitle = "Document.pdf";
-
-          // Agar APK, Image ya kisi aur extension ki file ho to uske hisab se extension set karein
-          if (fileName != null) {
-           if (fileName.endsWith(".apk")) {
-            cleanTitle = "App_Update.apk";
-           } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-            cleanTitle = "Image.jpg";
-          }
+          // Original filename use kare
+             String cleanTitle;
+          if (fileName != null && !fileName.trim().isEmpty()) {
+             cleanTitle = fileName.trim();
+          } else {
+             cleanTitle = "Document.pdf";
           }
 
           // MimeType identify
-          String mimeType = "application/pdf"; 
-          if (cleanTitle.endsWith(".apk")) {
-           mimeType = "application/vnd.android.package-archive";
-          } else if (cleanTitle.endsWith(".png")) {
-           mimeType = "image/png";
-          } else if (cleanTitle.endsWith(".jpg") || cleanTitle.endsWith(".jpeg")) {
-            mimeType = "image/jpeg";
-          }
-  
-          // Android Storage Access Framework Dialog Launcher
-           Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-           intent.addCategory(Intent.CATEGORY_OPENABLE);
-           intent.setType(mimeType);
-           intent.putExtra(Intent.EXTRA_TITLE, cleanTitle); // 🔥 Storage dialog me "Document.pdf" hi aayega
+          String mimeType = "application/pdf";
 
-               try {
+          String lowerName = cleanTitle.toLowerCase();
+
+          if (lowerName.endsWith(".apk")) {
+          mimeType = "application/vnd.android.package-archive";
+          } else if (lowerName.endsWith(".png")) {
+          mimeType = "image/png";
+          } else if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) {
+           mimeType = "image/jpeg";
+          }
+
+          // Android Storage Access Framework Dialog Launcher
+          Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+          intent.addCategory(Intent.CATEGORY_OPENABLE);
+          intent.setType(mimeType);
+          intent.putExtra(Intent.EXTRA_TITLE, cleanTitle);
+
+             try {
            createDocumentLauncher.launch(intent);
-          } catch (Exception e) {
-            Toast.makeText(this, "Cannot open file picker", Toast.LENGTH_SHORT).show();
-          }
-          }
+           } catch (Exception e) {
+              Toast.makeText(this, "Cannot open file picker", Toast.LENGTH_SHORT).show();
+           }
+           }
 
 
           private void writeStreamToUri(String fileUrl, Uri targetUri, String token) {
