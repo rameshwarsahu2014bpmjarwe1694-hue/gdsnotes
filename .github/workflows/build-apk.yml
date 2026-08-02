@@ -817,23 +817,26 @@ jobs:
 
           webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
 
-          // 1. Blob URLs ko ignore karein
-          if (url != null && url.startsWith("blob:")) {
-          return; 
-          }
-
-            try {
-          // 2. Exact Filename nikalein
-           String fileName = "Document.pdf";
+              try {
+          String fileName = "Document.pdf";
            if (contentDisposition != null && contentDisposition.contains("filename=")) {
-              fileName = contentDisposition
+            fileName = contentDisposition
                     .replaceFirst("(?i).*filename=\"?", "")
                     .replace("\"", "")
                     .split(";")[0]
                     .trim();
-            } else {
+           } else {
             fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
-            }
+           }
+
+           // Native Storage Picker for direct download handling
+           downloadFile(url, fileName, null);
+
+          } catch (Exception e) {
+             Toast.makeText(MainActivity.this, "Download Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+          }
+          });
+
 
             // 3. Android System DownloadManager Setup
              DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
