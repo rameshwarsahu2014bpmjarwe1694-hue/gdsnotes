@@ -816,26 +816,58 @@ jobs:
           CookieManager.getInstance().setAcceptCookie(true);
 
           webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
-          // अगर यूआरएल blob: से शुरू हो रहा है तो Android native download ना चलाएं
+
+          // 1. Blob URLs ko ignore karein
           if (url != null && url.startsWith("blob:")) {
-            return; 
+          return; 
           }
 
-          String fileName = "Document.pdf";
-          if (contentDisposition != null && contentDisposition.contains("filename=")) {
-               fileName = contentDisposition
-                .replaceFirst("(?i).*filename=\"?", "")
-                .replace("\"", "")
-                .split(";")[0]
-                .trim();
-          } else {
-             fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
-          }
+            try {
+          // 2. Exact Filename nikalein
+           String fileName = "Document.pdf";
+           if (contentDisposition != null && contentDisposition.contains("filename=")) {
+              fileName = contentDisposition
+                    .replaceFirst("(?i).*filename=\"?", "")
+                    .replace("\"", "")
+                    .split(";")[0]
+                    .trim();
+            } else {
+            fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+            }
 
-             downloadFile(url, fileName, null);
+            // 3. Android System DownloadManager Setup
+             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+
+            // Secret Headers set karein taaki 'Direct access blocked' na aaye
+             request.addRequestHeader("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
+        
+             String cookies = CookieManager.getInstance().getCookie(url);
+            if (cookies != null) {
+            request.addRequestHeader("Cookie", cookies);
+            }
+
+            request.setMimeType("application/pdf");
+        
+            // Taskbar / Notification status configuration
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            request.setTitle(fileName);
+            request.setDescription("Downloading PDF File...");
+
+            // Downloads Folder destination
+             request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+
+            // Download Start
+            DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            if (dm != null) {
+            dm.enqueue(request);
+            Toast.makeText(MainActivity.this, "Downloading in taskbar...", Toast.LENGTH_SHORT).show();
+            }
+
+           } catch (Exception e) {
+               Toast.makeText(MainActivity.this, "Download Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+          }
           });
-
-          checkForUpdates();
+           checkForUpdates();
           }
   
           private void checkForUpdates() {
