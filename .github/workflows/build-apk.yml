@@ -816,21 +816,25 @@ jobs:
           CookieManager.getInstance().setAcceptCookie(true);
 
           webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
+          // अगर यूआरएल blob: से शुरू हो रहा है तो Android native download ना चलाएं
+          if (url != null && url.startsWith("blob:")) {
+            return; 
+          }
 
           String fileName = "Document.pdf";
-
           if (contentDisposition != null && contentDisposition.contains("filename=")) {
-             fileName = contentDisposition
-                    .replaceFirst("(?i).*filename=\"?", "")
+               fileName = contentDisposition
+                .replaceFirst("(?i).*filename=\"?", "")
                 .replace("\"", "")
                 .split(";")[0]
                 .trim();
-           } else {
+          } else {
              fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
-           }
+          }
 
              downloadFile(url, fileName, null);
           });
+
           checkForUpdates();
           }
   
