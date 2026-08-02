@@ -1066,16 +1066,19 @@ jobs:
 
               Log.e("DOWNLOAD_ERROR", "fileUrl = " + fileUrl, e);
 
-            String error = e.getClass().getSimpleName() + ": " +
-            (e.getMessage() != null ? e.getMessage() : "null");
+              String error = e.getClass().getSimpleName() + ": " +
+              (e.getMessage() != null ? e.getMessage() : "null");
 
-            runOnUiThread(() -> Toast.makeText(
+             runOnUiThread(() -> Toast.makeText(
             MainActivity.this,
             "URL = " + fileUrl + "\n\n" + error,
             Toast.LENGTH_LONG
-            ).show());
+          ).show());
 
-            }
+          }
+          }).start();
+          }
+          }
           
       - name: Verify Generated MainActivity
         run: |
