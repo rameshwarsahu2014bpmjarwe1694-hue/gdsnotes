@@ -259,70 +259,69 @@ jobs:
          echo ""
          grep -n "pathPrefix" webview-build/app/src/main/AndroidManifest.xml
       
-      - name: Generate MainActivity.java
+            - name: Generate MainActivity.java
         run: |
           mkdir -p webview-build/app/src/main/java/io/gdsnote/rshtwa
 
           cat > webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java <<'EOF'
           package io.gdsnote.rshtwa;
+
           import android.annotation.SuppressLint;
+          import android.app.Activity;
+          import android.app.AlertDialog;
+          import android.app.DownloadManager;
+          import android.content.ActivityNotFoundException;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.IntentFilter;
           import android.graphics.Bitmap;
+          import android.net.Uri;
           import android.os.Build;
           import android.os.Bundle;
-          import android.webkit.WebChromeClient;
+          import android.os.Environment;
+          import android.os.Handler;
+          import android.os.Looper;
+          import android.provider.MediaStore;
+          import android.util.Log;
+          import android.view.View;
+          import android.view.WindowManager;
+          import android.webkit.CookieManager;
           import android.webkit.JsResult;
-          import android.webkit.WebResourceRequest;
+          import android.webkit.PermissionRequest;
+          import android.webkit.URLUtil;
+          import android.webkit.ValueCallback;
+          import android.webkit.WebChromeClient;
           import android.webkit.WebResourceError;
+          import android.webkit.WebResourceRequest;
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
-          import android.view.View;
           import android.widget.Button;
-          import android.widget.ProgressBar;
           import android.widget.FrameLayout;
-          import android.view.ViewGroup;
-          import android.webkit.PermissionRequest;
+          import android.widget.ProgressBar;
+          import android.widget.Toast;
 
-          import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-          import androidx.core.splashscreen.SplashScreen;
           import androidx.activity.OnBackPressedCallback;
-          import androidx.appcompat.app.AppCompatActivity;
-          import androidx.appcompat.app.AlertDialog;
-          import android.app.Activity;
-          import android.content.Intent;
-          import android.content.ActivityNotFoundException;
-          import android.net.Uri;
-          import android.webkit.ValueCallback;
-          import android.webkit.WebChromeClient.FileChooserParams;
-          import java.net.URL;
-          import java.net.HttpURLConnection;
-          import java.io.InputStream;
-          import java.io.FileOutputStream;
-          import java.io.File;
-          import java.io.IOException;
-          import android.webkit.CookieManager;
-          import android.webkit.JavascriptInterface;
           import androidx.activity.result.ActivityResultLauncher;
           import androidx.activity.result.contract.ActivityResultContracts;
-          import android.app.DownloadManager;
-          import android.os.Environment;
-          import android.webkit.URLUtil;
-          import android.widget.Toast;
-          import android.util.Log;
-          import android.content.Context;
-          import android.content.IntentFilter;
-          import android.view.WindowManager;
-          import android.provider.MediaStore;
+          import androidx.appcompat.app.AppCompatActivity;
           import androidx.core.content.FileProvider;
+          import androidx.core.splashscreen.SplashScreen;
+          import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+          import org.json.JSONObject;
+
+          import java.io.BufferedReader;
+          import java.io.File;
+          import java.io.IOException;
+          import java.io.InputStreamReader;
+          import java.net.HttpURLConnection;
+          import java.net.URL;
           import java.text.SimpleDateFormat;
           import java.util.Date;
           import java.util.Locale;
-          import org.json.JSONObject;
-          import java.io.BufferedReader;
-          import java.io.InputStreamReader;
           import java.util.concurrent.Executors;
-          import android.os.Handler;
-          import android.os.Looper;
+
           public class MainActivity extends AppCompatActivity {
 
               private WebView webView;
@@ -337,91 +336,45 @@ jobs:
               private Uri cameraImageUri;
               private long updateDownloadId = -1;
               private android.content.BroadcastReceiver updateReceiver;
-              private String  pendingDownloadUrl;
-              private String pendingToken;
-
-             private final  ActivityResultLauncher<Intent> 
-             createDocumentLauncher =
-             registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        Uri targetUri = result.getData().getData();
-                        if (targetUri != null && pendingDownloadUrl != null) {
-                            // User ne permission aur location de di, ab download start karein
-                            writeStreamToUri(pendingDownloadUrl, targetUri, pendingToken);
-                        }
-                    } else {
-                        Toast.makeText(this, "Download cancelled", Toast.LENGTH_SHORT).show();
-                    }
-                }
-             );
 
               private final ActivityResultLauncher<Intent> fileChooserLauncher =
-              registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-
-                    if (filePathCallback == null)
-                        return;
-
-                    Uri[] results = null;
-
-                    if (result.getResultCode() == Activity.RESULT_OK) {
-
-                        // Gallery
-                        if (result.getData() != null &&
-                                result.getData().getData() != null) {
-
-                            results = new Uri[]{
-                                    result.getData().getData()
-                            };
-
-                        }
-                        // Camera
-                        else if (cameraImageUri != null) {
-
-                            results = new Uri[]{
-                                    cameraImageUri
-                            };
-                        }
-                    }
-
-                    filePathCallback.onReceiveValue(results);
-                    filePathCallback = null;
-                });
+                      registerForActivityResult(
+                              new ActivityResultContracts.StartActivityForResult(),
+                              result -> {
+                                  if (filePathCallback == null) return;
+                                  Uri[] results = null;
+                                  if (result.getResultCode() == Activity.RESULT_OK) {
+                                      if (result.getData() != null && result.getData().getData() != null) {
+                                          results = new Uri[]{ result.getData().getData() };
+                                      } else if (cameraImageUri != null) {
+                                          results = new Uri[]{ cameraImageUri };
+                                      }
+                                  }
+                                  filePathCallback.onReceiveValue(results);
+                                  filePathCallback = null;
+                              });
 
               @SuppressLint("SetJavaScriptEnabled")
               @Override
               protected void onCreate(Bundle savedInstanceState) {
-             SplashScreen.installSplashScreen(this);
+                  SplashScreen.installSplashScreen(this);
 
-            super.onCreate(savedInstanceState);
-            getWindow().setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE
-            );
-            setContentView(R.layout.activity_main);
-            Intent intent = getIntent();
+                  super.onCreate(savedInstanceState);
+                  getWindow().setFlags(
+                          WindowManager.LayoutParams.FLAG_SECURE,
+                          WindowManager.LayoutParams.FLAG_SECURE
+                  );
+                  setContentView(R.layout.activity_main);
 
-            if (intent != null && intent.getData() != null) {
-              webView = findViewById(R.id.webView);
-              webView.loadUrl(intent.getData().toString());
-          }
-            fullscreenContainer = new FrameLayout(this);
-            fullscreenContainer.setLayoutParams(
-                new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-           )
-           );
-
-          addContentView(
-                fullscreenContainer,
-                fullscreenContainer.getLayoutParams()
-          );
-
-                fullscreenContainer.setVisibility(View.GONE);
+                  fullscreenContainer = new FrameLayout(this);
+                  fullscreenContainer.setLayoutParams(
+                          new FrameLayout.LayoutParams(
+                                  FrameLayout.LayoutParams.MATCH_PARENT,
+                                  FrameLayout.LayoutParams.MATCH_PARENT
+                          )
+                  );
+                  addContentView(fullscreenContainer, fullscreenContainer.getLayoutParams());
+                  fullscreenContainer.setVisibility(View.GONE);
 
                   swipeRefresh = findViewById(R.id.swipeRefresh);
                   progressBar = findViewById(R.id.progressBar);
@@ -429,21 +382,26 @@ jobs:
                   btnRetry = findViewById(R.id.btnRetry);
                   webView = findViewById(R.id.webView);
 
+                  Intent intent = getIntent();
+                  if (intent != null && intent.getData() != null) {
+                      webView.loadUrl(intent.getData().toString());
+                  }
+
                   WebSettings settings = webView.getSettings();
                   settings.setJavaScriptEnabled(true);
                   webView.setHapticFeedbackEnabled(false);
                   webView.setLongClickable(false);
                   settings.setDomStorageEnabled(true);
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                  CookieManager.getInstance().setAcceptThirdPartyCookies(webView, false);
+                      CookieManager.getInstance().setAcceptThirdPartyCookies(webView, false);
                   }
                   settings.setDatabaseEnabled(true);
                   settings.setCacheMode(WebSettings.LOAD_DEFAULT);
                   settings.setAllowFileAccess(true);
                   settings.setAllowContentAccess(true);
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                  settings.setAllowFileAccessFromFileURLs(false);
-                  settings.setAllowUniversalAccessFromFileURLs(false);
+                      settings.setAllowFileAccessFromFileURLs(false);
+                      settings.setAllowUniversalAccessFromFileURLs(false);
                   }
                   settings.setLoadsImagesAutomatically(true);
                   settings.setBlockNetworkImage(false);
@@ -461,139 +419,98 @@ jobs:
                       settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
                   }
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                  settings.setSafeBrowsingEnabled(true);
+                      settings.setSafeBrowsingEnabled(true);
                   }
+
                   webView.setWebChromeClient(new WebChromeClient() {
-
                       @Override
-                      public boolean onShowFileChooser(
-                         WebView webView,
-                         ValueCallback<Uri[]> filePathCallback,
-                         FileChooserParams fileChooserParams) {
+                      public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                          MainActivity.this.filePathCallback = filePathCallback;
+                          try {
+                              File photoFile = createImageFile();
+                              cameraImageUri = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".fileprovider", photoFile);
+                              Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                              cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
+                              cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                              cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
-                      MainActivity.this.filePathCallback = filePathCallback;
+                              Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                              galleryIntent.setType("*/*");
+                              galleryIntent.addCategory(Intent.CATEGORY_OPENABLE);
 
-                       try {
+                              Intent chooser = Intent.createChooser(galleryIntent, "Select File");
+                              chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
 
-                      File photoFile = createImageFile();
-
-                     cameraImageUri = FileProvider.getUriForFile(
-                MainActivity.this,
-                getPackageName() + ".fileprovider",
-                photoFile
-                );
-
-                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
-                cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-
-                Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
-                galleryIntent.setType("*/*");
-                galleryIntent.addCategory(Intent.CATEGORY_OPENABLE);
-
-                Intent chooser = Intent.createChooser(galleryIntent, "Select File");
-                chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
-
-                fileChooserLauncher.launch(chooser);
-
-                } catch (Exception e) {
-
-               Toast.makeText(
-                MainActivity.this,
-                "Unable to open file chooser",
-                Toast.LENGTH_SHORT
-          ).show();
-
-          return false;
-          }
-
-            return true;
-          }
-                      @Override
-                      public boolean onJsAlert(WebView view, String url, String message,
-                         JsResult result) {
-
-                        new AlertDialog.Builder(MainActivity.this)
-                            .setMessage(message)
-                            .setPositiveButton("OK", (d, w) -> result.confirm())
-                            .setCancelable(false)
-                            .show();
-
-                         return true;
-                     }
-
-                     @Override
-                     public boolean onJsConfirm(WebView view, String url, String message,
-                           JsResult result) {
-
-                        new AlertDialog.Builder(MainActivity.this)
-                            .setMessage(message)
-                            .setPositiveButton("OK", (d, w) -> result.confirm())
-                            .setNegativeButton("Cancel", (d, w) -> result.cancel())
-                            .setCancelable(false)
-                            .show();
-
-                           return true;
+                              fileChooserLauncher.launch(chooser);
+                          } catch (Exception e) {
+                              Toast.makeText(MainActivity.this, "Unable to open file chooser", Toast.LENGTH_SHORT).show();
+                              return false;
+                          }
+                          return true;
                       }
-                     @Override
-                     public void onPermissionRequest(PermissionRequest request) {
 
-                           runOnUiThread(() -> request.grant(request.getResources()));
-                     }
-                     @Override
-                     public void onShowCustomView(View view,
-                             CustomViewCallback callback) {
+                      @Override
+                      public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+                          new AlertDialog.Builder(MainActivity.this)
+                                  .setMessage(message)
+                                  .setPositiveButton("OK", (d, w) -> result.confirm())
+                                  .setCancelable(false)
+                                  .show();
+                          return true;
+                      }
 
-                            if (customView != null) {
-                           callback.onCustomViewHidden();
-                           return;
-                    }
+                      @Override
+                      public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
+                          new AlertDialog.Builder(MainActivity.this)
+                                  .setMessage(message)
+                                  .setPositiveButton("OK", (d, w) -> result.confirm())
+                                  .setNegativeButton("Cancel", (d, w) -> result.cancel())
+                                  .setCancelable(false)
+                                  .show();
+                          return true;
+                      }
 
+                      @Override
+                      public void onPermissionRequest(PermissionRequest request) {
+                          runOnUiThread(() -> request.grant(request.getResources()));
+                      }
+
+                      @Override
+                      public void onShowCustomView(View view, CustomViewCallback callback) {
+                          if (customView != null) {
+                              callback.onCustomViewHidden();
+                              return;
+                          }
                           customView = view;
                           customViewCallback = callback;
+                          fullscreenContainer.addView(view);
+                          fullscreenContainer.setVisibility(View.VISIBLE);
+                          webView.setVisibility(View.GONE);
+                      }
 
-                         fullscreenContainer.addView(view);
-                         fullscreenContainer.setVisibility(View.VISIBLE);
-
-                         webView.setVisibility(View.GONE);
-                   }
-                   @Override
-                   public void onHideCustomView() {
-
-                        if (customView == null) {
-                        return;
-                  }
-   
-                        fullscreenContainer.removeView(customView);
-
-                        fullscreenContainer.setVisibility(View.GONE);
-
-                        customView = null;
-
-                        webView.setVisibility(View.VISIBLE);
-
-                        if (customViewCallback != null) {
-                        customViewCallback.onCustomViewHidden();
-                        customViewCallback = null;
-                    }
-                   }
+                      @Override
+                      public void onHideCustomView() {
+                          if (customView == null) return;
+                          fullscreenContainer.removeView(customView);
+                          fullscreenContainer.setVisibility(View.GONE);
+                          customView = null;
+                          webView.setVisibility(View.VISIBLE);
+                          if (customViewCallback != null) {
+                              customViewCallback.onCustomViewHidden();
+                              customViewCallback = null;
+                          }
+                      }
                   });
 
                   webView.setWebViewClient(new WebViewClient() {
-                  @Override
-                  public void onReceivedSslError(
-                       WebView view,
-                       android.webkit.SslErrorHandler handler,
-                       android.net.http.SslError error) {
-
-                     handler.cancel();
-                  }
+                      @Override
+                      public void onReceivedSslError(WebView view, android.webkit.SslErrorHandler handler, android.net.http.SslError error) {
+                          handler.cancel();
+                      }
 
                       @Override
                       public void onPageStarted(WebView view, String url, Bitmap favicon) {
                           super.onPageStarted(view, url, favicon);
-
                           progressBar.setVisibility(View.VISIBLE);
                           webView.setVisibility(View.VISIBLE);
                           offlineLayout.setVisibility(View.GONE);
@@ -606,19 +523,19 @@ jobs:
                           progressBar.setVisibility(View.GONE);
                           swipeRefresh.setRefreshing(false);
                       }
+
                       @Override
                       public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
                           super.doUpdateVisitedHistory(view, url, isReload);
-
                           CookieManager.getInstance().flush();
                       }
+
                       @Override
                       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-
                           String url = request.getUrl().toString();
                           Uri uri = request.getUrl();
                           String host = uri.getHost();
-                          // UPI Payment (GPay, PhonePe, Paytm, etc.)
+
                           if (url.startsWith("upi://")) {
                               try {
                                   Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
@@ -628,23 +545,16 @@ jobs:
                               }
                               return true;
                           }
-                          
 
-                          if (host != null &&
-                      !host.endsWith("gdsnotes.in") &&
-                      !host.equals("wa.me") &&
-                      !host.equals("api.whatsapp.com")) {
-  
-                      Intent browser = new Intent(Intent.ACTION_VIEW, uri);
-                          startActivity(browser);
-                          return true;
-                      }
+                          if (host != null && !host.endsWith("gdsnotes.in") && !host.equals("wa.me") && !host.equals("api.whatsapp.com")) {
+                              Intent browser = new Intent(Intent.ACTION_VIEW, uri);
+                              startActivity(browser);
+                              return true;
+                          }
 
-                          // Email
                           if (url.startsWith("mailto:")) {
                               try {
-                                  Intent intent = new Intent(Intent.ACTION_SENDTO);
-                                  intent.setData(Uri.parse(url));
+                                  Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse(url));
                                   startActivity(intent);
                               } catch (ActivityNotFoundException e) {
                                   Toast.makeText(MainActivity.this, "No email app found", Toast.LENGTH_SHORT).show();
@@ -652,11 +562,9 @@ jobs:
                               return true;
                           }
 
-                          // Phone
                           if (url.startsWith("tel:")) {
                               try {
-                                  Intent intent = new Intent(Intent.ACTION_DIAL);
-                                  intent.setData(Uri.parse(url));
+                                  Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse(url));
                                   startActivity(intent);
                               } catch (Exception e) {
                                   Toast.makeText(MainActivity.this, "Unable to open dialer", Toast.LENGTH_SHORT).show();
@@ -664,11 +572,7 @@ jobs:
                               return true;
                           }
 
-                          // WhatsApp
-                          if (url.startsWith("https://wa.me/") ||
-                              url.startsWith("https://api.whatsapp.com/") ||
-                              url.startsWith("whatsapp://")) {
-
+                          if (url.startsWith("https://wa.me/") || url.startsWith("https://api.whatsapp.com/") || url.startsWith("whatsapp://")) {
                               try {
                                   Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                                   intent.setPackage("com.whatsapp");
@@ -687,440 +591,208 @@ jobs:
                           view.loadUrl(url);
                           return true;
                       }
+
                       @Override
-                      public boolean onRenderProcessGone(
-                         WebView view,
-                         android.webkit.RenderProcessGoneDetail detail) {
+                      public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+                          view.destroy();
+                          recreate();
+                          return true;
+                      }
 
-                         view.destroy();
-                         recreate();
-                         return true;
-                     }
                       @Override
-                      public void onReceivedError(WebView view,
-                            WebResourceRequest request,
-                            WebResourceError error) {
+                      public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                          super.onReceivedError(view, request, error);
+                          if (request.isForMainFrame()) {
+                              progressBar.setVisibility(View.GONE);
+                              swipeRefresh.setRefreshing(false);
+                              webView.setVisibility(View.GONE);
+                              offlineLayout.setVisibility(View.VISIBLE);
+                          }
+                      }
+                  });
 
-                        super.onReceivedError(view, request, error);
+                  webView.setOnLongClickListener(v -> true);
+                  webView.setLongClickable(false);
+                  webView.clearCache(false);
+                  webView.clearHistory();
 
-                    // Sirf main page fail hone par offline screen dikhao
-                    if (request.isForMainFrame()) {
+                  CookieManager cookieManager = CookieManager.getInstance();
+                  cookieManager.setAcceptCookie(true);
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                      cookieManager.setAcceptThirdPartyCookies(webView, false);
+                  }
 
-                       progressBar.setVisibility(View.GONE);
-                       swipeRefresh.setRefreshing(false);
-
-                       webView.setVisibility(View.GONE);
-                       offlineLayout.setVisibility(View.VISIBLE);
-                   }
-                 }
-              });
-              webView.setOnLongClickListener(v -> true);
-              webView.setLongClickable(false);      
-          webView.clearCache(false);
-          webView.clearHistory();
-          CookieManager cookieManager = CookieManager.getInstance();
-          cookieManager.setAcceptCookie(true);
-
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-          cookieManager.setAcceptThirdPartyCookies(webView, false);
-          }
-          if (getIntent() == null || getIntent().getData() == null) {
-              webView.loadUrl("https://rsh.gdsnotes.in");
-          }
+                  if (getIntent() == null || getIntent().getData() == null) {
+                      webView.loadUrl("https://rsh.gdsnotes.in");
+                  }
 
                   swipeRefresh.setOnRefreshListener(() -> webView.reload());
-                  swipeRefresh.setOnChildScrollUpCallback(
-                  (parent, child) -> webView.getScrollY() > 0
-                  );
+                  swipeRefresh.setOnChildScrollUpCallback((parent, child) -> webView.getScrollY() > 0);
                   btnRetry.setOnClickListener(v -> {
                       offlineLayout.setVisibility(View.GONE);
                       webView.reload();
                   });
-          updateReceiver = new android.content.BroadcastReceiver() {
-          @Override
-          public void onReceive(Context context, Intent intent) {
 
-            long id = intent.getLongExtra(
-                DownloadManager.EXTRA_DOWNLOAD_ID,
-                -1
-           );
-
-          if (id == updateDownloadId) {
-
-            DownloadManager dm =
-                    (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-
-            if (dm == null) return;
-
-            DownloadManager.Query query =
-                    new DownloadManager.Query();
-
-            query.setFilterById(updateDownloadId);
-
-            android.database.Cursor cursor =
-                    dm.query(query);
-
-            if (cursor != null && cursor.moveToFirst()) {
-
-                int uriIndex =
-                        cursor.getColumnIndex(
-                                DownloadManager.COLUMN_LOCAL_URI);
-
-                if (uriIndex >= 0) {
-
-                    String uri =
-                            cursor.getString(uriIndex);
-
-                    if (uri != null) {
-
-                        installApk(new File(Uri.parse(uri).getPath()));
-
-                    }
-
-                }
-
-                cursor.close();
-
-            }
-
-          }
-
-          }
-          };
-
-          IntentFilter filter = new IntentFilter(
-          DownloadManager.ACTION_DOWNLOAD_COMPLETE
-          );
-
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-          registerReceiver(
-            updateReceiver,
-            filter,
-            Context.RECEIVER_NOT_EXPORTED
-          );
-          } else {
-          registerReceiver(updateReceiver, filter);
-          }
-          getOnBackPressedDispatcher().addCallback(this,
-              new OnBackPressedCallback(true) {
-                  @Override
-                  public void handleOnBackPressed() {
-                      if (webView.canGoBack()) {
-                          webView.goBack();
-                      } else {
-                          finish();
+                  updateReceiver = new android.content.BroadcastReceiver() {
+                      @Override
+                      public void onReceive(Context context, Intent intent) {
+                          long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+                          if (id == updateDownloadId) {
+                              DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                              if (dm == null) return;
+                              DownloadManager.Query query = new DownloadManager.Query();
+                              query.setFilterById(updateDownloadId);
+                              android.database.Cursor cursor = dm.query(query);
+                              if (cursor != null && cursor.moveToFirst()) {
+                                  int uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
+                                  if (uriIndex >= 0) {
+                                      String uri = cursor.getString(uriIndex);
+                                      if (uri != null) {
+                                          installApk(new File(Uri.parse(uri).getPath()));
+                                      }
+                                  }
+                                  cursor.close();
+                              }
+                          }
                       }
-                  }
-              });
+                  };
 
-          CookieManager.getInstance().setAcceptCookie(true);
-
-          webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
-
-              // 1. Blob URLs ko ignore karein
-              if (url != null && url.startsWith("blob:")) {
-                  return;
-              }
-
-              try {
-                  // 2. Exact Filename detect karein
-                  String fileName = "Document.pdf";
-                  if (contentDisposition != null && contentDisposition.contains("filename=")) {
-                      fileName = contentDisposition
-                              .replaceFirst("(?i).*filename=\"?", "")
-                              .replace("\"", "")
-                              .split(";")[0]
-                              .trim();
+                  IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      registerReceiver(updateReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
                   } else {
-                      fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                      registerReceiver(updateReceiver, filter);
                   }
 
-                  // 3. Android System DownloadManager Setup
-                  DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                  getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+                      @Override
+                      public void handleOnBackPressed() {
+                          if (webView.canGoBack()) {
+                              webView.goBack();
+                          } else {
+                              finish();
+                          }
+                      }
+                  });
 
-                  // Secret Header add karein (Server par 'Direct access blocked' na aaye)
-                  request.addRequestHeader("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
+                  // 🚀 SYSTEM DOWNLOADMANAGER LISTENER
+                  webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
+                      if (url != null && url.startsWith("blob:")) {
+                          return;
+                      }
 
-                  String cookies = CookieManager.getInstance().getCookie(url);
-                  if (cookies != null) {
-                      request.addRequestHeader("Cookie", cookies);
-                  }
+                      try {
+                          String fileName = "Document.pdf";
+                          if (contentDisposition != null && contentDisposition.contains("filename=")) {
+                              fileName = contentDisposition
+                                      .replaceFirst("(?i).*filename=\"?", "")
+                                      .replace("\"", "")
+                                      .split(";")[0]
+                                      .trim();
+                          } else {
+                              fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                          }
 
-                  request.setMimeType("application/pdf");
+                          DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                          request.addRequestHeader("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
 
-                  // Notification Bar / Taskbar Status Configuration
-                  request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                  request.setTitle(fileName);
-                  request.setDescription("Downloading PDF File...");
+                          String cookies = CookieManager.getInstance().getCookie(url);
+                          if (cookies != null) {
+                              request.addRequestHeader("Cookie", cookies);
+                          }
 
-                  // Downloads Folder Destination
-                  request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+                          request.setMimeType("application/pdf");
+                          request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                          request.setTitle(fileName);
+                          request.setDescription("Downloading PDF File...");
+                          request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
 
-                  // Download Enqueue
-                  DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-                  if (dm != null) {
-                      dm.enqueue(request);
-                      Toast.makeText(MainActivity.this, "Downloading PDF in taskbar...", Toast.LENGTH_SHORT).show();
-                  }
+                          DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                          if (dm != null) {
+                              dm.enqueue(request);
+                              Toast.makeText(MainActivity.this, "Downloading PDF in taskbar...", Toast.LENGTH_SHORT).show();
+                          }
 
-              } catch (Exception e) {
-                  Toast.makeText(MainActivity.this, "Download Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                      } catch (Exception e) {
+                          Toast.makeText(MainActivity.this, "Download Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                      }
+                  });
+
+                  checkForUpdates();
               }
-          });
 
-          checkForUpdates();
-          }
+              private void checkForUpdates() {
+                  Executors.newSingleThreadExecutor().execute(() -> {
+                      try {
+                          URL url = new URL("https://rsh.gdsnotes.in/version.json");
+                          HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                          conn.setRequestMethod("GET");
+                          conn.setConnectTimeout(30000);
+                          conn.setReadTimeout(30000);
 
-           checkForUpdates();
+                          BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                          StringBuilder json = new StringBuilder();
+                          String line;
+                          while ((line = reader.readLine()) != null) {
+                              json.append(line);
+                          }
+                          reader.close();
+
+                          JSONObject object = new JSONObject(json.toString());
+                          int latestVersionCode = object.getInt("versionCode");
+                          String latestVersionName = object.getString("versionName");
+                          String apkUrl = object.getString("apkUrl");
+                          String message = object.getString("message");
+
+                          if (latestVersionCode > BuildConfig.VERSION_CODE && !isFinishing() && !isDestroyed()) {
+                              new Handler(Looper.getMainLooper()).post(() -> showUpdateDialog(latestVersionName, message, apkUrl));
+                          }
+                      } catch (Exception e) {
+                          e.printStackTrace();
+                      }
+                  });
+              }
+
+              private void showUpdateDialog(String versionName, String message, String apkUrl) {
+                  new AlertDialog.Builder(MainActivity.this)
+                          .setTitle("🎉 New Update Available")
+                          .setMessage("Current Version : " + BuildConfig.VERSION_NAME + "\n\nLatest Version : " + versionName + "\n\n" + message)
+                          .setCancelable(false)
+                          .setPositiveButton("Update Now", (dialog, which) -> downloadApk(apkUrl))
+                          .setNegativeButton("Later", (dialog, which) -> dialog.dismiss())
+                          .show();
+              }
+
+              private void downloadApk(String apkUrl) {
+                  try {
+                      Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl));
+                      startActivity(intent);
+                  } catch (Exception e) {
+                      Toast.makeText(this, "Unable to open download link", Toast.LENGTH_SHORT).show();
+                  }
+              }
+
+              private void installApk(File apkFile) {
+                  try {
+                      Toast.makeText(this, "Update downloaded! Open Downloads folder to install.", Toast.LENGTH_LONG).show();
+                      Intent intent = new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS);
+                      intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                      startActivity(intent);
+                  } catch (Exception e) {
+                      Toast.makeText(this, "File saved in Downloads folder", Toast.LENGTH_LONG).show();
+                  }
+              }
+
+              private File createImageFile() throws IOException {
+                  String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+                  String imageFileName = "IMG_" + timeStamp + "_";
+                  File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                  return File.createTempFile(imageFileName, ".jpg", storageDir);
+              }
           }
+          EOF
+                                      
   
-          private void checkForUpdates() {
-
-          Executors.newSingleThreadExecutor().execute(() -> {
-
-          try {
-
-            URL url = new URL("https://rsh.gdsnotes.in/version.json");
-
-            HttpURLConnection conn =
-                    (HttpURLConnection) url.openConnection();
-
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(30000);
-            conn.setReadTimeout(30000);
-
-            BufferedReader reader =
-                    new BufferedReader(
-                            new InputStreamReader(conn.getInputStream()));
-
-            StringBuilder json = new StringBuilder();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                json.append(line);
-            }
-
-            reader.close();
-
-            JSONObject object = new JSONObject(json.toString());
-
-            int latestVersionCode =
-                    object.getInt("versionCode");
-
-            String latestVersionName =
-                    object.getString("versionName");
-
-            String apkUrl =
-                    object.getString("apkUrl");
-
-            String message =
-                    object.getString("message");
-
-                    if (latestVersionCode > BuildConfig.VERSION_CODE &&
-                    !isFinishing() &&
-                    !isDestroyed()) {
-
-                new Handler(Looper.getMainLooper()).post(() -> {
-
-                    showUpdateDialog(
-                            latestVersionName,
-                            message,
-                            apkUrl
-                    );
-
-                });
-
-            }
-
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-
-          });
-
-          }
-          private void showUpdateDialog(
-           String versionName,
-           String message,
-           String apkUrl) {
-
-          new AlertDialog.Builder(MainActivity.this)
-            .setTitle("🎉 New Update Available")
-
-            .setMessage(
-                    "Current Version : "
-                            + BuildConfig.VERSION_NAME
-                            + "\n\nLatest Version : "
-                            + versionName
-                            + "\n\n"
-                            + message)
-
-            .setCancelable(false)
-
-            .setPositiveButton("Update Now",
-                    (dialog, which) -> {
-
-                        downloadApk(apkUrl);
-
-                    })
-
-            .setNegativeButton("Later",
-                    (dialog, which) -> {
-
-                        dialog.dismiss();
-
-                    })
-
-            .show();
-          }
-          private void downloadApk(String apkUrl) {
-          //    Direct Browser Intent so user confirms download
-              try {
-          Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl));
-           startActivity(intent);
-          } catch (Exception e) {
-             Toast.makeText(this, "Unable to open download link", Toast.LENGTH_SHORT).show();
-          }
-          }
-
-          private void installApk(File apkFile) {
-             try {
-          // डाउनलोड पूरा होने पर यूजर को सूचना दें
-           Toast.makeText(this, "Update downloaded! Open Downloads folder to install.", Toast.LENGTH_LONG).show();
-        
-          // सीधे डाउनलोड फोल्डर / फाइल मैनेजर खोलने का इंटेंट
-          Intent intent = new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS);
-          intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-          startActivity(intent);
-          } catch (Exception e) {
-            Toast.makeText(this, "File saved in Downloads folder", Toast.LENGTH_LONG).show();
-          }
-          }
-
-          private File createImageFile() throws IOException {
-
-             String timeStamp = new SimpleDateFormat(
-            "yyyyMMdd_HHmmss",
-             Locale.getDefault()
-             ).format(new Date());
- 
-            String imageFileName = "IMG_" + timeStamp + "_";
-
-            File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-
-            return File.createTempFile(
-            imageFileName,
-            ".jpg",
-            storageDir
-          );
-          }
-          private void downloadFile(String fileUrl, String fileName, String token) {
-          this.pendingDownloadUrl = fileUrl;
-          this.pendingToken = token;
-
-          // 🚀 Har Download par fixed "Document.pdf" name hi dikhaya jayega
-          String cleanTitle = "Document.pdf";
-
-          // Agar APK, Image ya kisi aur extension ki file ho to uske hisab se extension set karein
-          if (fileName != null) {
-           if (fileName.endsWith(".apk")) {
-            cleanTitle = "App_Update.apk";
-           } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-            cleanTitle = "Image.jpg";
-          }
-          }
-
-          // MimeType identify
-          String mimeType = "application/pdf"; 
-          if (cleanTitle.endsWith(".apk")) {
-           mimeType = "application/vnd.android.package-archive";
-          } else if (cleanTitle.endsWith(".png")) {
-           mimeType = "image/png";
-          } else if (cleanTitle.endsWith(".jpg") || cleanTitle.endsWith(".jpeg")) {
-            mimeType = "image/jpeg";
-          }
-  
-          // Android Storage Access Framework Dialog Launcher
-           Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-           intent.addCategory(Intent.CATEGORY_OPENABLE);
-           intent.setType(mimeType);
-           intent.putExtra(Intent.EXTRA_TITLE, cleanTitle); // 🔥 Storage dialog me "Document.pdf" hi aayega
-
-               try {
-           createDocumentLauncher.launch(intent);
-          } catch (Exception e) {
-            Toast.makeText(this, "Cannot open file picker", Toast.LENGTH_SHORT).show();
-          }
-          }
-
-
-          private void writeStreamToUri(String fileUrl, Uri targetUri, String token) {
-               Toast.makeText(MainActivity.this, "Connecting to server...", Toast.LENGTH_SHORT).show();
-
-          new Thread(() -> {
-              try {
-            String cookies = android.webkit.CookieManager.getInstance().getCookie(fileUrl);
-
-            java.net.URL url = new java.net.URL(fileUrl.replace(" ", "%20"));
-            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
-
-            // Headers Setup
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(90000);
-            connection.setReadTimeout(90000);
-            connection.setInstanceFollowRedirects(true);
-            connection.setRequestProperty("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10)");
-
-            if (token != null && !token.isEmpty() && !token.equals("null")) {
-                connection.setRequestProperty("Authorization", "Bearer " + token);
-            }
-            if (cookies != null && !cookies.isEmpty()) {
-                connection.setRequestProperty("Cookie", cookies);
-            }
-
-            connection.connect();
-
-            int status = connection.getResponseCode();
-            if (status != 200) {
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Error status: " + status, Toast.LENGTH_LONG).show());
-                return;
-            }
-
-            java.io.InputStream input = connection.getInputStream();
-            java.io.OutputStream output = getContentResolver().openOutputStream(targetUri);
-
-            if (output != null) {
-                byte[] buffer = new byte[4096];
-                int len;
-                while ((len = input.read(buffer)) != -1) {
-                    output.write(buffer, 0, len);
-                }
-                output.flush();
-                output.close();
-            }
-            input.close();
-
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, "File Saved Successfully!", Toast.LENGTH_SHORT).show());
-
-            } catch (Exception e) {
-
-              Log.e("DOWNLOAD_ERROR", "fileUrl = " + fileUrl, e);
-
-              String error = e.getClass().getSimpleName() + ": " +
-              (e.getMessage() != null ? e.getMessage() : "null");
-
-             runOnUiThread(() -> Toast.makeText(
-            MainActivity.this,
-            "URL = " + fileUrl + "\n\n" + error,
-            Toast.LENGTH_LONG
-          ).show());
-
-          }
-          }).start();
-          }
-          }
-          
       - name: Verify Generated MainActivity
         run: |
          echo "===== Package ====="
