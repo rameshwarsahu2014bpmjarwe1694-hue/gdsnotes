@@ -1063,11 +1063,18 @@ jobs:
             runOnUiThread(() -> Toast.makeText(MainActivity.this, "File Saved Successfully!", Toast.LENGTH_SHORT).show());
 
             } catch (Exception e) {
-                String error = e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "null");
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Download Error: " + error, Toast.LENGTH_LONG).show());
-            }
-            }).start();
-            }
+
+              Log.e("DOWNLOAD_ERROR", "fileUrl = " + fileUrl, e);
+
+            String error = e.getClass().getSimpleName() + ": " +
+            (e.getMessage() != null ? e.getMessage() : "null");
+
+            runOnUiThread(() -> Toast.makeText(
+            MainActivity.this,
+            "URL = " + fileUrl + "\n\n" + error,
+            Toast.LENGTH_LONG
+            ).show());
+
             }
           
       - name: Verify Generated MainActivity
