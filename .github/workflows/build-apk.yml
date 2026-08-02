@@ -308,6 +308,7 @@ jobs:
           import android.os.Environment;
           import android.webkit.URLUtil;
           import android.widget.Toast;
+          import android.util.Log;
           import android.content.Context;
           import android.content.IntentFilter;
           import android.view.WindowManager;
