@@ -259,7 +259,9 @@ jobs:
          echo ""
          grep -n "pathPrefix" webview-build/app/src/main/AndroidManifest.xml
       
-            - name: Generate MainActivity.java
+        
+           
+      - name: Generate MainActivity.java
         run: |
           mkdir -p webview-build/app/src/main/java/io/gdsnote/rshtwa
 
