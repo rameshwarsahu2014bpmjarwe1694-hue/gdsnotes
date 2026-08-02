@@ -817,59 +817,60 @@ jobs:
 
           webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
 
+              // 1. Blob URLs ko ignore karein
+              if (url != null && url.startsWith("blob:")) {
+                  return;
+              }
+
               try {
-          String fileName = "Document.pdf";
-           if (contentDisposition != null && contentDisposition.contains("filename=")) {
-            fileName = contentDisposition
-                    .replaceFirst("(?i).*filename=\"?", "")
-                    .replace("\"", "")
-                    .split(";")[0]
-                    .trim();
-           } else {
-            fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
-           }
+                  // 2. Exact Filename detect karein
+                  String fileName = "Document.pdf";
+                  if (contentDisposition != null && contentDisposition.contains("filename=")) {
+                      fileName = contentDisposition
+                              .replaceFirst("(?i).*filename=\"?", "")
+                              .replace("\"", "")
+                              .split(";")[0]
+                              .trim();
+                  } else {
+                      fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                  }
 
-           // Native Storage Picker for direct download handling
-           downloadFile(url, fileName, null);
+                  // 3. Android System DownloadManager Setup
+                  DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
 
-          } catch (Exception e) {
-             Toast.makeText(MainActivity.this, "Download Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-          }
+                  // Secret Header add karein (Server par 'Direct access blocked' na aaye)
+                  request.addRequestHeader("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
+
+                  String cookies = CookieManager.getInstance().getCookie(url);
+                  if (cookies != null) {
+                      request.addRequestHeader("Cookie", cookies);
+                  }
+
+                  request.setMimeType("application/pdf");
+
+                  // Notification Bar / Taskbar Status Configuration
+                  request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                  request.setTitle(fileName);
+                  request.setDescription("Downloading PDF File...");
+
+                  // Downloads Folder Destination
+                  request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+
+                  // Download Enqueue
+                  DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                  if (dm != null) {
+                      dm.enqueue(request);
+                      Toast.makeText(MainActivity.this, "Downloading PDF in taskbar...", Toast.LENGTH_SHORT).show();
+                  }
+
+              } catch (Exception e) {
+                  Toast.makeText(MainActivity.this, "Download Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+              }
           });
 
-
-            // 3. Android System DownloadManager Setup
-             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-
-            // Secret Headers set karein taaki 'Direct access blocked' na aaye
-             request.addRequestHeader("X-Source-Auth", "RSH-GDS-SECURE-ACCESS");
-        
-             String cookies = CookieManager.getInstance().getCookie(url);
-            if (cookies != null) {
-            request.addRequestHeader("Cookie", cookies);
-            }
-
-            request.setMimeType("application/pdf");
-        
-            // Taskbar / Notification status configuration
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            request.setTitle(fileName);
-            request.setDescription("Downloading PDF File...");
-
-            // Downloads Folder destination
-             request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
-
-            // Download Start
-            DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-            if (dm != null) {
-            dm.enqueue(request);
-            Toast.makeText(MainActivity.this, "Downloading in taskbar...", Toast.LENGTH_SHORT).show();
-            }
-
-           } catch (Exception e) {
-               Toast.makeText(MainActivity.this, "Download Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+          checkForUpdates();
           }
-          });
+
            checkForUpdates();
           }
   
