@@ -1132,12 +1132,11 @@ jobs:
            Uri uri = Uri.parse(url);
            String host = uri.getHost();
 
-          // Sirf apne domain se download allow
-           if (host == null ||
-                !(host.equals("rsh.gdsnotes.in") ||
-                  host.equals("gdsnotes.in"))) {
+          if (host == null ||
+        !(host.endsWith(".gdsnotes.in") ||
+          host.equals("gdsnotes.in"))) {
             return;
-           }
+          }
 
            // Filename validation
            if (fileName == null || fileName.trim().isEmpty()) {
