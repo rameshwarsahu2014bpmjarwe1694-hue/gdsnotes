@@ -417,18 +417,18 @@ jobs:
                   webView.setHapticFeedbackEnabled(false);
                   webView.setLongClickable(false);
                   settings.setDomStorageEnabled(true);
+                  settings.setLoadsImagesAutomatically(true);
+                  settings.setDatabaseEnabled(true);
+                  settings.setAllowFileAccess(true);
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                   CookieManager.getInstance().setAcceptThirdPartyCookies(webView, false);
                   }
-                  settings.setDatabaseEnabled(true);
                   settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-                  settings.setAllowFileAccess(true);
                   settings.setAllowContentAccess(true);
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                  settings.setAllowFileAccessFromFileURLs(false);
-                  settings.setAllowUniversalAccessFromFileURLs(false);
+                  settings.setAllowFileAccessFromFileURLs(true);
+                  settings.setAllowUniversalAccessFromFileURLs(true);
                   }
-                  settings.setLoadsImagesAutomatically(true);
                   settings.setBlockNetworkImage(false);
                   settings.setBlockNetworkLoads(false);
                   settings.setJavaScriptCanOpenWindowsAutomatically(true);
@@ -598,8 +598,20 @@ jobs:
                       @Override
                       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
 
-                          String url = request.getUrl().toString();
-                          Uri uri = request.getUrl();
+                           Uri uri = request.getUrl();
+                           String url = uri.toString();
+
+                          // Blob URL ko WebView hi handle kare
+                          if (url.startsWith("blob:")) {
+                          return false;
+                        }
+   
+                               // PDF ko WebView me hi load hone do
+                        if ("pdf".equalsIgnoreCase(
+                        android.webkit.MimeTypeMap.getFileExtensionFromUrl(url))) {
+                         return false;
+                        }
+
                           String host = uri.getHost();
 
                           if (host != null &&
@@ -656,8 +668,7 @@ jobs:
                               return true;
                           }
 
-                          view.loadUrl(url);
-                          return true;
+                          return false;
                       }
                       @Override
                       public boolean onRenderProcessGone(
