@@ -547,8 +547,8 @@ jobs:
                               }
                               return true;
                           }
-
-                          if (host != null && !host.endsWith("gdsnotes.in") && !host.equals("wa.me") && !host.equals("api.whatsapp.com")) {
+                          if (host != null && !host.endsWith("gdsnotes.in") && !host.endsWith("onrender.com") && !host.equals("wa.me") && !host.equals("api.whatsapp.com")) {
+                          
                               Intent browser = new Intent(Intent.ACTION_VIEW, uri);
                               startActivity(browser);
                               return true;
