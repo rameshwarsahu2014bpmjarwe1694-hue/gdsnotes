@@ -799,22 +799,33 @@ jobs:
            CookieManager.getInstance().setAcceptCookie(true);
           webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
 
-            String fileName = URLUtil.guessFileName(
-                   url,
-                  contentDisposition,
-                  mimeType
-            );
-
-           Toast.makeText(
-                 MainActivity.this,
-                "Downloading...",
-                 Toast.LENGTH_SHORT
+          // Blob URL ko DownloadListener handle nahi kar sakta
+          if (url != null && url.startsWith("blob:")) {
+               Toast.makeText(
+                  MainActivity.this,
+                  "Blob download detected",
+                  Toast.LENGTH_SHORT
            ).show();
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, "Listener Triggered", Toast.LENGTH_SHORT).show());
-               downloadFile(url, fileName, null);
+            return;
+           }
+
+            String fileName = URLUtil.guessFileName(
+            url,
+            contentDisposition,
+            mimeType
+          );
+
+          Toast.makeText(
+              MainActivity.this,
+              "Downloading...",
+              Toast.LENGTH_SHORT
+          ).show();
+
+           downloadFile(url, fileName, null);
 
           });
-          checkForUpdates();
+
+           checkForUpdates();
           }
           private void checkForUpdates() {
 
