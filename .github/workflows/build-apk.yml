@@ -1002,13 +1002,26 @@ jobs:
           }
 
           private void downloadFile(String fileUrl, String fileName, String token) {
+              if (fileUrl == null || fileUrl.isEmpty()) {
+            return;
+          }
+
+              if (fileUrl.startsWith("blob:")) {
+              runOnUiThread(() ->
+              Toast.makeText(MainActivity.this,
+                   "Blob URL is not supported by native downloader",
+                   Toast.LENGTH_LONG).show());
+             return;
+           }
               runOnUiThread(() -> Toast.makeText(MainActivity.this, "Downloading...", Toast.LENGTH_SHORT).show());
 
               new Thread(() -> {
            try {
             String cookies = android.webkit.CookieManager.getInstance().getCookie(fileUrl);
 
-            java.net.URL url = new java.net.URL(fileUrl.replace(" ", "%20"));
+            java.net.URL url = new java.net.URL(
+            fileUrl.replace(" ", "%20").replace("|", "%7C")
+            );
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
             
             connection.setInstanceFollowRedirects(true); 
