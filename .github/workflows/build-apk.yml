@@ -1150,11 +1150,17 @@ jobs:
 
                 Toast.makeText(MainActivity.this, "Host = " + host, Toast.LENGTH_SHORT).show();
 
-                if (host == null ||
-                        !(host.endsWith(".gdsnotes.in") ||
-                          host.equals("gdsnotes.in"))) {
-                    Toast.makeText(MainActivity.this, "Host Blocked", Toast.LENGTH_LONG).show();
-                    return;
+                if (host == null) return;
+
+                   boolean allowed =
+                   host.endsWith(".gdsnotes.in") ||
+                   host.equals("gdsnotes.in") ||
+                   host.equals("payment-backend-2-g6go.onrender.com");
+
+               if (!allowed) {
+                  runOnUiThread(() ->
+                  Toast.makeText(MainActivity.this, "Host Blocked : " + host, Toast.LENGTH_LONG).show());
+                 return;
                 }
 
                 if (safeFileName.trim().isEmpty()) {
