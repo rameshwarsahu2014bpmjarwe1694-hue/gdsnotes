@@ -1114,81 +1114,62 @@ jobs:
 
           private class AndroidBridge {
 
-               @JavascriptInterface
-               public void download(String url, String fileName, String token) {
+              @JavascriptInterface
+              public void download(String url, String fileName, String token) {
 
-               final String safeUrl = url;
-               final String safeFileName = (fileName == null) ? "" : fileName;
-               final String safeToken = (token == null) ? "" : token;
+              final String safeUrl = url;
+              final String safeFileName = (fileName == null) ? "" : fileName;
+              final String safeToken = (token == null) ? "" : token;
 
-                runOnUiThread(() -> {
+               runOnUiThread(() -> {
+  
+                try {
 
-            try {
+                   String currentUrl = webView.getUrl();
 
-                
+                   if (currentUrl == null) {
+                     return;
+                 }
 
-                String currentUrl = webView.getUrl();
+                   if (!(currentUrl.startsWith("https://rsh.gdsnotes.in")
+                         || currentUrl.startsWith("https://gdsnotes.in"))) {
+                     return;
+                 }
 
-                
+                  if (safeUrl == null || !safeUrl.startsWith("https://")) {
+                      return;
+                 }
 
-                if (currentUrl == null) {
-                    
+                  Uri uri = Uri.parse(safeUrl);
+                  String host = uri.getHost();
+  
+                  if (host == null) {
+                      return;
+                  }
+
+                 boolean allowed =
+                        host.endsWith(".gdsnotes.in") ||
+                        host.equals("gdsnotes.in") ||
+                        host.equals("payment-backend-2-g6go.onrender.com");
+
+                if (!allowed) {
                     return;
-                }
-
-                if (!(currentUrl.startsWith("https://rsh.gdsnotes.in")
-                        || currentUrl.startsWith("https://gdsnotes.in"))) {
-                    
-                    return;
-                }
-
-                if (safeUrl == null || !safeUrl.startsWith("https://")) {
-                    
-                    return;
-                }
-
-                Uri uri = Uri.parse(safeUrl);
-                String host = uri.getHost();
-
-                
-
-                if (host == null) return;
-
-                   boolean allowed =
-                   host.endsWith(".gdsnotes.in") ||
-                   host.equals("gdsnotes.in") ||
-                   host.equals("payment-backend-2-g6go.onrender.com");
-
-               if (!allowed) {
-                  runOnUiThread(() ->
-                  
-                 return;
                 }
 
                 if (safeFileName.trim().isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Filename Empty", Toast.LENGTH_LONG).show();
                     return;
                 }
 
                 String finalFileName =
                         safeFileName.replaceAll("[\\\\/:*?\"<>|]", "_");
 
-                
-
                 downloadFile(safeUrl, finalFileName, safeToken);
 
             } catch (Exception e) {
-
                 android.util.Log.e("AndroidBridge", "Bridge Error", e);
-
-                Toast.makeText(
-                        MainActivity.this,
-                        e.toString(),
-                        Toast.LENGTH_LONG
-                ).show();
             }
 
-           });
+          });
           }
           }
           }
