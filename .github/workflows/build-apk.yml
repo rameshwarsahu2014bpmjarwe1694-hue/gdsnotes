@@ -1086,7 +1086,6 @@ jobs:
                 }
                 input.close();
                }
-               }
 
                     } catch (Exception e) {
           }
