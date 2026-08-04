@@ -1152,9 +1152,18 @@ jobs:
            final String safeFileName = fileName;
            final String safeToken = token;
 
-                runOnUiThread(() ->
-                downloadFile(url, safeFileName, safeToken)
-           );
+                runOnUiThread(() -> {
+          try {
+            downloadFile(url, safeFileName, safeToken);
+          } catch (Exception e) {
+            android.util.Log.e("AndroidBridge", "Download Error", e);
+            Toast.makeText(
+                   MainActivity.this,
+                   e.toString(),
+                   Toast.LENGTH_LONG
+           ).show();
+          }
+          });
           }
           }
           }
