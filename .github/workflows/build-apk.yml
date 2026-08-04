@@ -1100,6 +1100,7 @@ jobs:
                //  });
                //  }
                });
+               }
 
                     } catch (Exception e) {
             // --- DEBUG 3: Detailed Exception Check ---
