@@ -1110,108 +1110,78 @@ jobs:
           }
 
 
-
-             
           private class AndroidBridge {
- 
-          @JavascriptInterface
-          public void download(String url, String fileName, String token) {
 
-            runOnUiThread(() ->
-            Toast.makeText(MainActivity.this, "1. Bridge Enter", Toast.LENGTH_SHORT).show());
+               @JavascriptInterface
+               public void download(String url, String fileName, String token) {
+
+               final String safeUrl = url;
+               final String safeFileName = (fileName == null) ? "" : fileName;
+               final String safeToken = (token == null) ? "" : token;
+
+                runOnUiThread(() -> {
 
             try {
 
-            runOnUiThread(() ->
-                Toast.makeText(MainActivity.this, "2. Current URL", Toast.LENGTH_SHORT).show());
+                Toast.makeText(MainActivity.this, "1. Bridge Enter", Toast.LENGTH_SHORT).show();
 
-            String currentUrl = webView.getUrl();
+                String currentUrl = webView.getUrl();
 
-            runOnUiThread(() ->
-                Toast.makeText(MainActivity.this, "3. URL = " + currentUrl, Toast.LENGTH_SHORT).show());
+                Toast.makeText(MainActivity.this, "2. URL = " + currentUrl, Toast.LENGTH_SHORT).show();
 
-            if (currentUrl == null) {
-                runOnUiThread(() ->
-                    Toast.makeText(MainActivity.this, "Current URL NULL", Toast.LENGTH_LONG).show());
-                return;
-            }
+                if (currentUrl == null) {
+                    Toast.makeText(MainActivity.this, "Current URL NULL", Toast.LENGTH_LONG).show();
+                    return;
+                }
 
-            runOnUiThread(() ->
-                Toast.makeText(MainActivity.this, "4. Domain Check", Toast.LENGTH_SHORT).show());
+                if (!(currentUrl.startsWith("https://rsh.gdsnotes.in")
+                        || currentUrl.startsWith("https://gdsnotes.in"))) {
+                    Toast.makeText(MainActivity.this, "Domain Blocked", Toast.LENGTH_LONG).show();
+                    return;
+                }
 
-            if (!(currentUrl.startsWith("https://rsh.gdsnotes.in")
-                    || currentUrl.startsWith("https://gdsnotes.in"))) {
+                if (safeUrl == null || !safeUrl.startsWith("https://")) {
+                    Toast.makeText(MainActivity.this, "Invalid URL", Toast.LENGTH_LONG).show();
+                    return;
+                }
 
-                runOnUiThread(() ->
-                    Toast.makeText(MainActivity.this, "Domain Blocked", Toast.LENGTH_LONG).show());
-                return;
-            }
+                Uri uri = Uri.parse(safeUrl);
+                String host = uri.getHost();
 
-            runOnUiThread(() ->
-                Toast.makeText(MainActivity.this, "5. URL Check", Toast.LENGTH_SHORT).show());
+                Toast.makeText(MainActivity.this, "Host = " + host, Toast.LENGTH_SHORT).show();
 
-            if (url == null || !url.startsWith("https://")) {
-                runOnUiThread(() ->
-                    Toast.makeText(MainActivity.this, "Invalid URL", Toast.LENGTH_LONG).show());
-                return;
-            }
+                if (host == null ||
+                        !(host.endsWith(".gdsnotes.in") ||
+                          host.equals("gdsnotes.in"))) {
+                    Toast.makeText(MainActivity.this, "Host Blocked", Toast.LENGTH_LONG).show();
+                    return;
+                }
 
-            runOnUiThread(() ->
-                Toast.makeText(MainActivity.this, "6. Uri.parse()", Toast.LENGTH_SHORT).show());
+                if (safeFileName.trim().isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Filename Empty", Toast.LENGTH_LONG).show();
+                    return;
+                }
 
-            Uri uri = Uri.parse(url);
+                String finalFileName =
+                        safeFileName.replaceAll("[\\\\/:*?\"<>|]", "_");
 
-            runOnUiThread(() ->
-                Toast.makeText(MainActivity.this, "7. Host", Toast.LENGTH_SHORT).show());
+                Toast.makeText(MainActivity.this, "Calling downloadFile()", Toast.LENGTH_SHORT).show();
 
-            String host = uri.getHost();
+                downloadFile(safeUrl, finalFileName, safeToken);
 
-            runOnUiThread(() ->
-                Toast.makeText(MainActivity.this, "Host=" + host, Toast.LENGTH_SHORT).show());
+            } catch (Exception e) {
 
-            if (host == null) {
-                runOnUiThread(() ->
-                    Toast.makeText(MainActivity.this, "Host NULL", Toast.LENGTH_LONG).show());
-                return;
-            }
+                android.util.Log.e("AndroidBridge", "Bridge Error", e);
 
-            runOnUiThread(() ->
-                Toast.makeText(MainActivity.this, "8. Filename", Toast.LENGTH_SHORT).show());
-
-            if (fileName == null || fileName.trim().isEmpty()) {
-                runOnUiThread(() ->
-                    Toast.makeText(MainActivity.this, "Filename NULL", Toast.LENGTH_LONG).show());
-                return;
-            }
-
-            fileName = fileName.replaceAll("[\\\\/:*?\"<>|]", "_");
-
-            runOnUiThread(() ->
-                Toast.makeText(MainActivity.this, "9. Token", Toast.LENGTH_SHORT).show());
-
-            if (token == null)
-                token = "";
-
-            final String safeFileName = fileName;
-            final String safeToken = token;
-
-            runOnUiThread(() ->
-                Toast.makeText(MainActivity.this, "10. downloadFile()", Toast.LENGTH_SHORT).show());
-
-            runOnUiThread(() ->
-                downloadFile(url, safeFileName, safeToken));
-
-           } catch (Exception e) {
-
-            android.util.Log.e("AndroidBridge", "Bridge Error", e);
-
-            runOnUiThread(() ->
                 Toast.makeText(
                         MainActivity.this,
-                        e.getClass().getSimpleName() + " : " + e.getMessage(),
+                        e.toString(),
                         Toast.LENGTH_LONG
-                ).show());
-          }
+                ).show();
+            }
+
+           });
+           }
           }
           }
           }
