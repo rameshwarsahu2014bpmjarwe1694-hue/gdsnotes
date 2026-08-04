@@ -1125,32 +1125,32 @@ jobs:
 
             try {
 
-                Toast.makeText(MainActivity.this, "1. Bridge Enter", Toast.LENGTH_SHORT).show();
+                
 
                 String currentUrl = webView.getUrl();
 
-                Toast.makeText(MainActivity.this, "2. URL = " + currentUrl, Toast.LENGTH_SHORT).show();
+                
 
                 if (currentUrl == null) {
-                    Toast.makeText(MainActivity.this, "Current URL NULL", Toast.LENGTH_LONG).show();
+                    
                     return;
                 }
 
                 if (!(currentUrl.startsWith("https://rsh.gdsnotes.in")
                         || currentUrl.startsWith("https://gdsnotes.in"))) {
-                    Toast.makeText(MainActivity.this, "Domain Blocked", Toast.LENGTH_LONG).show();
+                    
                     return;
                 }
 
                 if (safeUrl == null || !safeUrl.startsWith("https://")) {
-                    Toast.makeText(MainActivity.this, "Invalid URL", Toast.LENGTH_LONG).show();
+                    
                     return;
                 }
 
                 Uri uri = Uri.parse(safeUrl);
                 String host = uri.getHost();
 
-                Toast.makeText(MainActivity.this, "Host = " + host, Toast.LENGTH_SHORT).show();
+                
 
                 if (host == null) return;
 
@@ -1161,7 +1161,7 @@ jobs:
 
                if (!allowed) {
                   runOnUiThread(() ->
-                  Toast.makeText(MainActivity.this, "Host Blocked : " + host, Toast.LENGTH_LONG).show());
+                  
                  return;
                 }
 
@@ -1173,7 +1173,7 @@ jobs:
                 String finalFileName =
                         safeFileName.replaceAll("[\\\\/:*?\"<>|]", "_");
 
-                Toast.makeText(MainActivity.this, "Calling downloadFile()", Toast.LENGTH_SHORT).show();
+                
 
                 downloadFile(safeUrl, finalFileName, safeToken);
 
