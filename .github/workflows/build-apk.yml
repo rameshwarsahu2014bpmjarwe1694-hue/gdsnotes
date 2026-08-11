@@ -425,10 +425,14 @@ jobs:
                   }
                   settings.setCacheMode(WebSettings.LOAD_DEFAULT);
                   settings.setAllowContentAccess(true);
+                  // 🔐 SECURITY: Disable file:// URL access
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                  settings.setAllowFileAccessFromFileURLs(true);
-                  settings.setAllowUniversalAccessFromFileURLs(true);
+                  settings.setAllowFileAccessFromFileURLs(false);
+                  settings.setAllowUniversalAccessFromFileURLs(false);
                   }
+
+                  settings.setAllowFileAccess(false);
+                  settings.setAllowContentAccess(false);
                   settings.setBlockNetworkImage(false);
                   settings.setBlockNetworkLoads(false);
                   settings.setJavaScriptCanOpenWindowsAutomatically(true);
