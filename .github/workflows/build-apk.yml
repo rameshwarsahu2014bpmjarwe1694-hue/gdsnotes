@@ -526,7 +526,7 @@ jobs:
                      @Override
                      public void onPermissionRequest(PermissionRequest request) {
 
-                           runOnUiThread(() -> request.deny();
+                           runOnUiThread(() -> request.deny());
                      }
                      @Override
                      public void onShowCustomView(View view,
