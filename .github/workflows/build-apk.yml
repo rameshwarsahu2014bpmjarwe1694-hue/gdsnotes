@@ -619,7 +619,7 @@ jobs:
                           String host = uri.getHost();
 
                           if (host != null &&
-                      !host.endsWith("gdsnotes.in") &&
+                      !host.equals("gdsnotes.in") && !host.endsWith(".gdsnotes.in") &&
                       !host.equals("wa.me") &&
                       !host.equals("api.whatsapp.com")) {
   
