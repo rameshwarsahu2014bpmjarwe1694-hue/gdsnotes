@@ -1472,6 +1472,39 @@ jobs:
 
           echo "APK_SHA256=$SHA256" >> "$GITHUB_ENV"
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+
+      - name: Update version.json with APK SHA256
+        run: |
+          set -euo pipefail
+
+          if [ ! -f "version.json" ]; then
+            echo "ERROR: version.json not found"
+            exit 1
+          fi
+
+          if [ -z "${APK_SHA256:-}" ]; then
+            echo "ERROR: APK_SHA256 is empty"
+            exit 1
+          fi
+
+          python3 - "$APK_SHA256" <<'PY'
+          import json
+          import sys
+
+          sha256 = sys.argv[1]
+
+          with open("version.json", "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          data["sha256"] = sha256
+
+          with open("version.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+          PY
+
+          echo "===== Updated version.json ====="
+          cat version.json
       - name: Commit latest APK
         run: |
           git config user.name "github-actions"
