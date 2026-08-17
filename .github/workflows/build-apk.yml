@@ -1024,6 +1024,13 @@ jobs:
 
           if (manager != null) {
             updateDownloadId = manager.enqueue(request);
+            getSharedPreferences("update_security", MODE_PRIVATE)
+            .edit()
+            .putString(
+                "expected_sha256_" + updateDownloadId,
+                expectedSha256
+          )
+           .apply();
 
             Toast.makeText(
                     MainActivity.this,
