@@ -1505,14 +1505,21 @@ jobs:
 
           echo "===== Updated version.json ====="
           cat version.json
-      - name: Commit latest APK
+      - name: Commit APK and version.json
         run: |
+          set -euo pipefail
+
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          git add app-release.apk
+          git add app-release.apk version.json
 
-          git commit -m "Update latest APK" || echo "No APK changes"
+          if git diff --cached --quiet; then
+            echo "No APK or version.json changes"
+            exit 0
+          fi
+
+          git commit -m "Update latest APK and SHA256"
 
           git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
       - name: Find APK Files
