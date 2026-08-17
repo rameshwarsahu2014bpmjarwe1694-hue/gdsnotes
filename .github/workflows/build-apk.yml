@@ -936,6 +936,8 @@ jobs:
 
             String message =
                     object.getString("message");
+            String expectedSha256 =
+                    object.getString("sha256");
 
                     if (latestVersionCode > BuildConfig.VERSION_CODE &&
                     !isFinishing() &&
@@ -947,6 +949,7 @@ jobs:
                             latestVersionName,
                             message,
                             apkUrl
+                            expectedSha256
                     );
 
                 });
@@ -963,7 +966,8 @@ jobs:
           private void showUpdateDialog(
            String versionName,
            String message,
-           String apkUrl) {
+           String apkUrl,
+           String expectedSha256) {
 
           new AlertDialog.Builder(MainActivity.this)
             .setTitle("🎉 New Update Available")
@@ -981,7 +985,7 @@ jobs:
             .setPositiveButton("Update Now",
                     (dialog, which) -> {
 
-                        downloadApk(apkUrl);
+                        downloadApk(apkUrl, expectedSha256);
 
                     })
 
@@ -994,11 +998,13 @@ jobs:
 
             .show();
           }
-          private void downloadApk(String apkUrl) {
+          private void downloadApk(
+             String apkUrl,
+             String expectedSha256) {
 
-           try {
+               try {
 
-          DownloadManager.Request request =
+             DownloadManager.Request request =
                 new DownloadManager.Request(Uri.parse(apkUrl));
 
            request.setTitle("app-release.apk");
