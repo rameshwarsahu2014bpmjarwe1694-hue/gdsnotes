@@ -851,6 +851,9 @@ jobs:
 
               if (apkFile.exists()) {
                   apkFile.delete();
+                  // else block ke andar apkFile.delete() ke baad:
+                  getSharedPreferences("update_security", MODE_PRIVATE).edit().remove("expected_sha256_" + updateDownloadId).apply();
+
               }
               }
               }
@@ -933,6 +936,11 @@ jobs:
                     (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("GET");
+            conn.setUseCaches(false);
+            conn.setDefaultUseCaches(false);
+            conn.setRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
+            conn.setRequestProperty("Pragma", "no-cache");
+
             conn.setConnectTimeout(30000);
             conn.setReadTimeout(30000);
 
@@ -964,6 +972,19 @@ jobs:
                     object.getString("message");
             String expectedSha256 =
                     object.getString("sha256");
+            // 🔐 Domain whitelist check
+            android.net.Uri parsedApkUri = android.net.Uri.parse(apkUrl);
+            String host = parsedApkUri.getHost();
+            boolean isTrusted = host != null && (host.equals("rsh.gdsnotes.in") || host.equals("gdsnotes.in"));
+
+           // 🔐 64-hexadecimal SHA-256 validation
+           boolean isValidHash = expectedSha256 != null && expectedSha256.trim().matches("^[a-fA-F0-9]{64}$");
+
+          // Insecure URL, untrusted domain ya fake hash hone par cancel
+          if (!apkUrl.startsWith("https://") || !isTrusted || !isValidHash) {
+           return;
+          }
+
 
                     if (latestVersionCode > BuildConfig.VERSION_CODE &&
                     !isFinishing() &&
@@ -1597,6 +1618,19 @@ jobs:
 
           with open("version.json", "r", encoding="utf-8") as f:
               data = json.load(f)
+          import re
+
+        
+          with open("webview-build/app/build.gradle", "r", encoding="utf-8") as g:
+          gradle_text = g.read()
+
+          v_code = re.search(r'versionCode\s+(\d+)', gradle_text)
+          v_name = re.search(r'versionName\s+["\']([^"\']+)["\']', gradle_text)
+
+          if v_code:
+                 data["versionCode"] = int(v_code.group(1))
+          if v_name:
+                 data["versionName"] = str(v_name.group(1))
 
           data["sha256"] = sha256
 
