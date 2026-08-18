@@ -232,7 +232,7 @@ jobs:
               <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
               
               <application
-                  android:allowBackup="true"
+                  android:allowBackup="false"
                   android:extractNativeLibs="false"
                   android:icon="@mipmap/ic_launcher"
                   android:roundIcon="@mipmap/ic_launcher_round"
@@ -484,6 +484,16 @@ jobs:
                 System.exit(0);
                 return;
             }
+            // 🔐 Root Detection Check
+            String[] rootPaths = {"/system/bin/su", "/system/xbin/su", "/sbin/su", "/data/local/xbin/su", "/data/local/bin/su", "/system/app/Superuser.apk"};
+             for (String path : rootPaths) {
+            if (new java.io.File(path).exists()) {
+            finishAffinity();
+             System.exit(0);
+            return;
+          }
+          }
+
             
             getWindow().setFlags(
             WindowManager.LayoutParams.FLAG_SECURE,
@@ -524,12 +534,10 @@ jobs:
                   settings.setDomStorageEnabled(true);
                   settings.setLoadsImagesAutomatically(true);
                   settings.setDatabaseEnabled(true);
-                  settings.setAllowFileAccess(true);
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                   CookieManager.getInstance().setAcceptThirdPartyCookies(webView, false);
                   }
                   settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-                  settings.setAllowContentAccess(true);
                   // 🔐 SECURITY: Disable file:// URL access
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                   settings.setAllowFileAccessFromFileURLs(false);
@@ -1227,9 +1235,11 @@ jobs:
             
             android.content.ContentValues values = new android.content.ContentValues();
 
-            String finalFileName = (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.VERSION.SDK_INT <= 32 && !fileName.endsWith(".apk")) 
-            ? fileName + ".apk" 
-            : fileName;
+            String cleanFileName = (fileName == null || fileName.trim().isEmpty()) ? "download" : fileName.replaceAll("[\\\\/:*?\"<>|]", "_");
+            String finalFileName = (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.VERSION.SDK_INT <= 32 && !cleanFileName.endsWith(".apk")) 
+            ? cleanFileName + ".apk" 
+            : cleanFileName;
+            
 
             values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, finalFileName);
 
