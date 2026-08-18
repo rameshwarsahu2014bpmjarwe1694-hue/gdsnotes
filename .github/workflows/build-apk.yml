@@ -942,7 +942,6 @@ jobs:
                   }
                }
            });
-           CookieManager.getInstance().setAcceptCookie(true);
           webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
 
           // Blob URL ko DownloadListener handle nahi kar sakta
