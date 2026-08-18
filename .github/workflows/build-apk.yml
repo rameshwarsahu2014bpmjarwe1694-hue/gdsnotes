@@ -1354,12 +1354,16 @@ jobs:
 
                 String finalFileName =
                         safeFileName.replaceAll("[\\\\/:*?\"<>|]", "_");
-
+                                 // 🔐 Dangerous executable extension block
+                String lowerName = finalFileName.toLowerCase();
+                if (lowerName.endsWith(".apk") || lowerName.endsWith(".dex") || lowerName.endsWith(".sh") || lowerName.endsWith(".exe")) {
+                    return;
+                }
+                
                 downloadFile(safeUrl, finalFileName, safeToken);
 
-            } catch (Exception e) {
-                android.util.Log.e("AndroidBridge", "Bridge Error", e);
-            }
+               } catch (Exception ignored) {}
+                        
 
           });
           }
