@@ -825,15 +825,41 @@ jobs:
 
                     if (uri != null) {
 
-                        installApk(new File(Uri.parse(uri).getPath()));
+          File apkFile =
+                  new File(Uri.parse(uri).getPath());
 
-                    }
+          String expectedSha256 =
+                  getSharedPreferences(
+                          "update_security",
+                          MODE_PRIVATE
+                  ).getString(
+                          "expected_sha256_" + updateDownloadId,
+                          ""
+                  );
 
-                }
+          if (verifySha256(apkFile, expectedSha256)) {
 
-                cursor.close();
+              installApk(apkFile);
 
-            }
+          } else {
+
+              Toast.makeText(
+                      MainActivity.this,
+                      "Security verification failed. APK rejected.",
+                      Toast.LENGTH_LONG
+              ).show();
+
+              if (apkFile.exists()) {
+                  apkFile.delete();
+              }
+              }
+              }
+
+             }
+
+               cursor.close();
+
+          }
 
           }
 
