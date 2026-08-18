@@ -1613,24 +1613,23 @@ jobs:
           python3 - "$APK_SHA256" <<'PY'
           import json
           import sys
+          import re
 
           sha256 = sys.argv[1]
 
           with open("version.json", "r", encoding="utf-8") as f:
               data = json.load(f)
-          import re
 
-        
           with open("webview-build/app/build.gradle", "r", encoding="utf-8") as g:
-          gradle_text = g.read()
+              gradle_text = g.read()
 
           v_code = re.search(r'versionCode\s+(\d+)', gradle_text)
           v_name = re.search(r'versionName\s+["\']([^"\']+)["\']', gradle_text)
 
           if v_code:
-                 data["versionCode"] = int(v_code.group(1))
+              data["versionCode"] = int(v_code.group(1))
           if v_name:
-                 data["versionName"] = str(v_name.group(1))
+              data["versionName"] = str(v_name.group(1))
 
           data["sha256"] = sha256
 
@@ -1641,6 +1640,7 @@ jobs:
 
           echo "===== Updated version.json ====="
           cat version.json
+
       - name: Commit APK and version.json
         run: |
           set -euo pipefail
