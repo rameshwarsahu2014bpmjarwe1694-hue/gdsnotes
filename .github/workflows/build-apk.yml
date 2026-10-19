@@ -531,6 +531,7 @@ jobs:
                   settings.setJavaScriptEnabled(true);
                   webView.setHapticFeedbackEnabled(false);
                   webView.setLongClickable(false);
+                  webView.setVerticalScrollBarEnabled
                   settings.setDomStorageEnabled(true);
                   settings.setLoadsImagesAutomatically(true);
                   settings.setDatabaseEnabled(true);
