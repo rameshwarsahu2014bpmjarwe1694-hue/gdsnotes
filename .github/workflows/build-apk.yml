@@ -321,8 +321,6 @@ jobs:
           import android.widget.FrameLayout;
           import android.view.ViewGroup;
           import android.webkit.PermissionRequest;
-
-          import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
           import androidx.core.splashscreen.SplashScreen;
           import androidx.activity.OnBackPressedCallback;
           import androidx.appcompat.app.AppCompatActivity;
@@ -427,7 +425,6 @@ jobs:
           }
           }
               private WebView webView;
-              private SwipeRefreshLayout swipeRefresh;
               private ProgressBar progressBar;
               private View offlineLayout;
               private ValueCallback<Uri[]> filePathCallback;
@@ -521,7 +518,6 @@ jobs:
 
                 fullscreenContainer.setVisibility(View.GONE);
 
-                  swipeRefresh = findViewById(R.id.swipeRefresh);
                   progressBar = findViewById(R.id.progressBar);
                   offlineLayout = findViewById(R.id.offlineLayout);
                   btnRetry = findViewById(R.id.btnRetry);
