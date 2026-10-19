@@ -701,7 +701,7 @@ jobs:
                           super.onPageFinished(view, url);
                           view.clearMatches();
                           progressBar.setVisibility(View.GONE);
-                          swipeRefresh.setRefreshing(false);
+                          
                       }
                       @Override
                       public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
@@ -804,7 +804,7 @@ jobs:
                     if (request.isForMainFrame()) {
 
                        progressBar.setVisibility(View.GONE);
-                       swipeRefresh.setRefreshing(false);
+                       
 
                        webView.setVisibility(View.GONE);
                        offlineLayout.setVisibility(View.VISIBLE);
@@ -826,15 +826,7 @@ jobs:
               webView.loadUrl("https://rsh.gdsnotes.in");
           }
 
-                  swipeRefresh.setOnRefreshListener(() -> webView.reload());
-
-                 // 🛠️ यहाँ यह चेक किया जा रहा है कि जब तक WebView पूरी तरह ऊपर (Top) पर न हो, तब तक SwipeRefresh एक्टिव न हो
-                  swipeRefresh.setOnChildScrollUpCallback((parent, child) -> {
-             if (webView != null) {
-               return webView.getScrollY() > 0;
-              }
-                return false;
-              });
+                  
 
                   btnRetry.setOnClickListener(v -> {
                       offlineLayout.setVisibility(View.GONE);
