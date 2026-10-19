@@ -425,7 +425,6 @@ jobs:
           }
           }
               private WebView webView;
-              private ProgressBar progressBar;
               private View offlineLayout;
               private ValueCallback<Uri[]> filePathCallback;
               private Button btnRetry;
@@ -518,7 +517,7 @@ jobs:
 
                 fullscreenContainer.setVisibility(View.GONE);
 
-                  progressBar = findViewById(R.id.progressBar);
+                  
                   offlineLayout = findViewById(R.id.offlineLayout);
                   btnRetry = findViewById(R.id.btnRetry);
                   webView = findViewById(R.id.webView);
@@ -691,7 +690,7 @@ jobs:
                       public void onPageStarted(WebView view, String url, Bitmap favicon) {
                           super.onPageStarted(view, url, favicon);
 
-                          progressBar.setVisibility(View.VISIBLE);
+                          
                           webView.setVisibility(View.VISIBLE);
                           offlineLayout.setVisibility(View.GONE);
                       }
@@ -700,7 +699,7 @@ jobs:
                       public void onPageFinished(WebView view, String url) {
                           super.onPageFinished(view, url);
                           view.clearMatches();
-                          progressBar.setVisibility(View.GONE);
+                          
                           
                       }
                       @Override
@@ -803,7 +802,7 @@ jobs:
                     // Sirf main page fail hone par offline screen dikhao
                     if (request.isForMainFrame()) {
 
-                       progressBar.setVisibility(View.GONE);
+                       
                        
 
                        webView.setVisibility(View.GONE);
