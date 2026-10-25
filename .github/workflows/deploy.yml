@@ -25,11 +25,18 @@ jobs:
           git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ secrets.TARGET_REPO }} target
       - name: Sync files
         run: |
-         rsync -av --delete \
-         --exclude ".git" \
-         --exclude ".github" \
-         --exclude "target" \
-         ./ target/
+          rsync -av --delete \
+          --exclude ".git" \
+          --exclude ".github" \
+          --exclude "target" \
+          ./ target/
+          
+          # Agar APK root me hai toh ensure karein ki target me bhi copy ho jaye
+          if [ -f "app-release.apk" ]; then
+            cp app-release.apk target/
+            echo "Copied app-release.apk to target repo"
+          fi
+
       - name: Check copied files
         run: |
          ls -la
