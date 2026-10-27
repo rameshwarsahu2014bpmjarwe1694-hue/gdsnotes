@@ -1297,71 +1297,94 @@ jobs:
           }
 
 
-          private class AndroidBridge {
+                    private class AndroidBridge {
 
               @JavascriptInterface
               public void download(String url, String fileName, String token) {
+                  final String safeUrl = url;
+                  final String safeFileName = (fileName == null) ? "" : fileName;
+                  final String safeToken = (token == null) ? "" : token;
 
-              final String safeUrl = url;
-              final String safeFileName = (fileName == null) ? "" : fileName;
-              final String safeToken = (token == null) ? "" : token;
+                  runOnUiThread(() -> {
+                      try {
+                          if (safeUrl == null || safeUrl.trim().isEmpty()) {
+                              return;
+                          }
 
-               runOnUiThread(() -> {
-  
-                try {
+                          // 1. Agar ye Base64 Data URI hai (jaise poster PNG/PDF)
+                          if (safeUrl.startsWith("data:")) {
+                              try {
+                                  // 🔐 Security Check: Dangerous extension block for Base64 files too
+                                  String checkName = (safeFileName == null) ? "" : safeFileName.toLowerCase();
+                                  if (checkName.endsWith(".apk") || checkName.endsWith(".dex") || checkName.endsWith(".sh") || checkName.endsWith(".exe")) {
+                                      return;
+                                  }
 
-                   String currentUrl = webView.getUrl();
+                                  String pureBase64 = safeUrl.contains(",") ? safeUrl.split(",")[1] : safeUrl;
+                                  byte[] decodedBytes = android.util.Base64.decode(pureBase64, android.util.Base64.DEFAULT);
 
-                   if (currentUrl == null) {
-                     return;
-                 }
+                                  String cleanFileName = safeFileName.replaceAll("[\\\\/:*?\"<>|]", "_");
+                                  if (cleanFileName.trim().isEmpty()) {
+                                      cleanFileName = "rsh-poster-download";
+                                  }
 
-                   if (!(currentUrl.startsWith("https://rsh.gdsnotes.in")
-                         || currentUrl.startsWith("https://gdsnotes.in"))) {
-                     return;
-                 }
+                                  android.content.ContentValues values = new android.content.ContentValues();
+                                  values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, cleanFileName);
+                                  
+                                  String mimeType = safeUrl.contains("application/pdf") ? "application/pdf" : "image/png";
+                                  values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, mimeType);
+                                  values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS);
 
-                  if (safeUrl == null || !safeUrl.startsWith("https://")) {
-                      return;
-                 }
+                                  android.net.Uri uri = getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                                  if (uri != null) {
+                                      try (java.io.OutputStream output = getContentResolver().openOutputStream(uri)) {
+                                          if (output != null) {
+                                              output.write(decodedBytes);
+                                              output.flush();
+                                          }
+                                      }
+                                      Toast.makeText(MainActivity.this, "Download Completed", Toast.LENGTH_SHORT).show();
+                                  }
+                              } catch (Exception e) {
+                                  Toast.makeText(MainActivity.this, "Base64 Download Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                              }
+                              return;
+                          }
 
-                  Uri uri = Uri.parse(safeUrl);
-                  String host = uri.getHost();
-  
-                  if (host == null) {
-                      return;
-                  }
+                          // 2. Normal URL handling (Notes, PYQ, Syllabus ke liye purana secure check)
+                          String currentUrl = webView.getUrl();
+                          if (currentUrl == null) return;
 
-                 boolean allowed =
-                        host.endsWith(".gdsnotes.in") ||
-                        host.equals("gdsnotes.in") ||
-                        host.equals("payment-backend-2-g6go.onrender.com");
+                          if (!(currentUrl.startsWith("https://rsh.gdsnotes.in") || currentUrl.startsWith("https://gdsnotes.in"))) {
+                              return;
+                          }
 
-                if (!allowed) {
-                    return;
-                }
+                          if (!safeUrl.startsWith("https://")) {
+                              return;
+                          }
 
-                if (safeFileName.trim().isEmpty()) {
-                    return;
-                }
+                          Uri uri = Uri.parse(safeUrl);
+                          String host = uri.getHost();
+                          if (host == null) return;
 
-                String finalFileName =
-                        safeFileName.replaceAll("[\\\\/:*?\"<>|]", "_");
-                                 // 🔐 Dangerous executable extension block
-                String lowerName = finalFileName.toLowerCase();
-                if (lowerName.endsWith(".apk") || lowerName.endsWith(".dex") || lowerName.endsWith(".sh") || lowerName.endsWith(".exe")) {
-                    return;
-                }
-                
-                downloadFile(safeUrl, finalFileName, safeToken);
+                          boolean allowed = host.endsWith(".gdsnotes.in") || host.equals("gdsnotes.in") || host.equals("payment-backend-2-g6go.onrender.com");
+                          if (!allowed) return;
 
-               } catch (Exception ignored) {}
-                        
+                          if (safeFileName.trim().isEmpty()) return;
 
-          });
+                          String finalFileName = safeFileName.replaceAll("[\\\\/:*?\"<>|]", "_");
+                          String lowerName = finalFileName.toLowerCase();
+                          if (lowerName.endsWith(".apk") || lowerName.endsWith(".dex") || lowerName.endsWith(".sh") || lowerName.endsWith(".exe")) {
+                              return;
+                          }
+
+                          downloadFile(safeUrl, finalFileName, safeToken);
+
+                      } catch (Exception ignored) {}
+                  });
+              }
           }
-          }
-          }
+
           EOF
 
           echo "===== MainActivity.java ====="
