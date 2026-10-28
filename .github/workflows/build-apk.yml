@@ -1321,7 +1321,7 @@ jobs:
                                   }
 
                                   String pureBase64 = safeUrl.contains(",") ? safeUrl.split(",")[1] : safeUrl;
-                                  byte[] decodedBytes = android.util.Base64.decode(pureBase64, android.util.Base64.DEFAULT);
+                                  byte[] decodedBytes = android.util.Base64.decode(pureBase64, android.util.Base64.NO_WRAP);
 
                                   String cleanFileName = safeFileName.replaceAll("[\\\\/:*?\"<>|]", "_");
                                   if (cleanFileName.trim().isEmpty()) {
