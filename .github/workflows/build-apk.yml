@@ -171,6 +171,8 @@ jobs:
               implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
               
               implementation 'androidx.core:core-splashscreen:1.0.1'
+              implementation 'com.razorpay:checkout:1.6.40'
+                  
           }
           EOF
 
@@ -230,7 +232,21 @@ jobs:
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
               <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
               <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
-              
+              <queries>
+             <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="upi" />
+            </intent>
+            <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="intent" />
+            </intent>
+            <package android:name="com.google.android.apps.nbu.paisa.user" />
+            <package android:name="com.phonepe.app" />
+            <package android:name="net.one97.paytm" />
+            <package android:name="in.org.npci.upiapp" />
+            </queries>
+    
               <application
                   android:allowBackup="false"
                   android:extractNativeLibs="false"
@@ -361,6 +377,7 @@ jobs:
           import java.util.concurrent.Executors;
           import android.os.Handler;
           import android.os.Looper;
+          import com.razorpay.Razorpay;
           public class MainActivity extends AppCompatActivity {
           private String calculateSha256(File file) throws Exception {
 
@@ -425,6 +442,7 @@ jobs:
           }
           }
               private WebView webView;
+              private Razorpay razorpay;
               private View offlineLayout;
               private ValueCallback<Uri[]> filePathCallback;
               private Button btnRetry;
@@ -685,6 +703,7 @@ jobs:
 
                      handler.cancel();
                   }
+                  razorpay = new Razorpay(this, webView);
 
                       @Override
                       public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -1412,6 +1431,14 @@ jobs:
                   });
               }
           }
+           @Override
+           protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+           super.onActivityResult(requestCode, resultCode, data);
+           if (razorpay != null) {
+           razorpay.onActivityResult(requestCode, resultCode, data);
+          }
+          }
+    
           }
 
           EOF
