@@ -377,7 +377,6 @@ jobs:
           import java.util.concurrent.Executors;
           import android.os.Handler;
           import android.os.Looper;
-          import com.razorpay.Razorpay;
           public class MainActivity extends AppCompatActivity {
           private String calculateSha256(File file) throws Exception {
 
@@ -442,7 +441,6 @@ jobs:
           }
           }
               private WebView webView;
-              private Razorpay razorpay;
               private View offlineLayout;
               private ValueCallback<Uri[]> filePathCallback;
               private Button btnRetry;
@@ -856,8 +854,6 @@ jobs:
                    }
                  }
               });
-              
-              razorpay = new razorpay(this, webView);
               webView.setOnLongClickListener(v -> true);
               webView.setLongClickable(false);
           webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");        
@@ -1435,8 +1431,6 @@ jobs:
            @Override
            protected void onActivityResult(int requestCode, int resultCode, Intent data) {
            super.onActivityResult(requestCode, resultCode, data);
-           if (razorpay != null) {
-           razorpay.onActivityResult(requestCode, resultCode, data);
           }
           }
     
