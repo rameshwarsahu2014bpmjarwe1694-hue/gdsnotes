@@ -730,15 +730,40 @@ jobs:
 
                           String host = uri.getHost();
 
-                          if (host != null &&
-                      !host.equals("gdsnotes.in") && !host.endsWith(".gdsnotes.in") &&
-                      !host.equals("wa.me") &&
-                      !host.equals("api.whatsapp.com")) {
-  
-                      Intent browser = new Intent(Intent.ACTION_VIEW, uri);
-                          startActivity(browser);
-                          return true;
-                      }
+                          String scheme = uri.getScheme() != null ? uri.getScheme().toLowerCase(Locale.ROOT) : "";
+
+                       if ("upi".equals(scheme) || "intent".equals(scheme)) {
+                          try {
+                       Intent payIntent = "intent".equals(scheme)
+                ? Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                : new Intent(Intent.ACTION_VIEW, uri);
+                if (payIntent != null) {
+            payIntent.addCategory(Intent.CATEGORY_BROWSABLE);
+            startActivity(payIntent);
+            return true;
+            }
+            } catch (Exception e) {
+            Toast.makeText(MainActivity.this, "Unable to open payment app", Toast.LENGTH_SHORT).show();
+            }
+            return true;
+          }
+
+           if (host != null &&
+          !host.equals("gdsnotes.in") && !host.endsWith(".gdsnotes.in") &&
+          !host.equals("payment-backend-2-g6go.onrender.com") &&
+          !host.equals("razorpay.com") && !host.endsWith(".razorpay.com") &&
+          !host.equals("wa.me") &&
+          !host.equals("api.whatsapp.com")) {
+          try {
+          Intent browser = new Intent(Intent.ACTION_VIEW, uri);
+          browser.addCategory(Intent.CATEGORY_BROWSABLE);
+          startActivity(browser);
+          } catch (ActivityNotFoundException e) {
+          Toast.makeText(MainActivity.this, "No browser available", Toast.LENGTH_SHORT).show();
+          }
+          return true;
+          }
+
 
                           // Email
                           if (url.startsWith("mailto:")) {
