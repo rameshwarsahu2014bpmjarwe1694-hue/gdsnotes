@@ -140,6 +140,7 @@ jobs:
                   targetSdk 34
                   versionCode 17
                   versionName "1.8.8"
+                  buildConfigField "String", "RAZORPAY_KEY_ID", "\"${System.getenv("RAZORPAY_KEY_ID") ?: ""}\""
 
                   testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
               }
@@ -443,6 +444,7 @@ jobs:
           }
           }
               private WebView webView;
+              private Razorpay razorpay;
               private View offlineLayout;
               private ValueCallback<Uri[]> filePathCallback;
               private Button btnRetry;
@@ -518,9 +520,8 @@ jobs:
 
             if (intent != null && intent.getData() != null) {
               webView = findViewById(R.id.webView);
-              private Razorpay razorpay;
               String razorpayKey = "YOUR_RAZORPAY_KEY";
-              razorpay = new Razorpay(razorpayKey, webView, this);
+              razorpay = new Razorpay(BuildConfig.RAZORPAY_KEY_ID, webView, MainActivity.this);
 
               webView.loadUrl(intent.getData().toString());
           }
@@ -1682,6 +1683,8 @@ jobs:
           EOF
           
       - name: Build Native APK & AAB
+        env:
+          RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
         run: |
           cd webview-build
           chmod +x gradlew
