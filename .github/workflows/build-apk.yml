@@ -68,13 +68,14 @@ jobs:
       - name: Create Native WebView workspace
         run: |
           mkdir -p webview-build
-
+          
+          mkdir -p webview-build/app/libs
           mkdir -p webview-build/app/src/main/java
           mkdir -p webview-build/app/src/main/res/layout
           mkdir -p webview-build/app/src/main/res/values
           mkdir -p webview-build/app/src/main/res/xml
           mkdir -p webview-build/gradle/wrapper
-
+          cp -r libs/*.jar webview-build/app/libs/ 2>/dev/null || true
           echo "===================================="
           echo "Native WebView workspace created."
           find webview-build -type d | sort
@@ -164,12 +165,12 @@ jobs:
           }
 
           dependencies {
+              implementation fileTree(dir: 'libs', include: ['*.jar'])
               implementation 'androidx.appcompat:appcompat:1.7.0'
               implementation 'androidx.webkit:webkit:1.11.0'
               implementation 'com.google.android.material:material:1.12.0'
               implementation 'androidx.activity:activity:1.9.1'
               implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
-              
               implementation 'androidx.core:core-splashscreen:1.0.1'
               implementation 'com.razorpay:checkout:1.6.40'
                   
@@ -377,6 +378,7 @@ jobs:
           import java.util.concurrent.Executors;
           import android.os.Handler;
           import android.os.Looper;
+          import com.razorpay.Razorpay;
           public class MainActivity extends AppCompatActivity {
           private String calculateSha256(File file) throws Exception {
 
@@ -516,6 +518,10 @@ jobs:
 
             if (intent != null && intent.getData() != null) {
               webView = findViewById(R.id.webView);
+              private Razorpay razorpay;
+              String razorpayKey = "YOUR_RAZORPAY_KEY";
+              razorpay = new Razorpay(razorpayKey, webView, this);
+
               webView.loadUrl(intent.getData().toString());
           }
             fullscreenContainer = new FrameLayout(this);
@@ -1431,9 +1437,11 @@ jobs:
            @Override
            protected void onActivityResult(int requestCode, int resultCode, Intent data) {
            super.onActivityResult(requestCode, resultCode, data);
+           if (requestCode == Razorpay.UPI_INTENT_REQUEST_CODE) {
+           razorpay.onActivityResult(requestCode, resultCode, data);
           }
-    
           }
+
 
           EOF
 
