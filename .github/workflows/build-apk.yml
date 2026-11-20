@@ -857,7 +857,7 @@ jobs:
                  }
               });
               
-              razrazorpay = new Razorpay(this, webView);
+              razorpay = new razorpay(this, webView);
               webView.setOnLongClickListener(v -> true);
               webView.setLongClickable(false);
           webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");        
