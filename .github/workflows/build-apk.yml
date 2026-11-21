@@ -1439,6 +1439,114 @@ jobs:
                   });
               }
           }
+          @JavascriptInterface
+public void startRazorpayNotesCheckout(
+        String category,
+        String subject,
+        String title,
+        String idToken,
+        String email
+) {
+    if (idToken == null || idToken.trim().isEmpty()) {
+        runOnUiThread(() ->
+            Toast.makeText(MainActivity.this,
+                "Please login before payment.",
+                Toast.LENGTH_LONG).show()
+        );
+        return;
+    }
+
+    pendingPaymentIdToken = idToken;
+
+    new Thread(() -> {
+        try {
+            java.net.URL url = new java.net.URL(
+                "https://payment-backend-2-g6go.onrender.com/api/create-order"
+            );
+
+            java.net.HttpURLConnection conn =
+                (java.net.HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(20000);
+            conn.setDoOutput(true);
+
+            JSONObject request = new JSONObject();
+            request.put("itemType", "notes");
+            request.put("category", category);
+            request.put("subject", subject);
+            request.put("currency", "INR");
+            request.put("receipt", "notes_" + System.currentTimeMillis());
+
+            try (java.io.OutputStream os = conn.getOutputStream()) {
+                os.write(request.toString().getBytes("UTF-8"));
+            }
+
+            int responseCode = conn.getResponseCode();
+
+            java.io.InputStream input = responseCode >= 200 && responseCode < 300
+                ? conn.getInputStream()
+                : conn.getErrorStream();
+
+            StringBuilder response = new StringBuilder();
+
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(input))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+            }
+
+            conn.disconnect();
+
+            if (responseCode < 200 || responseCode >= 300) {
+                throw new Exception("Order creation failed: " + response);
+            }
+
+            JSONObject orderData = new JSONObject(response.toString());
+
+            String keyId = orderData.getString("key_id");
+            String orderId = orderData.getString("order_id");
+            int amount = orderData.getInt("amount");
+            String currency = orderData.optString("currency", "INR");
+
+            runOnUiThread(() -> {
+                try {
+                    Checkout checkout = new Checkout();
+                    checkout.setKeyID(keyId);
+
+                    JSONObject options = new JSONObject();
+                    options.put("name", "RAMESHWAR SAHU STUDY HUB");
+                    options.put("description", title);
+                    options.put("order_id", orderId);
+                    options.put("amount", amount);
+                    options.put("currency", currency);
+
+                    JSONObject prefill = new JSONObject();
+                    prefill.put("email", email);
+                    options.put("prefill", prefill);
+
+                    checkout.open(MainActivity.this, options);
+
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this,
+                        "Checkout Error: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
+                }
+            });
+
+        } catch (Exception e) {
+            runOnUiThread(() ->
+                Toast.makeText(MainActivity.this,
+                    "Order Error: " + e.getMessage(),
+                    Toast.LENGTH_LONG).show()
+            );
+        }
+    }).start();
+}
            @Override
            protected void onActivityResult(int requestCode, int resultCode, Intent data) {
            super.onActivityResult(requestCode, resultCode, data);
