@@ -1529,9 +1529,14 @@ jobs:
                     JSONObject prefill = new JSONObject();
                     prefill.put("email", email);
                     options.put("prefill", prefill);
-
+                    android.util.Log.e("RZP_CHECKOUT", "===== CHECKOUT OPEN START =====");
+                    android.util.Log.e("RZP_CHECKOUT", "Order ID: " + orderId);
+                    android.util.Log.e("RZP_CHECKOUT", "Amount: " + amount);
+                    android.util.Log.e("RZP_CHECKOUT", "Currency: " + currency);
+                    android.util.Log.e("RZP_CHECKOUT", "Opening Razorpay Native Checkout now");
                     checkout.open(MainActivity.this, options);
-
+                    
+                    android.util.Log.e("RZP_CHECKOUT", "===== CHECKOUT OPEN CALLED =====");
                 } catch (Exception e) {
                     Toast.makeText(MainActivity.this,
                         "Checkout Error: " + e.getMessage(),
