@@ -1,7 +1,7 @@
 {
-  "versionCode": 19,
-  "versionName": "1.8.10",
+  "versionCode": 20,
+  "versionName": "1.8.10.1",
   "apkUrl": "https://rsh.gdsnotes.in/app-release.apk",
   "message": "New update available. Download latest version.",
-  "sha256": "952ca80edf4129cfa285d1e149b4e56383062970b6a8ebfaf02f344dbe86e2e5"
+  "sha256": "8bb0a8e98f2ae5735937f1a161a902914931d995516c408cad554b0e9a1fae7d"
 }
