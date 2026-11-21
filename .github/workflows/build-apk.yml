@@ -413,6 +413,8 @@ jobs:
           import com.razorpay.PaymentData;
           public class MainActivity extends AppCompatActivity implements PaymentResultWithDataListener {
           private String pendingPaymentIdToken = "";
+          private String pendingCategory = "";
+          private String pendingSubject = "";
           private String calculateSha256(File file) throws Exception {
 
             MessageDigest digest =
@@ -1485,6 +1487,8 @@ jobs:
           }
 
            pendingPaymentIdToken = idToken;
+           pendingCategory = (category != null) ? category : "";
+           pendingSubject = (subject != null) ? subject : "";
 
           new Thread(() -> {
            try {
@@ -1594,6 +1598,8 @@ jobs:
                 payment.optString("razorpay_order_id"));
             request.put("razorpay_signature",
                 payment.optString("razorpay_signature"));
+                request.put("category", pendingCategory);
+                request.put("subject", pendingSubject);
 
             java.net.URL url = new java.net.URL(
                 "https://payment-backend-2-g6go.onrender.com/api/verify-payment"
@@ -1642,7 +1648,8 @@ jobs:
 
                 runOnUiThread(() -> {
                     pendingPaymentIdToken = "";
-
+                    pendingCategory = "";
+                    pendingSubject = "";
                     webView.evaluateJavascript(
                         "if(typeof window.__nativeRazorpaySuccess==='function'){" +
                         "var cb=window.__nativeRazorpaySuccess;" +
