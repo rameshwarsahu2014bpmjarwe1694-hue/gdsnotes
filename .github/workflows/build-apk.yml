@@ -1438,7 +1438,6 @@ jobs:
                       } catch (Exception ignored) {}
                   });
               }
-          }
           @JavascriptInterface
           public void startRazorpayNotesCheckout(
            String category,
@@ -1529,7 +1528,7 @@ jobs:
                     JSONObject prefill = new JSONObject();
                     prefill.put("email", email);
                     options.put("prefill", prefill);
-                    options.put("method", "upi");
+                    JSONObject methodObj = new JSONObject(); methodObj.put("upi", true); options.put("method", methodObj);
                     android.util.Log.e("RZP_UPI_TEST", "UPI ONLY CHECKOUT REQUESTED");
                     android.util.Log.e("RZP_UPI_TEST", "Method = upi");
                     checkout.open(MainActivity.this, options);
@@ -1548,6 +1547,7 @@ jobs:
             );
           }
           }).start();
+          }
           }
            @Override
            protected void onActivityResult(int requestCode, int resultCode, Intent data) {
