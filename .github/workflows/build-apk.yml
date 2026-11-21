@@ -173,7 +173,8 @@ jobs:
               implementation 'androidx.activity:activity:1.9.1'
               implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
               implementation 'androidx.core:core-splashscreen:1.0.1'
-              implementation files('libs/tez-client-api-0.9.4.aar')
+              implementation files('libs/tez-client-api-0.9.4.aar'
+              implementation 'com.razorpay:checkout:1.6.40'
               
           }
           EOF
