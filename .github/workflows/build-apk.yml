@@ -211,6 +211,19 @@ jobs:
           # 4. Splash Screen Keep
           -keep class androidx.core.splashscreen.** { *; }
           -dontwarn androidx.core.splashscreen.**
+          # Razorpay SDK ProGuard Rules
+          -keepclassmembers class * {
+           @android.webkit.JavascriptInterface <methods>;
+          }
+          -keepattributes JavascriptInterface
+          -keepattributes *Annotation*
+          -dontwarn com.razorpay.**
+          -keep class com.razorpay.** {*;}
+          -optimizations !method/inlining/*
+          -keepclasseswithmembers class * {
+           public void onPayment*(...);
+          }
+
           EOF
 
 
@@ -237,7 +250,7 @@ jobs:
               <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
               <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
               <queries>
-             <intent>
+            <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="upi" />
             </intent>
@@ -245,11 +258,25 @@ jobs:
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="intent" />
             </intent>
+            <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="tez" />
+            </intent>
+            <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="phonepe" />
+            </intent>
+            <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="paytmmp" />
+            </intent>
             <package android:name="com.google.android.apps.nbu.paisa.user" />
             <package android:name="com.phonepe.app" />
             <package android:name="net.one97.paytm" />
             <package android:name="in.org.npci.upiapp" />
-            </queries>
+            <package android:name="in.amazon.mShop.android.shopping" />
+           </queries>
+
     
               <application
                   android:allowBackup="false"
@@ -558,7 +585,7 @@ jobs:
                   settings.setLoadsImagesAutomatically(true);
                   settings.setDatabaseEnabled(true);
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                  CookieManager.getInstance().setAcceptThirdPartyCookies(webView, false);
+                  CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
                   }
                   settings.setCacheMode(WebSettings.LOAD_DEFAULT);
                   // 🔐 SECURITY: Disable file:// URL access
@@ -759,21 +786,22 @@ jobs:
 
                           String scheme = uri.getScheme() != null ? uri.getScheme().toLowerCase(Locale.ROOT) : "";
 
-                       if ("upi".equals(scheme) || "intent".equals(scheme)) {
-                          try {
-                       Intent payIntent = "intent".equals(scheme)
-                ? Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
-                : new Intent(Intent.ACTION_VIEW, uri);
-                if (payIntent != null) {
-            payIntent.addCategory(Intent.CATEGORY_BROWSABLE);
-            startActivity(payIntent);
-            return true;
-            }
-            } catch (Exception e) {
-            Toast.makeText(MainActivity.this, "Unable to open payment app", Toast.LENGTH_SHORT).show();
-            }
-            return true;
-          }
+                       if ("upi".equals(scheme) || "intent".equals(scheme) || 
+                       "tez".equals(scheme) || "phonepe".equals(scheme) || "paytmmp".equals(scheme)) {
+                       try {
+                           Intent payIntent = "intent".equals(scheme)
+                  ? Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                  : new Intent(Intent.ACTION_VIEW, uri);
+                  if (payIntent != null) {
+                  payIntent.addCategory(Intent.CATEGORY_BROWSABLE);
+                 startActivity(payIntent);
+                return true;
+                }
+                } catch (Exception e) {
+                  Toast.makeText(MainActivity.this, "Unable to open payment app", Toast.LENGTH_SHORT).show();
+                }
+                 return true;
+               }
 
            if (host != null &&
           !host.equals("gdsnotes.in") && !host.endsWith(".gdsnotes.in") &&
@@ -874,7 +902,7 @@ jobs:
           cookieManager.setAcceptCookie(true);
 
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-          cookieManager.setAcceptThirdPartyCookies(webView, false);
+          cookieManager.setAcceptThirdPartyCookies(webView, true);
           }
           if (getIntent() == null || getIntent().getData() == null) {
               webView.loadUrl("https://rsh.gdsnotes.in");
