@@ -1501,6 +1501,7 @@ jobs:
 
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", "Bearer " + idToken);
             conn.setConnectTimeout(15000);
             conn.setReadTimeout(20000);
             conn.setDoOutput(true);
