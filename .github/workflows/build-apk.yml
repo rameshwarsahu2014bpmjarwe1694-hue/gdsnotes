@@ -75,7 +75,7 @@ jobs:
           mkdir -p webview-build/app/src/main/res/values
           mkdir -p webview-build/app/src/main/res/xml
           mkdir -p webview-build/gradle/wrapper
-          cp -r libs/*.jar webview-build/app/libs/ 2>/dev/null || true
+          cp libs/tez-client-api-0.9.4.aar webview-build/app/libs/ 2>/dev/null || true
           echo "===================================="
           echo "Native WebView workspace created."
           find webview-build -type d | sort
@@ -173,8 +173,8 @@ jobs:
               implementation 'androidx.activity:activity:1.9.1'
               implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
               implementation 'androidx.core:core-splashscreen:1.0.1'
-              implementation 'com.razorpay:checkout:1.6.40'
-                  
+              implementation files('libs/tez-client-api-0.9.4.aar')
+              
           }
           EOF
 
@@ -518,13 +518,14 @@ jobs:
             setContentView(R.layout.activity_main);
             Intent intent = getIntent();
 
-            if (intent != null && intent.getData() != null) {
-              webView = findViewById(R.id.webView);
-              String razorpayKey = "YOUR_RAZORPAY_KEY";
-              razorpay = new Razorpay(BuildConfig.RAZORPAY_KEY_ID, webView, MainActivity.this);
+            webView = findViewById(R.id.webView);
+            String key = BuildConfig.RAZORPAY_KEY_ID;
+            razorpay = new Razorpay(key, webView, this);
 
-              webView.loadUrl(intent.getData().toString());
-          }
+            if (intent != null && intent.getData() != null) {
+            webView.loadUrl(intent.getData().toString());
+            }
+
             fullscreenContainer = new FrameLayout(this);
             fullscreenContainer.setLayoutParams(
                 new FrameLayout.LayoutParams(
