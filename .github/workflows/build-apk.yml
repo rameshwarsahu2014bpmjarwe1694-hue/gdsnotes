@@ -382,8 +382,9 @@ jobs:
           import android.os.Handler;
           import android.os.Looper;
           import com.razorpay.Checkout;
-          import com.razorpay.PaymentResultListener;
-          public class MainActivity extends AppCompatActivity implements PaymentResultListener {
+          import com.razorpay.PaymentResultWithDataListener;
+          import com.razorpay.PaymentData;
+          public class MainActivity extends AppCompatActivity implements PaymentResultWithDataListener {
           private String calculateSha256(File file) throws Exception {
 
             MessageDigest digest =
@@ -1442,21 +1443,21 @@ jobs:
            super.onActivityResult(requestCode, resultCode, data);
           }
           @Override
-          public void onPaymentSuccess(String razorpayPaymentID) {
-              Toast.makeText(
-               MainActivity.this,
-               "Payment Successful: " + razorpayPaymentID,
-               Toast.LENGTH_LONG
-               ).show();
+          public void onPaymentSuccess(String razorpayPaymentID, PaymentData paymentData) {
+           Toast.makeText(
+           MainActivity.this,
+           "Payment received: " + razorpayPaymentID,
+           Toast.LENGTH_LONG
+           ).show();
           }
 
           @Override
           public void onPaymentError(int code, String response) {
             Toast.makeText(
-             MainActivity.this,
-             "Payment Failed: " + response,
-             Toast.LENGTH_LONG
-              ).show();
+            MainActivity.this,
+            "Payment Failed: " + response,
+            Toast.LENGTH_LONG
+           ).show();
           }
           }
           }
