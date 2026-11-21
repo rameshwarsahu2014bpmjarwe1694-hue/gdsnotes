@@ -1643,10 +1643,12 @@ jobs:
 
           @Override
           public void onPaymentError(int code, String response) {
-            Toast.makeText(
-            MainActivity.this,
-            "Payment Failed: " + response,
-            Toast.LENGTH_LONG
+          pendingPaymentIdToken = "";
+
+           Toast.makeText(
+           MainActivity.this,
+           "Payment Failed: " + response,
+           Toast.LENGTH_LONG
            ).show();
           }
           }
