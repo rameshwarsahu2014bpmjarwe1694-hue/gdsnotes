@@ -1642,14 +1642,14 @@ jobs:
           }
 
           @Override
-          public void onPaymentError(int code, String response) {
-          pendingPaymentIdToken = "";
+           public void onPaymentError(int code, String response, PaymentData paymentData) {
+            pendingPaymentIdToken = "";
 
-           Toast.makeText(
-           MainActivity.this,
-           "Payment Failed: " + response,
-           Toast.LENGTH_LONG
-           ).show();
+             Toast.makeText(
+             MainActivity.this,
+             "Payment Failed: " + response,
+             Toast.LENGTH_LONG
+             ).show();
           }
           }
 
