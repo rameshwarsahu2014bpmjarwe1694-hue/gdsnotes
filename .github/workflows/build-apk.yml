@@ -385,6 +385,7 @@ jobs:
           import com.razorpay.PaymentResultWithDataListener;
           import com.razorpay.PaymentData;
           public class MainActivity extends AppCompatActivity implements PaymentResultWithDataListener {
+          private String pendingPaymentIdToken = "";
           private String calculateSha256(File file) throws Exception {
 
             MessageDigest digest =
