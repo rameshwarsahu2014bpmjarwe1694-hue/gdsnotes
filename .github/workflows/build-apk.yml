@@ -218,13 +218,7 @@ jobs:
           echo "===== app/build.gradle ====="
           cat webview-build/app/build.gradle
 
-      - name: Download Razorpay UPI Intent SDK
-        run: |
-          mkdir -p webview-build/app/libs
-          curl -fL --retry 3 \
-            "https://rzp-mobile.s3.amazonaws.com/android/upi-intent-sdk/razorpay-upi-intent-sdk.jar" \
-            -o webview-build/app/libs/razorpay-upi-intent-sdk.jar
-          ls -lh webview-build/app/libs/razorpay-upi-intent-sdk.jar
+      
           
       - name: Verify Gradle Dependencies
         run: |
