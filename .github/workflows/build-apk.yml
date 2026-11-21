@@ -173,6 +173,7 @@ jobs:
               implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
               implementation 'androidx.core:core-splashscreen:1.0.1'
               implementation files('libs/tez-client-api-0.9.4.aar')
+              implementation 'com.razorpay:checkout:1.6.40'
               
           }
           EOF
@@ -380,7 +381,9 @@ jobs:
           import java.util.concurrent.Executors;
           import android.os.Handler;
           import android.os.Looper;
-          public class MainActivity extends AppCompatActivity {
+          import com.razorpay.Checkout;
+          import com.razorpay.PaymentResultListener;
+          public class MainActivity extends AppCompatActivity implements PaymentResultListener {
           private String calculateSha256(File file) throws Exception {
 
             MessageDigest digest =
@@ -444,7 +447,6 @@ jobs:
           }
           }
               private WebView webView;
-              private Razorpay razorpay;
               private View offlineLayout;
               private ValueCallback<Uri[]> filePathCallback;
               private Button btnRetry;
@@ -494,6 +496,7 @@ jobs:
              SplashScreen.installSplashScreen(this);
 
             super.onCreate(savedInstanceState);
+            Checkout.preload(getApplicationContext());
                         // 🔐 Security: Debugger & Tamper Detection
             if ((getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0 || android.os.Debug.isDebuggerConnected()) {
                 finishAffinity();
@@ -1437,6 +1440,23 @@ jobs:
            @Override
            protected void onActivityResult(int requestCode, int resultCode, Intent data) {
            super.onActivityResult(requestCode, resultCode, data);
+          }
+          @Override
+          public void onPaymentSuccess(String razorpayPaymentID) {
+              Toast.makeText(
+               MainActivity.this,
+               "Payment Successful: " + razorpayPaymentID,
+               Toast.LENGTH_LONG
+               ).show();
+          }
+
+          @Override
+          public void onPaymentError(int code, String response) {
+            Toast.makeText(
+             MainActivity.this,
+             "Payment Failed: " + response,
+             Toast.LENGTH_LONG
+              ).show();
           }
           }
           }
