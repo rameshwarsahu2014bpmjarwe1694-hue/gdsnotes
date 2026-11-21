@@ -140,7 +140,6 @@ jobs:
                   targetSdk 34
                   versionCode 17
                   versionName "1.8.8"
-                  buildConfigField "String", "RAZORPAY_KEY_ID", "\"${System.getenv("RAZORPAY_KEY_ID") ?: ""}\""
 
                   testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
               }
@@ -174,7 +173,6 @@ jobs:
               implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
               implementation 'androidx.core:core-splashscreen:1.0.1'
               implementation files('libs/tez-client-api-0.9.4.aar')
-              implementation 'com.razorpay:checkout:1.6.40'
               
           }
           EOF
@@ -382,7 +380,6 @@ jobs:
           import java.util.concurrent.Executors;
           import android.os.Handler;
           import android.os.Looper;
-          import com.razorpay.Razorpay;
           public class MainActivity extends AppCompatActivity {
           private String calculateSha256(File file) throws Exception {
 
@@ -522,8 +519,6 @@ jobs:
             Intent intent = getIntent();
 
             webView = findViewById(R.id.webView);
-            String key = BuildConfig.RAZORPAY_KEY_ID;
-            razorpay = new Razorpay(key, webView, this);
 
             if (intent != null && intent.getData() != null) {
             webView.loadUrl(intent.getData().toString());
@@ -1442,8 +1437,6 @@ jobs:
            @Override
            protected void onActivityResult(int requestCode, int resultCode, Intent data) {
            super.onActivityResult(requestCode, resultCode, data);
-           if (requestCode == Razorpay.UPI_INTENT_REQUEST_CODE) {
-           razorpay.onActivityResult(requestCode, resultCode, data);
           }
           }
           }
