@@ -1440,26 +1440,27 @@ jobs:
               }
           }
           @JavascriptInterface
-public void startRazorpayNotesCheckout(
-        String category,
-        String subject,
-        String title,
-        String idToken,
-        String email
-) {
-    if (idToken == null || idToken.trim().isEmpty()) {
-        runOnUiThread(() ->
+          public void startRazorpayNotesCheckout(
+           String category,
+           String subject,
+           String title,
+           String idToken,
+           String email
+          ) 
+           {
+           if (idToken == null || idToken.trim().isEmpty()) {
+           runOnUiThread(() ->
             Toast.makeText(MainActivity.this,
                 "Please login before payment.",
                 Toast.LENGTH_LONG).show()
-        );
-        return;
-    }
+            );
+             return;
+          }
 
-    pendingPaymentIdToken = idToken;
+           pendingPaymentIdToken = idToken;
 
-    new Thread(() -> {
-        try {
+          new Thread(() -> {
+           try {
             java.net.URL url = new java.net.URL(
                 "https://payment-backend-2-g6go.onrender.com/api/create-order"
             );
@@ -1538,26 +1539,106 @@ public void startRazorpayNotesCheckout(
                 }
             });
 
-        } catch (Exception e) {
+             } catch (Exception e) {
             runOnUiThread(() ->
                 Toast.makeText(MainActivity.this,
                     "Order Error: " + e.getMessage(),
                     Toast.LENGTH_LONG).show()
             );
-        }
-    }).start();
-}
+          }
+          }).start();
+          }
            @Override
            protected void onActivityResult(int requestCode, int resultCode, Intent data) {
            super.onActivityResult(requestCode, resultCode, data);
           }
           @Override
           public void onPaymentSuccess(String razorpayPaymentID, PaymentData paymentData) {
-           Toast.makeText(
-           MainActivity.this,
-           "Payment received: " + razorpayPaymentID,
-           Toast.LENGTH_LONG
-           ).show();
+
+           new Thread(() -> {
+              try {
+            JSONObject payment = paymentData.getData();
+
+            JSONObject request = new JSONObject();
+            request.put("razorpay_payment_id", razorpayPaymentID);
+            request.put("razorpay_order_id",
+                payment.optString("razorpay_order_id"));
+            request.put("razorpay_signature",
+                payment.optString("razorpay_signature"));
+
+            java.net.URL url = new java.net.URL(
+                "https://payment-backend-2-g6go.onrender.com/api/verify-payment"
+            );
+
+            java.net.HttpURLConnection conn =
+                (java.net.HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty(
+                "Authorization",
+                "Bearer " + pendingPaymentIdToken
+            );
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(20000);
+            conn.setDoOutput(true);
+
+            try (java.io.OutputStream os = conn.getOutputStream()) {
+                os.write(request.toString().getBytes("UTF-8"));
+            }
+
+            int responseCode = conn.getResponseCode();
+
+            java.io.InputStream input =
+                responseCode >= 200 && responseCode < 300
+                ? conn.getInputStream()
+                : conn.getErrorStream();
+
+            StringBuilder response = new StringBuilder();
+
+            try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(input))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+            }
+
+            conn.disconnect();
+
+            JSONObject result = new JSONObject(response.toString());
+
+            if (responseCode >= 200 && responseCode < 300
+                    && result.optBoolean("success")) {
+
+                runOnUiThread(() -> {
+                    pendingPaymentIdToken = "";
+
+                    webView.evaluateJavascript(
+                        "if(typeof window.__nativeRazorpaySuccess==='function'){" +
+                        "var cb=window.__nativeRazorpaySuccess;" +
+                        "window.__nativeRazorpaySuccess=null;" +
+                        "cb({success:true});}",
+                        null
+                    );
+                });
+
+            } else {
+                runOnUiThread(() ->
+                    Toast.makeText(MainActivity.this,
+                        "Payment verification failed.",
+                        Toast.LENGTH_LONG).show()
+                );
+            }
+
+             } catch (Exception e) {
+            runOnUiThread(() ->
+                Toast.makeText(MainActivity.this,
+                    "Verification Error: " + e.getMessage(),
+                    Toast.LENGTH_LONG).show()
+            );
+           }
+           }).start();
           }
 
           @Override
