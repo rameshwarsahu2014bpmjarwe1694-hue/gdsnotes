@@ -21,45 +21,41 @@ permissions:
 
 jobs:
   build:
-  - name: Build & Sign Android APK
+    name: Build & Sign Android APK
     runs-on: ubuntu-latest
 
     steps:
-  - name: Checkout repository
-    uses: actions/checkout@v5
-    
-  - name: Create google-services.json
-    env:
-       GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-    run: |
-       mkdir -p webview-build/app
-       printf '%s' "$GOOGLE_SERVICES_JSON" > webview-build/app/google-   
-       services.json
-       
-          
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-  - name: Set up JDK 17
-    uses: actions/setup-java@v5
-    with:
+      - name: Create google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          mkdir -p webview-build/app
+          printf '%s' "$GOOGLE_SERVICES_JSON" > webview-build/app/google-services.json
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
           distribution: temurin
           java-version: '17'
 
-  - name: Set up Android SDK
-    uses: android-actions/setup-android@v3
-    with:
-         packages: 'platforms;android-34 build-tools;34.0.0 platform-
-          tools'
-         cmdline-tools-version: 'latest'
-          
-  - name: Install ImageMagick
-    run: |
-         sudo apt-get update
-         sudo apt-get install -y imagemagick
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-34 build-tools;34.0.0 platform-tools'
+          cmdline-tools-version: 'latest'
 
-         convert -version
-         
-  - name: Accept Android SDK licenses
-     run: yes | sdkmanager --licenses >/dev/null || true
+      - name: Install ImageMagick
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
+          convert -version
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses >/dev/null || true
 
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
@@ -76,10 +72,11 @@ jobs:
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > android.keystore
           ls -lh android.keystore
+
       - name: Create Native WebView workspace
         run: |
           mkdir -p webview-build
-          
+
           mkdir -p webview-build/app/libs
           mkdir -p webview-build/app/src/main/java
           mkdir -p webview-build/app/src/main/res/layout
@@ -91,6 +88,7 @@ jobs:
           echo "Native WebView workspace created."
           find webview-build -type d | sort
           echo "===================================="
+
       - name: Generate Gradle project files
         run: |
           cat > webview-build/settings.gradle <<'EOF'
@@ -135,6 +133,7 @@ jobs:
 
           echo "===== gradle.properties ====="
           cat webview-build/gradle.properties
+
       - name: Generate app build.gradle
         run: |
           cat > webview-build/app/build.gradle <<'EOF'
@@ -243,8 +242,6 @@ jobs:
 
           echo "===== app/build.gradle ====="
           cat webview-build/app/build.gradle
-
-      
           
      - name: Verify Gradle Dependencies
         run: |
