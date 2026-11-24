@@ -591,7 +591,7 @@ jobs:
           }
           EOF
           
-- name: Verify Generated MainActivity
+      - name: Verify Generated MainActivity
         run: |
          echo "===== Package ====="
          grep "^package " webview-build/app/src/main/java/io/gdsnote/rshtwa/MainActivity.java
