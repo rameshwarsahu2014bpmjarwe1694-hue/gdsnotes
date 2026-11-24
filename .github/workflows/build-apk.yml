@@ -243,10 +243,10 @@ jobs:
           echo "===== app/build.gradle ====="
           cat webview-build/app/build.gradle
           
-     - name: Verify Gradle Dependencies
+      - name: Verify Gradle Dependencies
         run: |
          grep "core-splashscreen" webview-build/app/build.gradle
-     - name: Generate AndroidManifest.xml
+      - name: Generate AndroidManifest.xml
         run: |
           mkdir -p webview-build/app/src/main
 
